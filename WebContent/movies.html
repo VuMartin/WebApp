@@ -21,23 +21,25 @@
     </head>
 
     <body>
-        <h1>Top 20 Movies Page</h1>
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Movie Title</th>
-                    <th>Release Year</th>
-                    <th>Director</th>
-                    <th>Genres</th>
-                    <th>Stars</th>
-                    <th>Rating</th>
-                </tr>
-            </thead>
+        <div class="container">
+            <h1>Top 20 Movies</h1>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Movie Title</th>
+                        <th>Release Year</th>
+                        <th>Director</th>
+                        <th>Genres</th>
+                        <th>Stars</th>
+                        <th>Rating</th>
+                    </tr>
+                </thead>
 
-            <!-- Table body is left empty here, will be populated with the data retrieved with single-star.js -->
-            <!-- single-star.js will find this html element by it's id "movie_table_body" -->
-            <tbody id=movie_table_body></tbody>
-        </table>
+                <!-- Table body is left empty here, will be populated with the data retrieved with single-star.js -->
+                <!-- single-star.js will find this html element by it's id "movie_table_body" -->
+                <tbody id=movie_table_body></tbody>
+            </table>
+        </div>
 
         <!-- Load jQuery and Bootstrap JS -->
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>

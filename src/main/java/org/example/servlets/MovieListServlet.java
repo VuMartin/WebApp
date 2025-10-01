@@ -18,7 +18,7 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 
 // http://localhost:8080/2025_fall_cs_122b_marjoe_war/topmovies
-//http://localhost:8080/2025_fall_cs_122b_marjoe_war/movies.html
+// http://localhost:8080/2025_fall_cs_122b_marjoe_war/movies.html
 // This annotation maps this Java Servlet Class to a URL
 @WebServlet(name = "MovieListServlet", urlPatterns = "/topmovies")
 public class MovieListServlet extends HttpServlet {
@@ -51,21 +51,22 @@ public class MovieListServlet extends HttpServlet {
             // Declare our statement
             Statement statement = conn.createStatement();
 
-            String topMoviesQuery = "SELECT m.id, m.title, m.year, m.director " +
+            String topMoviesQuery = "SELECT m.id, m.title, m.year, m.director, " +
+                                    "(SELECT GROUP_CONCAT(genre_sub.name SEPARATOR ', ') " +
+                                    " FROM (SELECT g.name " +
+                                    "       FROM genres g " +
+                                    "       JOIN genres_in_movies gm ON g.id = gm.genre_id " +
+                                    "       WHERE gm.movie_id = m.id " +
+                                    "       LIMIT 3) AS genre_sub) AS genres, " +
+                                    "(SELECT GROUP_CONCAT(stars_sub.name SEPARATOR ', ') " +
+                                    " FROM (SELECT s.name " +
+                                    "       FROM stars s " +
+                                    "       JOIN stars_in_movies sm ON s.id = sm.star_id " +
+                                    "       WHERE sm.movie_id = m.id " +
+                                    "       LIMIT 3) AS stars_sub) AS stars " +
                                     "FROM movies m " +
                                     "LIMIT 20";
 
-//            String firstThreeGenres = "SELECT g.name " +
-//                                      "FROM genres g " +
-//                                      "JOIN genres_in_movies gm ON g.id = gm.genre_id " +
-//                                      "WHERE gm.movie_id = ? " +
-//                                      "LIMIT 3";
-//
-//            String firstThreeStars = "SELECT s.name " +
-//                                     "FROM stars s " +
-//                                     "JOIN stars_in_movies sm ON s.id = sm.star_id " +
-//                                     "WHERE sm.movie_id = ? " +
-//                                     "LIMIT 3";
 
             // Perform the query
             ResultSet rs = statement.executeQuery(topMoviesQuery);
@@ -75,10 +76,13 @@ public class MovieListServlet extends HttpServlet {
             // Iterate through each row of rs
             while (rs.next()) {
                 // get a movie from result set
-                String movieID = rs.getString("id");
+                String movieID = rs.getString("id");  // db column name
                 String movieTitle = rs.getString("title");
                 String movieYear = rs.getString("year");
                 String movieDirector = rs.getString("director");
+                String movieGenres = rs.getString("genres");
+                String movieStars = rs.getString("stars");
+//                String rating = rs.getString("rating");
 
                 // Create a JsonObject based on the data we retrieve from rs
                 JsonObject jsonObject = new JsonObject();
@@ -86,6 +90,9 @@ public class MovieListServlet extends HttpServlet {
                 jsonObject.addProperty("movieTitle", movieTitle);
                 jsonObject.addProperty("movieYear", movieYear);
                 jsonObject.addProperty("movieDirector", movieDirector);
+                jsonObject.addProperty("movieGenres", movieGenres);
+                jsonObject.addProperty("movieStars", movieStars);
+//                jsonObject.addProperty("movieRating", rating);
                 jsonArray.add(jsonObject);
             }
             rs.close();

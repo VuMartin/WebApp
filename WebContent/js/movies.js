@@ -25,6 +25,8 @@ function handleResult(resultData) {
         rowHTML += "<td>" + resultData[i]["movieTitle"] + "</td>";
         rowHTML += "<td>" + resultData[i]["movieYear"] + "</td>";
         rowHTML += "<td>" + resultData[i]["movieDirector"] + "</td>";
+        rowHTML += "<td>" + resultData[i]["movieGenres"] + "</td>";
+        rowHTML += "<td>" + resultData[i]["movieStars"] + "</td>";
         rowHTML += "</tr>";
 
         // Append the row created to the table body, which will refresh the page
@@ -40,6 +42,6 @@ function handleResult(resultData) {
 jQuery.ajax({
     dataType: "json",  // Setting return data type
     method: "GET",// Setting request method
-    url: "api/topmovies", // Setting request url
+    url: "topmovies", // Setting request url
     success: (resultData) => handleResult(resultData) // Setting callback function to handle data returned successfully by the MovieListServlet
 });
