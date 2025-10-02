@@ -52,18 +52,18 @@ public class MovieListServlet extends HttpServlet {
             Statement statement = conn.createStatement();
 
             String topMoviesQuery = "SELECT m.id, m.title, m.year, m.director, " +
-                                    "(SELECT GROUP_CONCAT(genre_sub.name SEPARATOR ', ') " +
-                                    " FROM (SELECT g.name " +
+                                    "(SELECT GROUP_CONCAT(DISTINCT genre_sub.name SEPARATOR ', ') " +
+                                    " FROM (SELECT g.name " +  // nested select to get limit 3 since it does not work directly with group concat
                                     "       FROM genres g " +
                                     "       JOIN genres_in_movies gm ON g.id = gm.genre_id " +
                                     "       WHERE gm.movie_id = m.id " +
-                                    "       LIMIT 3) AS genre_sub) AS genres, " +
-                                    "(SELECT GROUP_CONCAT(stars_sub.name SEPARATOR ', ') " +
+                                    "       LIMIT 3) AS genre_sub) AS genres, " +  // genres is the column name
+                                    "(SELECT GROUP_CONCAT(DISTINCT stars_sub.name SEPARATOR ', ') " +
                                     " FROM (SELECT s.name " +
                                     "       FROM stars s " +
                                     "       JOIN stars_in_movies sm ON s.id = sm.star_id " +
                                     "       WHERE sm.movie_id = m.id " +
-                                    "       LIMIT 3) AS stars_sub) AS stars " +
+                                    "       LIMIT 3) AS stars_sub) AS stars " +  // stars is the column name
                                     "FROM movies m " +
                                     "LIMIT 20";
 
@@ -76,7 +76,7 @@ public class MovieListServlet extends HttpServlet {
             // Iterate through each row of rs
             while (rs.next()) {
                 // get a movie from result set
-                String movieID = rs.getString("id");  // db column name
+                String movieID = rs.getString("id");  // db column name from query
                 String movieTitle = rs.getString("title");
                 String movieYear = rs.getString("year");
                 String movieDirector = rs.getString("director");

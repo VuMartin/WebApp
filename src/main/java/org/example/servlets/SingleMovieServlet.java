@@ -17,8 +17,8 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
-// http://localhost:8080/2025_fall_cs_122b_marjoe_war/topmovies
-// http://localhost:8080/2025_fall_cs_122b_marjoe_war/movies.html
+// http://localhost:8080/2025_fall_cs_122b_marjoe_war/movie
+// http://localhost:8080/2025_fall_cs_122b_marjoe_war/movie.html
 // This annotation maps this Java Servlet Class to a URL
 @WebServlet(name = "SingleMovieServlet", urlPatterns = "/movie")
 public class SingleMovieServlet extends HttpServlet {
@@ -51,30 +51,25 @@ public class SingleMovieServlet extends HttpServlet {
             // Declare our statement
             Statement statement = conn.createStatement();
 
-            String topMoviesQuery = "SELECT m.id, m.title, m.year, m.director, " +
-                    "(SELECT GROUP_CONCAT(genre_sub.name SEPARATOR ', ') " +
-                    " FROM (SELECT g.name " +
-                    "       FROM genres g " +
-                    "       JOIN genres_in_movies gm ON g.id = gm.genre_id " +
-                    "       WHERE gm.movie_id = m.id " +
-                    "       LIMIT 3) AS genre_sub) AS genres, " +
-                    "(SELECT GROUP_CONCAT(stars_sub.name SEPARATOR ', ') " +
-                    " FROM (SELECT s.name " +
-                    "       FROM stars s " +
-                    "       JOIN stars_in_movies sm ON s.id = sm.star_id " +
-                    "       WHERE sm.movie_id = m.id " +
-                    "       LIMIT 3) AS stars_sub) AS stars " +
-                    "FROM movies m " +
-                    "LIMIT 20";
+            String movieQuery = "SELECT m.id, m.title, m.year, m.director, " +
+                                    "GROUP_CONCAT(DISTINCT g.name SEPARATOR ', ') AS genres, " +
+                                    "GROUP_CONCAT(DISTINCT s.name SEPARATOR ', ') AS stars " +
+                                "FROM movies m " +
+//                                "LEFT JOIN ratings r ON m.id = r.movie_id " +
+                                "LEFT JOIN genres_in_movies gm ON m.id = gm.movie_id " +  // left join to include movies with no genres, stars, ratings
+                                "LEFT JOIN genres g ON gm.genre_id = g.id " +
+                                "LEFT JOIN stars_in_movies sm ON m.id = sm.movie_id " +
+                                "LEFT JOIN stars s ON sm.star_id = s.id " +
+                                "WHERE m.id = 'tt0421974' " +
+                                "GROUP BY m.id";
 
 
             // Perform the query
-            ResultSet rs = statement.executeQuery(topMoviesQuery);
+            ResultSet rs = statement.executeQuery(movieQuery);
 
-            JsonArray jsonArray = new JsonArray();
+            JsonObject jsonObject = new JsonObject();
 
-            // Iterate through each row of rs
-            while (rs.next()) {
+            if (rs.next()) {
                 // get a movie from result set
                 String movieID = rs.getString("id");  // db column name
                 String movieTitle = rs.getString("title");
@@ -85,7 +80,6 @@ public class SingleMovieServlet extends HttpServlet {
 //                String rating = rs.getString("rating");
 
                 // Create a JsonObject based on the data we retrieve from rs
-                JsonObject jsonObject = new JsonObject();
                 jsonObject.addProperty("movieID", movieID);
                 jsonObject.addProperty("movieTitle", movieTitle);
                 jsonObject.addProperty("movieYear", movieYear);
@@ -93,16 +87,15 @@ public class SingleMovieServlet extends HttpServlet {
                 jsonObject.addProperty("movieGenres", movieGenres);
                 jsonObject.addProperty("movieStars", movieStars);
 //                jsonObject.addProperty("movieRating", rating);
-                jsonArray.add(jsonObject);
             }
             rs.close();
             statement.close();
 
             // Log to localhost log
-            request.getServletContext().log("getting " + jsonArray.size() + " results");
+            request.getServletContext().log("getting " + jsonObject.size() + " results");
 
             // Write JSON string to output
-            out.write(jsonArray.toString());
+            out.write(jsonObject.toString());
             // Set response status to 200 (OK)
             response.setStatus(200);
 
