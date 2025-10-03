@@ -1,0 +1,30 @@
+.container {
+    padding-top: 30px;
+    padding-left: 30px;
+    padding-right: 30px;
+}
+
+.siteHeader {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding: 20px 0;
+}
+.siteHeader .back-link {
+    position: absolute;
+    left: 10px;
+    text-decoration: none;
+    color: blue;
+}
+
+
+#siteName {
+    color: black;
+    text-align: center;
+    padding-top: 30px;
+    padding-bottom: 15px;
+}
+#movieTitle {
+    margin-bottom: 15px;
+}

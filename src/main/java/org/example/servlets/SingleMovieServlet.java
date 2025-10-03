@@ -20,7 +20,7 @@ import java.sql.Statement;
 // http://localhost:8080/2025_fall_cs_122b_marjoe_war/movie
 // http://localhost:8080/2025_fall_cs_122b_marjoe_war/movie.html
 // This annotation maps this Java Servlet Class to a URL
-@WebServlet(name = "SingleMovieServlet", urlPatterns = "/movie")
+@WebServlet(name = "SingleMovieServlet", urlPatterns = "/api/movie")
 public class SingleMovieServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
 

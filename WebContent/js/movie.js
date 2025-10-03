@@ -46,6 +46,20 @@ function handleResult(resultData) {
     jQuery("#movieGenres").text(resultData["movieGenres"]);
     jQuery("#movieStars").text(resultData["movieStars"]);
     // jQuery("#movieRating").text(resultData["movieRating"]);
+
+    let starsContainer = jQuery("#movieStars");
+    starsContainer.empty();
+
+    let stars = resultData["movieStars"].split(", ");
+    stars.forEach((star, index) => {
+        let link = jQuery("<a></a>")
+            .text(star)
+            .attr("href", "singleStar.html?id=" + encodeURIComponent(star)); // link to star page
+        starsContainer.append(link);
+        if (index < stars.length - 1) {
+            starsContainer.append(", ");
+        }
+    });
 }
 
 /**
@@ -60,6 +74,6 @@ let movieID = "tt0421974";
 jQuery.ajax({
     dataType: "json",  // Setting return data type
     method: "GET",// Setting request method
-    url: "movie?id=" + movieID, // Setting request url, which is mapped by StarsServlet in Stars.java
+    url: "api/movie?id=" + movieID, // Setting request url, which is mapped by StarsServlet in Stars.java
     success: (resultData) => handleResult(resultData) // Setting callback function to handle data returned successfully by the SingleStarServlet
 });
