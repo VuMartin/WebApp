@@ -5,19 +5,27 @@
 }
 
 .siteHeader {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    padding: 20px 0;
-}
-.siteHeader .back-link {
-    position: absolute;
-    left: 10px;
-    text-decoration: none;
-    color: blue;
+    display: flex;  /* direction is row by default */
+    align-items: center;  /* centers items vertically (perpendicular to flex direction) */
+    justify-content: center;  /* centers items horizontally (with flex direction) */
+    position: relative;  /* sets this as reference point for absolute elements */
+    padding: 20px 0;  /* adds vertical space inside element by 20px, 0 for sides */
 }
 
+.arrow {
+    position: absolute;  /* positions element relative to siteHeader */
+    left: 10px;
+    color: black;
+    font-weight: bold;
+}
+
+.back-link {
+    position: absolute;
+    left: 30px;
+    color: black;
+    font-weight: bold;
+    text-decoration: underline;
+}
 
 #siteName {
     color: black;
@@ -27,4 +35,13 @@
 }
 #movieTitle {
     margin-bottom: 15px;
+}
+
+#movieStars a {
+    color: black;
+    text-decoration: underline;
+}
+
+#movieStars a:hover {
+    color: royalblue;
 }

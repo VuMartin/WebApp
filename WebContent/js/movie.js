@@ -54,7 +54,7 @@ function handleResult(resultData) {
     stars.forEach((star, index) => {
         let link = jQuery("<a></a>")
             .text(star)
-            .attr("href", "singleStar.html?id=" + encodeURIComponent(star)); // link to star page
+            .attr("href", "singleStar.html?id=" + encodeURIComponent(star));  // link to star page
         starsContainer.append(link);
         if (index < stars.length - 1) {
             starsContainer.append(", ");
