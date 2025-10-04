@@ -52,7 +52,7 @@ function handleResult(resultData) {
 
     let stars = resultData["movieStars"].split(", ");
     stars.forEach((star, index) => {
-        let link = jQuery("<a></a>")
+        let link = jQuery("<a></a>")  // dynamically creates a hyperlink in js
             .text(star)
             .attr("href", "singleStar.html?id=" + encodeURIComponent(star));  // link to star page
         starsContainer.append(link);
@@ -67,8 +67,7 @@ function handleResult(resultData) {
  */
 
 // Get id from URL
-// let movieId = getParameterByName('id');
-let movieID = "tt0421974";
+let movieID = getParameterByName('id');
 
 // Makes the HTTP GET request and registers on success callback function handleResult
 jQuery.ajax({

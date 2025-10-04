@@ -17,7 +17,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
-// http://localhost:8080/2025_fall_cs_122b_marjoe_war/topmovies
+// http://localhost:8080/2025_fall_cs_122b_marjoe_war/api/topmovies
 // http://localhost:8080/2025_fall_cs_122b_marjoe_war/movies.html
 // This annotation maps this Java Servlet Class to a URL
 @WebServlet(name = "MovieListServlet", urlPatterns = "/api/topmovies")

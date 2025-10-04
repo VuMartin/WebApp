@@ -12,10 +12,11 @@ import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.Statement;
 
-// http://localhost:8080/2025_fall_cs_122b_marjoe_war/movie
+// http://localhost:8080/2025_fall_cs_122b_marjoe_war/api/movie
+// http://localhost:8080/2025_fall_cs_122b_marjoe_war/api/movie?id=tt0112912
 // http://localhost:8080/2025_fall_cs_122b_marjoe_war/movie.html
 // This annotation maps this Java Servlet Class to a URL
 @WebServlet(name = "SingleMovieServlet", urlPatterns = "/api/movie")
@@ -40,15 +41,18 @@ public class SingleMovieServlet extends HttpServlet {
 
         response.setContentType("application/json"); // Response mime type
 
+        // Retrieve parameter id from url request.
+        String id = request.getParameter("id");
+
+        // The log message can be found in localhost log
+        request.getServletContext().log("getting id: " + id);
+        System.out.println("getting id: " + id);
+
         // Output stream to STDOUT
         PrintWriter out = response.getWriter();
 
         // Get a connection from dataSource and let resource manager close the connection after usage.
         try (Connection conn = dataSource.getConnection()) {
-
-            // Declare our statement
-            Statement statement = conn.createStatement();
-
             String movieQuery = "SELECT m.id, m.title, m.year, m.director, " +
                                     "GROUP_CONCAT(DISTINCT g.name SEPARATOR ', ') AS genres, " +
                                     "GROUP_CONCAT(DISTINCT s.name SEPARATOR ', ') AS stars " +
@@ -58,12 +62,18 @@ public class SingleMovieServlet extends HttpServlet {
                                 "LEFT JOIN genres g ON gm.genre_id = g.id " +
                                 "LEFT JOIN stars_in_movies sm ON m.id = sm.movie_id " +
                                 "LEFT JOIN stars s ON sm.star_id = s.id " +
-                                "WHERE m.id = 'tt0421974' " +
+                                "WHERE m.id = ? " +
                                 "GROUP BY m.id";
 
 
+            // Declare our statement
+            PreparedStatement statement = conn.prepareStatement(movieQuery);
+            // Set the parameter represented by "?" in the query to the id we get from url,
+            // num 1 indicates the first "?" in the query
+            statement.setString(1, id);
+
             // Perform the query
-            ResultSet rs = statement.executeQuery(movieQuery);
+            ResultSet rs = statement.executeQuery();
 
             JsonObject jsonObject = new JsonObject();
 

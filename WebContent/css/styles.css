@@ -37,11 +37,11 @@
     margin-bottom: 15px;
 }
 
-#movieStars a {
+#movieStars a, #movie-table-body a {
     color: black;
     text-decoration: underline;
 }
 
-#movieStars a:hover {
+#movieStars a:hover, #movie-table-body a:hover {
     color: royalblue;
 }

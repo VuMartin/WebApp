@@ -17,16 +17,23 @@
 function handleResult(resultData) {
     // Populate the star table
     // Find the empty table body by id "movie_table_body"
-    let movieTableBodyElement = jQuery("#movie_table_body");
+    let movieTableBodyElement = jQuery("#movie-table-body");
+    console.log(movieTableBodyElement);
 
     // Concatenate the html tags with resultData jsonObject to create table rows
     for (let i = 0; i < resultData.length; i++) {
         let rowHTML = "<tr>";
-        rowHTML += "<td>" + resultData[i]["movieTitle"] + "</td>";
+        rowHTML += "<td><a href='movie.html?id=" +
+            encodeURIComponent(resultData[i]["movieID"]) + "'>" +
+            resultData[i]["movieTitle"] + "</a></td>";
         rowHTML += "<td>" + resultData[i]["movieYear"] + "</td>";
         rowHTML += "<td>" + resultData[i]["movieDirector"] + "</td>";
         rowHTML += "<td>" + resultData[i]["movieGenres"] + "</td>";
-        rowHTML += "<td>" + resultData[i]["movieStars"] + "</td>";
+        let stars = resultData[i]["movieStars"].split(", ");
+        let starLinks = stars.map(star =>
+            "<a href='singleStar.html?id=" + encodeURIComponent(star) + "'>" + star + "</a>"
+        );
+        rowHTML += "<td>" + starLinks.join(", ") + "</td>";
         rowHTML += "</tr>";
 
         // Append the row created to the table body, which will refresh the page
