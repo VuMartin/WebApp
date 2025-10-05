@@ -40,6 +40,8 @@ function handleResult(resultData) {
     console.log("handleResult: populating movie info from resultData");
 
     // Populate the movie info
+    jQuery("#pageTitle").text(
+        resultData["movieTitle"] + " (" + resultData["movieYear"] + ") - Fabflix");
     jQuery("#movieTitle").text(resultData["movieTitle"]);
     jQuery("#movieYear").text(resultData["movieYear"]);
     jQuery("#movieDirector").text(resultData["movieDirector"]);
