@@ -1,39 +1,51 @@
 /* top movies */
-#moviePageHeader {
+#movie-page-header {
+    position: fixed;
+    top: 0;
+    width: 100%;
     text-align: center;
     background-color: lightblue;
+    z-index: 1000; /* keeps it above other stuff */
 }
 
-.topMoviesHeading {
-    display: inline-block;
-    background-color: lightgoldenrodyellow;
-}
-
-#siteName {
+#site-name {
     color: white;
     background-color: #08F;
     padding: 10px;  /* top, right, bottom, left for bg */
     font-family: Impact, fantasy;
-    font-size: 3rem;
     display: inline-block;
+    font-size: 30px;
     border-radius: 20px;
     margin-top: 10px;
 }
 
+.container {
+    padding-left: 30px;
+    padding-right: 30px;
+}
+
+.full-h3 {
+    margin-left: -75px;  /* space outside element like the block, padding space inside element like text */
+    margin-right: -75px;
+}
+
+.full-h3 h3 {
+    padding: 110px 0 10px 75px;  /* top, right, bottom, left for bg */
+    margin: 0;  /* space outside element like the block, padding space inside element like text */
+}
+
+.ratings-col {
+    width: 120px;
+}
+
 /* single movie */
 
-.siteHeader {
+.site-header {
     display: flex;  /* direction is row by default */
     align-items: center;  /* centers items vertically (perpendicular to flex direction) */
     justify-content: center;  /* centers items horizontally (with flex direction) */
     position: relative;  /* sets this as reference point for absolute elements */
     background-color: lightblue;
-}
-
-.container {
-    padding-top: 30px;
-    padding-left: 30px;
-    padding-right: 30px;
 }
 
 .arrow {
@@ -51,7 +63,8 @@
     text-decoration: underline;
 }
 
-#movieTitle {
+#movie-title {
+    padding-top: 30px;
     margin-bottom: 15px;
 }
 
