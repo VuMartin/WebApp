@@ -42,7 +42,7 @@ function handleResult(resultData) {
     // Populate the movie info
     jQuery("#pageTitle").text(
         resultData["movieTitle"] + " (" + resultData["movieYear"] + ") - Fabflix");
-    jQuery("#movieTitle").text(resultData["movieTitle"]);
+    jQuery("#movie-title").text(resultData["movieTitle"]);
     jQuery("#movieYear").text(resultData["movieYear"]);
     jQuery("#movieDirector").text(resultData["movieDirector"]);
     jQuery("#movieGenres").text(resultData["movieGenres"]);
