@@ -1,6 +1,5 @@
 package main.java.org.example.servlets;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 import javax.naming.InitialContext;
@@ -17,6 +16,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
+// http://localhost:8080/2025_fall_cs_122b_marjoe_war/api/single-star
+// http://localhost:8080/2025_fall_cs_122b_marjoe_war/star.html
+// http://localhost:8080/2025_fall_cs_122b_marjoe_war/api/single-star?id=nm0000001
 // Declaring a WebServlet called SingleStarServlet, which maps to url "/api/single-star"
 @WebServlet(name = "SingleStarServlet", urlPatterns = "/api/single-star")
 public class SingleStarServlet extends HttpServlet {
@@ -27,7 +29,7 @@ public class SingleStarServlet extends HttpServlet {
 
     public void init(ServletConfig config) {
         try {
-            dataSource = (DataSource) new InitialContext().lookup("java:comp/env/jdbc/moviedbexample");
+            dataSource = (DataSource) new InitialContext().lookup("java:comp/env/jdbc/moviedb");
         } catch (NamingException e) {
             e.printStackTrace();
         }
@@ -55,8 +57,9 @@ public class SingleStarServlet extends HttpServlet {
             // Get a connection from dataSource
 
             // Construct a query with parameter represented by "?"
-            String query = "SELECT * from stars as s, stars_in_movies as sim, movies as m " +
-                    "where m.id = sim.movieId and sim.starId = s.id and s.id = ?";
+            String query = "SELECT s.id, s.name " +
+                           "FROM stars s " +
+                           "WHERE s.id = ?";
 
             // Declare our statement
             PreparedStatement statement = conn.prepareStatement(query);
@@ -68,38 +71,22 @@ public class SingleStarServlet extends HttpServlet {
             // Perform the query
             ResultSet rs = statement.executeQuery();
 
-            JsonArray jsonArray = new JsonArray();
+            JsonObject jsonObject = new JsonObject();
 
             // Iterate through each row of rs
-            while (rs.next()) {
+            if (rs.next()) {
 
-                String starId = rs.getString("starId");
+                String starID = rs.getString("id");
                 String starName = rs.getString("name");
-                String starDob = rs.getString("birthYear");
 
-                String movieId = rs.getString("movieId");
-                String movieTitle = rs.getString("title");
-                String movieYear = rs.getString("year");
-                String movieDirector = rs.getString("director");
-
-                // Create a JsonObject based on the data we retrieve from rs
-
-                JsonObject jsonObject = new JsonObject();
-                jsonObject.addProperty("star_id", starId);
-                jsonObject.addProperty("star_name", starName);
-                jsonObject.addProperty("star_dob", starDob);
-                jsonObject.addProperty("movie_id", movieId);
-                jsonObject.addProperty("movie_title", movieTitle);
-                jsonObject.addProperty("movie_year", movieYear);
-                jsonObject.addProperty("movie_director", movieDirector);
-
-                jsonArray.add(jsonObject);
+                jsonObject.addProperty("star_id", starID);
+                jsonObject.addProperty("name", starName);
             }
             rs.close();
             statement.close();
 
             // Write JSON string to output
-            out.write(jsonArray.toString());
+            out.write(jsonObject.toString());
             // Set response status to 200 (OK)
             response.setStatus(200);
 

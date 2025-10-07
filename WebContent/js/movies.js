@@ -29,11 +29,17 @@ function handleResult(resultData) {
         rowHTML += "<td>" + resultData[i]["movieYear"] + "</td>";
         rowHTML += "<td>" + resultData[i]["movieDirector"] + "</td>";
         rowHTML += "<td>" + resultData[i]["movieGenres"] + "</td>";
-        let stars = resultData[i]["movieStars"].split(", ");
-        let starLinks = stars.map(star =>
-            "<a href='singleStar.html?id=" + encodeURIComponent(star) + "'>" + star + "</a>"
-        );
-        rowHTML += "<td>" + starLinks.join(", ") + "</td>";
+
+        let starsData = resultData[i]["movieStars"].split(", ");  // ["Fred Astaire", "nm0000001", "Ginger Rogers", "nm0000002"]
+        let starLinks = "";
+        console.log(starsData);
+        for (let i = 0; i < starsData.length; i += 2) {
+            let name = starsData[i];
+            let id = starsData[i + 1];
+            starLinks += "<a href='star.html?id=" + encodeURIComponent(id) + "'>" + name + "</a>";
+            if (i + 2 < starsData.length) starLinks += ", ";
+        }
+        rowHTML += "<td>" + starLinks + "</td>";
         rowHTML += "</tr>";
 
         // Append the row created to the table body, which will refresh the page
