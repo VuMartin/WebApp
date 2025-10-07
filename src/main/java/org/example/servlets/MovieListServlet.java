@@ -52,14 +52,14 @@ public class MovieListServlet extends HttpServlet {
             Statement statement = conn.createStatement();
 
             String topMoviesQuery = "SELECT m.id, m.title, m.year, m.director, " +
-                                        "(SELECT GROUP_CONCAT(DISTINCT genre_sub.name SEPARATOR ', ') " +
+                                        "(SELECT GROUP_CONCAT(DISTINCT genre_sub.name SEPARATOR ', ') " +  // takes multiple rows of a column into one
                                         " FROM (SELECT g.name " +  // nested select to get limit 3 since it does not work directly with group concat
                                         "       FROM genres g " +
                                         "       JOIN genres_in_movies gm ON g.id = gm.genre_id " +  // gets genres for specific movie
                                         "       WHERE gm.movie_id = m.id " +  // only genres for current movie
-                                        "       LIMIT 3) AS genre_sub) AS genres, " +  // genres is the column name
-                                        "(SELECT GROUP_CONCAT(DISTINCT stars_sub.name SEPARATOR ', ') " +
-                                        " FROM (SELECT s.name " +
+                                        "       LIMIT 3) AS genre_sub) AS genres, " +  // genres is the column name, genre_sub is name of temp table
+                                        "(SELECT GROUP_CONCAT(DISTINCT CONCAT(stars_sub.name, ', ', stars_sub.id) SEPARATOR ', ') " +
+                                        " FROM (SELECT s.name, s.id " +
                                         "       FROM stars s " +
                                         "       JOIN stars_in_movies sm ON s.id = sm.star_id " +
                                         "       WHERE sm.movie_id = m.id " +
