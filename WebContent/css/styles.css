@@ -24,14 +24,10 @@
     padding-right: 30px;
 }
 
-.full-h3 {
-    margin-left: -75px;  /* space outside element like the block, padding space inside element like text */
-    margin-right: -75px;
-}
-
-.full-h3 h3 {
-    padding: 110px 0 10px 75px;  /* top, right, bottom, left for bg */
-    margin: 0;  /* space outside element like the block, padding space inside element like text */
+.h3-title {
+    padding: 110px 0 10px 0;  /* top, right, bottom, left for bg */
+    /*background-color: darkblue;*/
+    /*margin: 0 -75px;  !* space outside element like the block, padding space inside element like text *!*/
 }
 
 .ratings-col {

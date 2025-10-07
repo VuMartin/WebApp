@@ -49,19 +49,25 @@ function handleResult(resultData) {
     jQuery("#movieStars").text(resultData["movieStars"]);
     // jQuery("#movieRating").text(resultData["movieRating"]);
 
+    let starsData = resultData["movieStars"].split(", ");  // ["Fred Astaire", "nm0000001", "Ginger Rogers", "nm0000002"]
     let starsContainer = jQuery("#movieStars");
     starsContainer.empty();
+    console.log(starsData);
 
-    let stars = resultData["movieStars"].split(", ");
-    stars.forEach((star, index) => {
-        let link = jQuery("<a></a>")  // dynamically creates a hyperlink in js
-            .text(star)
-            .attr("href", "singleStar.html?id=" + encodeURIComponent(star));  // link to star page
+    for (let i = 0; i < starsData.length; i += 2) {
+        let name = starsData[i];
+        let id = starsData[i + 1];
+
+        let link = jQuery("<a></a>")
+            .text(name)
+            .attr("href", "star.html?id=" + encodeURIComponent(id));
+
         starsContainer.append(link);
-        if (index < stars.length - 1) {
+
+        if (i + 2 < starsData.length) {
             starsContainer.append(", ");
         }
-    });
+    }
 }
 
 /**
