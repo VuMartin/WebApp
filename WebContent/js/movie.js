@@ -42,12 +42,11 @@ function handleResult(resultData) {
     // Populate the movie info
     jQuery("#pageTitle").text(
         resultData["movieTitle"] + " (" + resultData["movieYear"] + ") - Fabflix");
-    jQuery("#name").text(resultData["movieTitle"]);
-    jQuery("#movieYear").text(resultData["movieYear"]);
+    jQuery("#name").text(resultData["movieTitle"] + " (" + resultData["movieYear"] + ")");
+    // jQuery("#movieRating").text(resultData["movieRating"] + "/10");
     jQuery("#movieDirector").text(resultData["movieDirector"]);
     jQuery("#movieGenres").text(resultData["movieGenres"]);
     jQuery("#movieStars").text(resultData["movieStars"]);
-    // jQuery("#movieRating").text(resultData["movieRating"]);
 
     let starsData = resultData["movieStars"].split(", ");  // ["Fred Astaire", "nm0000001", "Ginger Rogers", "nm0000002"]
     let starsContainer = jQuery("#movieStars");
