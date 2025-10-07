@@ -55,7 +55,7 @@ public class SingleMovieServlet extends HttpServlet {
         try (Connection conn = dataSource.getConnection()) {
             String movieQuery = "SELECT m.id, m.title, m.year, m.director, " +
                                     "GROUP_CONCAT(DISTINCT g.name SEPARATOR ', ') AS genres, " +
-                                    "GROUP_CONCAT(DISTINCT s.name SEPARATOR ', ') AS stars " +
+                                    "GROUP_CONCAT(DISTINCT CONCAT(s.name, ', ', s.id) SEPARATOR ', ') AS stars " +
                                 "FROM movies m " +
 //                                "LEFT JOIN ratings r ON m.id = r.movie_id " +
                                 "LEFT JOIN genres_in_movies gm ON m.id = gm.movie_id " +  // left join to include movies with no genres, stars, ratings

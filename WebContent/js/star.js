@@ -41,8 +41,8 @@ function handleResult(resultData) {
 
     // Populate the movie info
     jQuery("#pageTitle").text(
-        resultData["name"] + " (" + resultData["name"] + ") - Fabflix");
-    jQuery("#name").text(resultData["name"]);
+        resultData["name"] + " - Fabflix");
+    jQuery("#star-name").text(resultData["name"]);
 
     let starsContainer = jQuery("#movies");
     starsContainer.empty();
