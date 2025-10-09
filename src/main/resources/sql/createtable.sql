@@ -21,7 +21,7 @@ CREATE TABLE stars_in_movies (
 
 CREATE TABLE genres (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    name varchar(32) NOT NULL
+    name VARCHAR(32) NOT NULL
 );
 
 CREATE TABLE genres_in_movies (
@@ -29,5 +29,39 @@ CREATE TABLE genres_in_movies (
     movie_id VARCHAR(10),
     PRIMARY KEY (genre_id, movie_id),
     FOREIGN KEY (genre_id) REFERENCES genres(id),
+    FOREIGN KEY (movie_id) REFERENCES movies(id)
+);
+
+CREATE TABLE credit_cards (
+                              id VARCHAR(20) PRIMARY KEY,
+                              first_name VARCHAR(50) NOT NULL,
+                              last_name VARCHAR(50) NOT NULL,
+                              expiration DATE NOT NULL
+);
+
+CREATE TABLE customers (
+    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
+    credit_card_id VARCHAR(20) NOT NULL,
+    address VARCHAR(200) NOT NULL,
+    email VARCHAR(50) NOT NULL,
+    password VARCHAR(20) NOT NULL,
+    FOREIGN KEY (credit_card_id) REFERENCES credit_cards(id)
+);
+
+CREATE TABLE sales (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    customer_id INT NOT NULL,
+    movie_id VARCHAR(10) NOT NULL,
+    sale_date DATE NOT NULL,
+    FOREIGN KEY (customer_id) REFERENCES customers(id),
+    FOREIGN KEY (movie_id) REFERENCES movies(id)
+);
+
+CREATE TABLE ratings (
+    movie_id VARCHAR(10) NOT NULL,
+    rating FLOAT NOT NULL,
+    vote_count INT NOT NULL,
     FOREIGN KEY (movie_id) REFERENCES movies(id)
 );
