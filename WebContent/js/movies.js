@@ -40,6 +40,7 @@ function handleResult(resultData) {
             if (i + 2 < starsData.length) starLinks += ", ";
         }
         rowHTML += "<td>" + starLinks + "</td>";
+        rowHTML += "<td>" + "⭐️ " + resultData[i]["movieRating"] + "</td>";
         rowHTML += "</tr>";
 
         // Append the row created to the table body, which will refresh the page

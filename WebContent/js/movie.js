@@ -43,7 +43,7 @@ function handleResult(resultData) {
     jQuery("#pageTitle").text(
         resultData["movieTitle"] + " (" + resultData["movieYear"] + ") - Fabflix");
     jQuery("#name").text(resultData["movieTitle"] + " (" + resultData["movieYear"] + ")");
-    // jQuery("#movieRating").text(resultData["movieRating"] + "/10");
+    jQuery("#movieRating").text(resultData["movieRating"] + "/10");
     jQuery("#movieDirector").text(resultData["movieDirector"]);
     jQuery("#movieGenres").text(resultData["movieGenres"]);
     jQuery("#movieStars").text(resultData["movieStars"]);

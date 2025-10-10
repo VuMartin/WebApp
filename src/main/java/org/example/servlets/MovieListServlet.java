@@ -63,8 +63,11 @@ public class MovieListServlet extends HttpServlet {
                                         "       FROM stars s " +
                                         "       JOIN stars_in_movies sm ON s.id = sm.star_id " +
                                         "       WHERE sm.movie_id = m.id " +
-                                        "       LIMIT 3) AS stars_sub) AS stars " +  // stars is the column name
+                                        "       LIMIT 3) AS stars_sub) AS stars, " +  // stars is the column name
+                                        "r.rating " +
                                     "FROM movies m " +
+                                    "LEFT JOIN ratings r ON m.id = r.movie_id " +
+                                    "ORDER BY r.rating DESC " +
                                     "LIMIT 20";
 
 
@@ -82,7 +85,8 @@ public class MovieListServlet extends HttpServlet {
                 String movieDirector = rs.getString("director");
                 String movieGenres = rs.getString("genres");
                 String movieStars = rs.getString("stars");
-//                String rating = rs.getString("rating");
+                String rating = rs.getString("rating");
+                if (rating == null) rating = "N/A";
 
                 // Create a JsonObject based on the data we retrieve from rs
                 JsonObject jsonObject = new JsonObject();
@@ -92,7 +96,7 @@ public class MovieListServlet extends HttpServlet {
                 jsonObject.addProperty("movieDirector", movieDirector);
                 jsonObject.addProperty("movieGenres", movieGenres);
                 jsonObject.addProperty("movieStars", movieStars);
-//                jsonObject.addProperty("movieRating", rating);
+                jsonObject.addProperty("movieRating", rating);
                 jsonArray.add(jsonObject);
             }
             rs.close();

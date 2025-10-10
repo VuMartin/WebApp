@@ -19,7 +19,7 @@ import java.sql.ResultSet;
 
 // http://localhost:8080/2025_fall_cs_122b_marjoe_war/api/single-star
 // http://localhost:8080/2025_fall_cs_122b_marjoe_war/star.html
-// http://localhost:8080/2025_fall_cs_122b_marjoe_war/api/single-star?id=nm0000001
+// http://localhost:8080/2025_fall_cs_122b_marjoe_war/star.html?id=nm0000001
 // Declaring a WebServlet called SingleStarServlet, which maps to url "/api/single-star"
 @WebServlet(name = "SingleStarServlet", urlPatterns = "/api/single-star")
 public class SingleStarServlet extends HttpServlet {
