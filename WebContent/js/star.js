@@ -37,25 +37,26 @@ function getParameterByName(target) {
  */
 
 function handleResult(resultData) {
-    console.log("handleResult: populating star info from resultData");
+    console.log("handleResult:", resultData);
 
-    // Populate the movie info
-    jQuery("#pageTitle").text(
-        resultData["name"] + " - Fabflix");
-    jQuery("#star-name").text(resultData["name"]);
+    $("#pageTitle").text(resultData.name + " - Fabflix");
+    $("#star-name").text(resultData.name);
+    $("#birthYear").text(resultData.birthYear || "N/A");
 
-    let starsContainer = jQuery("#movies");
-    starsContainer.empty();
+    const moviesContainer = $("#movies").empty();
+    const movies = resultData.movies || [];
 
-    let stars = resultData["movies"].split(", ");
-    stars.forEach((star, index) => {
-        let link = jQuery("<a></a>")  // dynamically creates a hyperlink in js
-            .text(star)
-            .attr("href", "singleStar.html?id=" + encodeURIComponent(star));  // link to star page
-        starsContainer.append(link);
-        if (index < stars.length - 1) {
-            starsContainer.append(", ");
-        }
+    if (movies.length === 0) {
+        moviesContainer.text("No movies on record");
+        return;
+    }
+
+    movies.forEach((m, i) => {
+        $("<a>")
+            .text(m.title)
+            .attr("href", "movie.html?id=" + encodeURIComponent(m.id))
+            .appendTo(moviesContainer);
+        if (i < movies.length - 1) moviesContainer.append(", ");
     });
 }
 

@@ -1,6 +1,7 @@
 package main.java.org.example.servlets;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonArray;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -57,9 +58,13 @@ public class SingleStarServlet extends HttpServlet {
             // Get a connection from dataSource
 
             // Construct a query with parameter represented by "?"
-            String query = "SELECT s.id, s.name " +
-                           "FROM stars s " +
-                           "WHERE s.id = ?";
+            String query =
+                            "SELECT s.id AS sid, s.name, s.birth_year, m.id AS mid, m.title " +
+                            "FROM stars s " +
+                            "LEFT JOIN stars_in_movies sim ON sim.star_id = s.id " +
+                            "LEFT JOIN movies m ON m.id = sim.movie_id " +
+                            "WHERE s.id = ? " +
+                            "ORDER BY m.title";
 
             // Declare our statement
             PreparedStatement statement = conn.prepareStatement(query);
@@ -72,22 +77,46 @@ public class SingleStarServlet extends HttpServlet {
             ResultSet rs = statement.executeQuery();
 
             JsonObject jsonObject = new JsonObject();
+            JsonArray movies = new JsonArray();
 
-            // Iterate through each row of rs
-            if (rs.next()) {
+            String starName = null;
+            String birthYearOut = "N/A";
+            boolean found = false;
 
-                String starID = rs.getString("id");
-                String starName = rs.getString("name");
-
-                jsonObject.addProperty("star_id", starID);
-                jsonObject.addProperty("name", starName);
+            while (rs.next()) {
+                if (!found) {
+                    starName = rs.getString("name");
+                    int by = rs.getInt("birth_year");
+                    if (!rs.wasNull()) birthYearOut = String.valueOf(by);
+                    found = true;
+                }
+                String movieID = rs.getString("mid");
+                String title   = rs.getString("title");
+                if (movieID != null && title != null) {
+                    JsonObject m = new JsonObject();
+                    m.addProperty("id", movieID);
+                    m.addProperty("title", title);
+                    movies.add(m);
+                }
             }
             rs.close();
             statement.close();
 
-            // Write JSON string to output
+            if (!found) {
+                response.setStatus(404);
+                JsonObject err = new JsonObject();
+                err.addProperty("errorMessage", "Star not found");
+                out.write(err.toString());
+                return;
+            }
+
+            // Keep your existing response-writing style:
+            jsonObject.addProperty("id", id);              // reuse request param
+            jsonObject.addProperty("name", starName);
+            jsonObject.addProperty("birthYear", birthYearOut);
+            jsonObject.add("movies", movies);
+
             out.write(jsonObject.toString());
-            // Set response status to 200 (OK)
             response.setStatus(200);
 
         } catch (Exception e) {
