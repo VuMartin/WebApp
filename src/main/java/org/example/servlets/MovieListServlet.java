@@ -66,7 +66,7 @@ public class MovieListServlet extends HttpServlet {
                                         "       LIMIT 3) AS stars_sub) AS stars, " +  // stars is the column name
                                         "r.rating " +
                                     "FROM movies m " +
-                                    "LEFT JOIN ratings r ON m.id = r.movie_id " +
+                                    "JOIN ratings r ON m.id = r.movie_id " +
                                     "ORDER BY r.rating DESC " +
                                     "LIMIT 20";
 

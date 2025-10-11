@@ -23,7 +23,7 @@ function handleResult(resultData) {
     // Concatenate the html tags with resultData jsonObject to create table rows
     for (let i = 0; i < resultData.length; i++) {
         let rowHTML = "<tr>";
-        rowHTML += "<td><a href='movie.html?id=" +
+        rowHTML += "<td>" + (i + 1) + ". <a href='movie.html?id=" +
             encodeURIComponent(resultData[i]["movieID"]) + "'>" +
             resultData[i]["movieTitle"] + "</a></td>";
         rowHTML += "<td>" + resultData[i]["movieYear"] + "</td>";
