@@ -33,10 +33,10 @@ CREATE TABLE genres_in_movies (
 );
 
 CREATE TABLE credit_cards (
-                              id VARCHAR(20) PRIMARY KEY,
-                              first_name VARCHAR(50) NOT NULL,
-                              last_name VARCHAR(50) NOT NULL,
-                              expiration DATE NOT NULL
+    id VARCHAR(20) PRIMARY KEY,
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
+    expiration DATE NOT NULL
 );
 
 CREATE TABLE customers (

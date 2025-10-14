@@ -4,7 +4,7 @@
          version="3.1">
     <display-name>2025-fall-cs-122b-marjoe</display-name>
     <welcome-file-list>
-        <welcome-file>index.html</welcome-file>
+        <welcome-file>login.html</welcome-file>
     </welcome-file-list>
 
     <!-- Register the DataSource which defined in META-INF/context.xml-->
@@ -14,4 +14,15 @@
         <res-type>javax.sql.DataSource</res-type>
         <res-auth>Container</res-auth>
     </resource-ref>
+
+<!--    <filter>-->
+<!--        <filter-name>LoginFilter</filter-name>-->
+<!--        <filter-class>main.java.org.example.servlets.LoginFilter</filter-class>-->
+<!--    </filter>-->
+
+<!--    <filter-mapping>-->
+<!--        <filter-name>LoginFilter</filter-name>-->
+<!--        <url-pattern>/api/*</url-pattern>  &lt;!&ndash; protect pages under any api page &ndash;&gt;-->
+<!--        <url-pattern>*.html</url-pattern>  &lt;!&ndash; protect pages under any html page &ndash;&gt;-->
+<!--    </filter-mapping>-->
 </web-app>

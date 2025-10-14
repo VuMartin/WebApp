@@ -1,4 +1,4 @@
-/* top movies */
+/* all pages */
 #movie-page-header {
     position: fixed;
     top: 0;
@@ -18,6 +18,36 @@
     border-radius: 20px;
     margin-top: 10px;
 }
+
+#user-dropdown {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    cursor: pointer;
+}
+
+#dropdown-menu {
+    display: none;
+    position: absolute;
+    right: 0;
+    background-color: white;
+    border: 1px solid #ccc;
+    padding: 5px;
+}
+
+#logout-button {
+    background: white;   /* remove button background */
+    border: none;       /* remove border */
+    padding: 0;         /* remove padding */
+    margin: 0;
+    cursor: pointer;    /* keep cursor pointer */
+    font-size: 14px;    /* optional: adjust size */
+}
+#logout-btn:hover {
+    text-decoration: underline;
+}
+
+/* movies list page */
 
 .container {
     padding-left: 30px;
@@ -95,4 +125,17 @@
 
 #movieStars a:hover, #movie-table-body a:hover, #movies a:hover {
     color: royalblue;
+}
+
+/* login page */
+.login-card-box {
+    padding-top: 100px;
+}
+
+#login-header {
+    background-color: #f0f2f5;
+}
+
+#error-msg {
+    color: red;
 }
