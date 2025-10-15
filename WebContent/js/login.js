@@ -5,7 +5,7 @@
 
 function handleResult(resultData) {
     if (resultData.status === "success") {
-        // Store first name in sessionStorage (optional, for later pages)
+        // Store first name in sessionStorage
         sessionStorage.setItem("firstName", resultData.username);
         // Redirect to main page
         window.location.href = "main.html";
@@ -23,7 +23,6 @@ function handleResult(resultData) {
 jQuery("#login-form").submit(function(event) {
     event.preventDefault(); // prevent normal form submit
 
-    // Collect form data
     let email = jQuery("#email").val();
     let password = jQuery("#password").val();
 

@@ -128,8 +128,18 @@
 }
 
 /* login page */
+
+.card {
+    width: 500px;
+    padding: 24px;
+}
+
 .login-card-box {
     padding-top: 100px;
+}
+
+.login-title {
+    text-align: center;
 }
 
 #login-header {
