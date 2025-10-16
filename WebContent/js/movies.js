@@ -14,6 +14,22 @@
  * @param resultData jsonObject
  */
 
+function getParameterByName(target) {
+    // Get request URL
+    let url = window.location.href;
+    // Encode target parameter name to url encoding
+    target = target.replace(/[\[\]]/g, "\\$&");
+
+    // Ues regular expression to find matched parameter value
+    let regex = new RegExp("[?&]" + target + "(=([^&#]*)|&|#|$)"),
+        results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+
+    // Return the decoded parameter value
+    return decodeURIComponent(results[2].replace(/\+/g, " "));
+}
+
 function handleResult(resultData) {
     // Populate the star table
     // Find the empty table body by id "movie_table_body"
@@ -52,10 +68,24 @@ function handleResult(resultData) {
  * Once this .js is loaded, following scripts will be executed by the browser\
  */
 
+let title = getParameterByName("title");
+let year = getParameterByName("year");
+let director = getParameterByName("director");
+let star = getParameterByName("star");
+let url;
+if (!title && !year && !director && !star) {
+    url = "api/topmovies";
+} else {
+    url = "api/topmovies?";
+    if (title) url += "title=" + encodeURIComponent(title) + "&";
+    if (year) url += "year=" + encodeURIComponent(year) + "&";
+    if (director) url += "director=" + encodeURIComponent(director) + "&";
+    if (star) url += "star=" + encodeURIComponent(star);
+}
 // Makes the HTTP GET request and registers on success callback function handleResult
 jQuery.ajax({
     dataType: "json",  // Setting return data type
     method: "GET",// Setting request method
-    url: "api/topmovies", // Setting request url
+    url: url, // Setting request url
     success: (resultData) => handleResult(resultData) // Setting callback function to handle data returned successfully by the MovieListServlet
 });

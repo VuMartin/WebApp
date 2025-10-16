@@ -9,6 +9,7 @@
 }
 
 #site-name {
+    float: left;
     color: white;
     background-color: #08F;
     padding: 10px;  /* top, right, bottom, left for bg */
@@ -17,6 +18,55 @@
     font-size: 30px;
     border-radius: 20px;
     margin-top: 10px;
+    margin-left: 385px;
+}
+
+#search-form {
+    display: flex;
+    position: relative;
+    margin-left: 500px;
+    margin-top: 18px;
+}
+
+#search-input {
+    padding: 5px;
+    font-size: 16px;
+}
+
+#search-options {
+    /*position: absolute;*/
+    top: 100%; /* directly below the button */
+    width: 160px;
+    background: white;
+    border: 1px solid #ccc;
+    padding: 10px 5px 5px;
+    z-index: 100;
+    margin-right: 400px;
+}
+
+#button-icon {
+    width: 30px;
+}
+
+.hidden {
+    display: none;
+}
+
+#search-title, #search-director, #search-star {
+    width: 135px;
+    margin: 5px;
+}
+#search-year {
+    width: 50px;
+    margin: 5px 90px 5px 5px;
+}
+
+.visible {
+    display: block;
+    position: absolute; /* so it floats below the username */
+    border: 1px solid #ccc;
+    padding: 5px;
+    z-index: 1000;
 }
 
 #user-dropdown {
@@ -27,7 +77,6 @@
 }
 
 #dropdown-menu {
-    display: none;
     position: absolute;
     right: 0;
     background-color: white;
@@ -83,6 +132,19 @@
     background-color: lightblue;
 }
 
+#single-site-name {
+    color: white;
+    background-color: #08F;
+    padding: 10px;  /* top, right, bottom, left for bg */
+    font-family: Impact, fantasy;
+    display: inline-block;
+    font-size: 30px;
+    border-radius: 20px;
+    margin-top: 10px;
+    margin-right: 600px;
+}
+
+
 .arrow {
     position: absolute;  /* positions element relative to siteHeader */
     left: 10px;
@@ -130,7 +192,7 @@
 /* login page */
 
 .card {
-    width: 500px;
+    width: 400px;
     padding: 24px;
 }
 
