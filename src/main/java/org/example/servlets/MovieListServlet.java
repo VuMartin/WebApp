@@ -45,6 +45,7 @@ public class MovieListServlet extends HttpServlet {
         String title = request.getParameter("title");
         String year = request.getParameter("year");
         String director = request.getParameter("director");
+        String genre = request.getParameter("genre");
         String star = request.getParameter("star");
 
         // Output stream to STDOUT
@@ -60,6 +61,7 @@ public class MovieListServlet extends HttpServlet {
                             "       FROM genres g " +
                             "       JOIN genres_in_movies gm ON g.id = gm.genre_id " +  // gets genres for specific movie
                             "       WHERE gm.movie_id = m.id " +  // only genres for current movie
+                            "       ORDER BY g.name " +
                             "       LIMIT 3) AS genre_sub) AS genres, " +  // genres is the column name, genre_sub is name of temp table
                             "(SELECT GROUP_CONCAT(DISTINCT CONCAT(stars_sub.name, ', ', stars_sub.id) SEPARATOR ', ') " +
                             " FROM (SELECT s.name, s.id " +
@@ -76,6 +78,11 @@ public class MovieListServlet extends HttpServlet {
             if (title != null && !title.isEmpty()) topMoviesQuery.append("AND m.title LIKE ? ");
             if (year != null && !year.isEmpty()) topMoviesQuery.append("AND m.year = ? ");
             if (director != null && !director.isEmpty()) topMoviesQuery.append("AND m.director LIKE ? ");
+            if (genre != null && !genre.isEmpty()) topMoviesQuery.append(
+                    "AND m.id IN (SELECT movie_id " +
+                            "FROM genres_in_movies gm JOIN genres g ON g.id = gm.genre_id " +
+                            "WHERE g.name = ?) "
+            );
             if (star != null && !star.isEmpty()) topMoviesQuery.append(
                     "AND m.id IN (SELECT movie_id " +
                                  "FROM stars_in_movies sm JOIN stars s ON s.id = sm.star_id " +
@@ -89,6 +96,7 @@ public class MovieListServlet extends HttpServlet {
             if (title != null && !title.isEmpty()) statement.setString(index++, "%" + title + "%");
             if (year != null && !year.isEmpty()) statement.setString(index++, year);
             if (director != null && !director.isEmpty()) statement.setString(index++, "%" + director + "%");
+            if (genre != null && !genre.isEmpty()) statement.setString(index, "%" + genre + "%");
             if (star != null && !star.isEmpty()) statement.setString(index, "%" + star + "%");
 
             ResultSet rs = statement.executeQuery();

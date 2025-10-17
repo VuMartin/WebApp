@@ -44,16 +44,24 @@ function handleResult(resultData) {
             resultData[i]["movieTitle"] + "</a></td>";
         rowHTML += "<td>" + resultData[i]["movieYear"] + "</td>";
         rowHTML += "<td>" + resultData[i]["movieDirector"] + "</td>";
-        rowHTML += "<td>" + resultData[i]["movieGenres"] + "</td>";
+
+        let genresData = resultData[i]["movieGenres"].split(", ");
+        let genreLinks = "";
+        for (let j = 0; j < genresData.length; j++) {
+            let genre = genresData[j];
+            genreLinks += "<a href='movies.html?genre=" + encodeURIComponent(genre) + "'>" + genre + "</a>";
+            if (j + 1 < genresData.length) genreLinks += ", ";
+        }
+        rowHTML += "<td>" + genreLinks + "</td>";
 
         let starsData = resultData[i]["movieStars"].split(", ");  // ["Fred Astaire", "nm0000001", "Ginger Rogers", "nm0000002"]
         let starLinks = "";
         console.log(starsData);
-        for (let i = 0; i < starsData.length; i += 2) {
-            let name = starsData[i];
-            let id = starsData[i + 1];
+        for (let j = 0; j < starsData.length; j += 2) {
+            let name = starsData[j];
+            let id = starsData[j + 1];
             starLinks += "<a href='star.html?id=" + encodeURIComponent(id) + "'>" + name + "</a>";
-            if (i + 2 < starsData.length) starLinks += ", ";
+            if (j + 2 < starsData.length) starLinks += ", ";
         }
         rowHTML += "<td>" + starLinks + "</td>";
         rowHTML += "<td>" + "⭐️ " + resultData[i]["movieRating"] + "</td>";
@@ -72,14 +80,16 @@ let title = getParameterByName("title");
 let year = getParameterByName("year");
 let director = getParameterByName("director");
 let star = getParameterByName("star");
+let genre = getParameterByName("genre");
 let url;
-if (!title && !year && !director && !star) {
+if (!title && !year && !director && !star && !genre) {
     url = "api/topmovies";
 } else {
     url = "api/topmovies?";
     if (title) url += "title=" + encodeURIComponent(title) + "&";
     if (year) url += "year=" + encodeURIComponent(year) + "&";
     if (director) url += "director=" + encodeURIComponent(director) + "&";
+    if (genre) url += "genre=" + encodeURIComponent(genre) + "&";
     if (star) url += "star=" + encodeURIComponent(star);
 }
 // Makes the HTTP GET request and registers on success callback function handleResult
