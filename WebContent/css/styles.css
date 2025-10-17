@@ -3,8 +3,12 @@
     position: fixed;
     top: 0;
     width: 100%;
-    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
     background-color: lightblue;
+    gap: 10px;
     z-index: 1000; /* keeps it above other stuff */
 }
 
@@ -16,7 +20,55 @@
     display: inline-block;
     font-size: 30px;
     border-radius: 20px;
-    margin-top: 10px;
+    margin: 0;
+}
+
+#search-form {
+    display: flex;
+    position: relative;
+    gap: 5px;
+    align-items: center;
+}
+
+#search-input {
+    padding: 5px;
+    font-size: 16px;
+}
+
+#search-options {
+    /*position: absolute;*/
+    top: 100%; /* directly below the button */
+    width: 160px;
+    background: white;
+    border: 1px solid #ccc;
+    padding: 10px 5px 5px;
+    z-index: 100;
+    margin-right: 400px;
+}
+
+#button-icon {
+    width: 30px;
+}
+
+.hidden {
+    display: none;
+}
+
+#search-title, #search-director, #search-star {
+    width: 135px;
+    margin: 5px;
+}
+#search-year {
+    width: 50px;
+    margin: 5px 90px 5px 5px;
+}
+
+.visible {
+    display: block;
+    position: absolute; /* so it floats below the username */
+    border: 1px solid #ccc;
+    padding: 5px;
+    z-index: 1000;
 }
 
 #user-dropdown {
@@ -27,7 +79,6 @@
 }
 
 #dropdown-menu {
-    display: none;
     position: absolute;
     right: 0;
     background-color: white;
@@ -47,15 +98,58 @@
     text-decoration: underline;
 }
 
+/* main page */
+
+#welcome-main {
+    margin-top:90px;
+    font-size: 20px;
+    text-align: center;
+}
+
+.main-title {
+    margin-top:30px;
+    font-size: 30px;
+    margin-left: 50px;
+}
+
+.top-movies-container-main-page {
+    display: flex;
+    justify-content: center;
+    gap: 150px;
+    margin-top: 50px;
+}
+
+.movie-card {
+    text-align: center;
+}
+
+.movie-card img {
+    width: 200px;
+    height: 300px;
+    border-radius: 10px;
+}
+
+.more-link {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.more-link a {
+    font-size: 18px;
+    color: #08F;
+    font-weight: bold;
+}
+
 /* movies list page */
 
 .container {
     padding-left: 30px;
     padding-right: 30px;
+    padding-bottom: 5px;
     border-radius: 8px;
     box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     margin-top: 95px;
-    margin-bottom: 40px;
+    margin-bottom: 50px;
 }
 
 .h3-title {
@@ -82,6 +176,19 @@
     position: relative;  /* sets this as reference point for absolute elements */
     background-color: lightblue;
 }
+
+#single-site-name {
+    color: white;
+    background-color: #08F;
+    padding: 10px;  /* top, right, bottom, left for bg */
+    font-family: Impact, fantasy;
+    display: inline-block;
+    font-size: 30px;
+    border-radius: 20px;
+    margin-top: 10px;
+    margin-right: 600px;
+}
+
 
 .arrow {
     position: absolute;  /* positions element relative to siteHeader */
@@ -130,7 +237,7 @@
 /* login page */
 
 .card {
-    width: 500px;
+    width: 400px;
     padding: 24px;
 }
 

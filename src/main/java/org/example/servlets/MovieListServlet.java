@@ -14,6 +14,7 @@ import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
@@ -41,6 +42,10 @@ public class MovieListServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
 
         response.setContentType("application/json"); // Response mime type
+        String title = request.getParameter("title");
+        String year = request.getParameter("year");
+        String director = request.getParameter("director");
+        String star = request.getParameter("star");
 
         // Output stream to STDOUT
         PrintWriter out = response.getWriter();
@@ -48,31 +53,45 @@ public class MovieListServlet extends HttpServlet {
         // Get a connection from dataSource and let resource manager close the connection after usage.
         try (Connection conn = dataSource.getConnection()) {
 
-            // Declare our statement
-            Statement statement = conn.createStatement();
+            StringBuilder topMoviesQuery = new StringBuilder(
+                    "SELECT m.id, m.title, m.year, m.director, " +
+                            "(SELECT GROUP_CONCAT(DISTINCT genre_sub.name SEPARATOR ', ') " +  // takes multiple rows of a column into one
+                            " FROM (SELECT g.name " +  // nested select to get limit 3 since it does not work directly with group concat
+                            "       FROM genres g " +
+                            "       JOIN genres_in_movies gm ON g.id = gm.genre_id " +  // gets genres for specific movie
+                            "       WHERE gm.movie_id = m.id " +  // only genres for current movie
+                            "       LIMIT 3) AS genre_sub) AS genres, " +  // genres is the column name, genre_sub is name of temp table
+                            "(SELECT GROUP_CONCAT(DISTINCT CONCAT(stars_sub.name, ', ', stars_sub.id) SEPARATOR ', ') " +
+                            " FROM (SELECT s.name, s.id " +
+                            "       FROM stars s " +
+                            "       JOIN stars_in_movies sm ON s.id = sm.star_id " +
+                            "       WHERE sm.movie_id = m.id " +
+                            "       LIMIT 3) AS stars_sub) AS stars, " +  // stars is the column name
+                            "r.rating " +
+                            "FROM movies m " +
+                            "JOIN ratings r ON m.id = r.movie_id " +
+                            "WHERE 1=1 "
+            );
 
-            String topMoviesQuery = "SELECT m.id, m.title, m.year, m.director, " +
-                                        "(SELECT GROUP_CONCAT(DISTINCT genre_sub.name SEPARATOR ', ') " +  // takes multiple rows of a column into one
-                                        " FROM (SELECT g.name " +  // nested select to get limit 3 since it does not work directly with group concat
-                                        "       FROM genres g " +
-                                        "       JOIN genres_in_movies gm ON g.id = gm.genre_id " +  // gets genres for specific movie
-                                        "       WHERE gm.movie_id = m.id " +  // only genres for current movie
-                                        "       LIMIT 3) AS genre_sub) AS genres, " +  // genres is the column name, genre_sub is name of temp table
-                                        "(SELECT GROUP_CONCAT(DISTINCT CONCAT(stars_sub.name, ', ', stars_sub.id) SEPARATOR ', ') " +
-                                        " FROM (SELECT s.name, s.id " +
-                                        "       FROM stars s " +
-                                        "       JOIN stars_in_movies sm ON s.id = sm.star_id " +
-                                        "       WHERE sm.movie_id = m.id " +
-                                        "       LIMIT 3) AS stars_sub) AS stars, " +  // stars is the column name
-                                        "r.rating " +
-                                    "FROM movies m " +
-                                    "JOIN ratings r ON m.id = r.movie_id " +
-                                    "ORDER BY r.rating DESC " +
-                                    "LIMIT 20";
+            if (title != null && !title.isEmpty()) topMoviesQuery.append("AND m.title LIKE ? ");
+            if (year != null && !year.isEmpty()) topMoviesQuery.append("AND m.year = ? ");
+            if (director != null && !director.isEmpty()) topMoviesQuery.append("AND m.director LIKE ? ");
+            if (star != null && !star.isEmpty()) topMoviesQuery.append(
+                    "AND m.id IN (SELECT movie_id " +
+                                 "FROM stars_in_movies sm JOIN stars s ON s.id = sm.star_id " +
+                                 "WHERE s.name LIKE ?) "
+            );
+            topMoviesQuery.append("ORDER BY r.rating DESC ");
+            topMoviesQuery.append("LIMIT 20");
 
+            PreparedStatement statement = conn.prepareStatement(topMoviesQuery.toString());
+            int index = 1;
+            if (title != null && !title.isEmpty()) statement.setString(index++, "%" + title + "%");
+            if (year != null && !year.isEmpty()) statement.setString(index++, year);
+            if (director != null && !director.isEmpty()) statement.setString(index++, "%" + director + "%");
+            if (star != null && !star.isEmpty()) statement.setString(index, "%" + star + "%");
 
-            // Perform the query
-            ResultSet rs = statement.executeQuery(topMoviesQuery);
+            ResultSet rs = statement.executeQuery();
 
             JsonArray jsonArray = new JsonArray();
 
