@@ -154,8 +154,54 @@
 
 .h3-title {
     padding: 15px 0 10px 0;  /* top, right, bottom, left for bg */
-    /*background-color: darkblue;*/
-    /*margin: 0 -75px;  !* space outside element like the block, padding space inside element like text *!*/
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    position: relative;"
+}
+
+#sort-controls {
+    display: flex;
+    gap: 20px;
+    align-items: center
+}
+
+.sort-container {
+    display: flex;
+    align-items: center;
+    margin-top: 5px;
+    gap: 30px;
+    margin-left: 440px;
+}
+
+.sort-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    align-items: center;
+}
+
+.sort-label {
+    font-weight: bold;
+    font-size: 15px;
+    width: 80px;
+    text-align: center;
+}
+
+.sort-option {
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 15px;
+}
+
+.sort-option:hover {
+    background-color: #ddd;
+}
+
+.sort-option.selected {
+    background-color: #555;
+    color: white;
 }
 
 #movieStars a, #movie-table-body a, #movies a {

@@ -56,18 +56,22 @@ public class MovieListServlet extends HttpServlet {
 
             StringBuilder topMoviesQuery = new StringBuilder(
                     "SELECT m.id, m.title, m.year, m.director, " +
-                            "(SELECT GROUP_CONCAT(DISTINCT genre_sub.name SEPARATOR ', ') " +  // takes multiple rows of a column into one
+                            "(SELECT GROUP_CONCAT(genre_sub.name SEPARATOR ', ') " +  // takes multiple rows of a column into one
                             " FROM (SELECT g.name " +  // nested select to get limit 3 since it does not work directly with group concat
                             "       FROM genres g " +
                             "       JOIN genres_in_movies gm ON g.id = gm.genre_id " +  // gets genres for specific movie
                             "       WHERE gm.movie_id = m.id " +  // only genres for current movie
                             "       ORDER BY g.name " +
                             "       LIMIT 3) AS genre_sub) AS genres, " +  // genres is the column name, genre_sub is name of temp table
-                            "(SELECT GROUP_CONCAT(DISTINCT CONCAT(stars_sub.name, ', ', stars_sub.id) SEPARATOR ', ') " +
+                            "(SELECT GROUP_CONCAT(CONCAT(stars_sub.name, ', ', stars_sub.id) SEPARATOR ', ') " +
                             " FROM (SELECT s.name, s.id " +
                             "       FROM stars s " +
                             "       JOIN stars_in_movies sm ON s.id = sm.star_id " +
+                            "       JOIN (SELECT star_id, COUNT(*) as movie_count " +
+                            "             FROM stars_in_movies " +
+                            "             GROUP BY star_id) AS star_counts ON s.id = star_counts.star_id " +
                             "       WHERE sm.movie_id = m.id " +
+                            "       ORDER BY star_counts.movie_count DESC, s.name ASC " +
                             "       LIMIT 3) AS stars_sub) AS stars, " +  // stars is the column name
                             "r.rating " +
                             "FROM movies m " +
@@ -96,7 +100,7 @@ public class MovieListServlet extends HttpServlet {
             if (title != null && !title.isEmpty()) statement.setString(index++, "%" + title + "%");
             if (year != null && !year.isEmpty()) statement.setString(index++, year);
             if (director != null && !director.isEmpty()) statement.setString(index++, "%" + director + "%");
-            if (genre != null && !genre.isEmpty()) statement.setString(index, "%" + genre + "%");
+            if (genre != null && !genre.isEmpty()) statement.setString(index++, genre);
             if (star != null && !star.isEmpty()) statement.setString(index, "%" + star + "%");
 
             ResultSet rs = statement.executeQuery();

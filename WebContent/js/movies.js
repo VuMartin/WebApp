@@ -30,6 +30,20 @@ function getParameterByName(target) {
     return decodeURIComponent(results[2].replace(/\+/g, " "));
 }
 
+document.querySelectorAll(".sort-group").forEach(group => {
+    const options = group.querySelectorAll(".sort-option");
+    options.forEach(option => {
+        option.addEventListener("click", () => {
+            // Remove "selected" from all options in this group
+            options.forEach(o => o.classList.remove("selected"));
+            // Add "selected" to clicked option
+            option.classList.add("selected");
+
+            // Optional: trigger sorting function here
+            // sortMovies(option.dataset.field, option.dataset.order);
+        });
+    });
+});
 function handleResult(resultData) {
     // Populate the star table
     // Find the empty table body by id "movie_table_body"
