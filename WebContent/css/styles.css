@@ -149,21 +149,27 @@
     border-radius: 8px;
     box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     margin-top: 95px;
-    margin-bottom: 50px;
+    margin-bottom: 20px;
 }
 
-.h3-title {
+.h3-container {
     padding: 15px 0 10px 0;  /* top, right, bottom, left for bg */
     display: flex;
     align-items: center;
     gap: 10px;
-    position: relative;"
+    position: relative;
 }
 
-#sort-controls {
+#h3-title {
+    width: 230px;
+}
+
+.page-size-container {
     display: flex;
-    gap: 20px;
-    align-items: center
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
 }
 
 .sort-container {
@@ -171,7 +177,7 @@
     align-items: center;
     margin-top: 5px;
     gap: 30px;
-    margin-left: 440px;
+    margin-left: 370px;
 }
 
 .sort-group {
@@ -211,6 +217,33 @@
 
 .ratings-col {
     width: 80px;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    text-align: center;
+    margin-top: 20px;
+}
+
+.pagination button,
+.pagination select {
+    margin: 0 3px;
+    padding: 5px 10px;
+    border: 1px solid #ccc;
+    background: white;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.pagination button:hover {
+    background: #eee;
+}
+
+.pagination .active {
+    background: #08F;
+    color: white;
+    border-color: #08F;
 }
 
 /* single movie */

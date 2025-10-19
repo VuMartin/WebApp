@@ -34,20 +34,83 @@ document.querySelectorAll(".sort-group").forEach(group => {
     const options = group.querySelectorAll(".sort-option");
     options.forEach(option => {
         option.addEventListener("click", () => {
-            // Remove "selected" from all options in this group
             options.forEach(o => o.classList.remove("selected"));
-            // Add "selected" to clicked option
             option.classList.add("selected");
 
-            // Optional: trigger sorting function here
-            // sortMovies(option.dataset.field, option.dataset.order);
+            // jQuery.ajax({
         });
     });
 });
+
+let currentPage = 1;
+let pageSize = 10;
+let totalPages = 1; // set after fetching total count from backend
+
+const pageNumbersContainer = document.getElementById("page-numbers");
+const pageSizeSelect = document.getElementById("page-size");
+
+function renderPageNumbers() {
+    pageNumbersContainer.innerHTML = "";
+    for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement("button");
+        btn.textContent = i;
+        btn.className = i === currentPage ? "active" : "";
+        btn.addEventListener("click", () => {
+            currentPage = i;
+            fetchMovies();
+        });
+        pageNumbersContainer.appendChild(btn);
+    }
+}
+
+document.getElementById("prev-page").addEventListener("click", () => {
+    if (currentPage > 1) {
+        currentPage--;
+        fetchMovies();
+    }
+});
+
+document.getElementById("next-page").addEventListener("click", () => {
+    if (currentPage < totalPages) {
+        currentPage++;
+        fetchMovies();
+    }
+});
+
+pageSizeSelect.addEventListener("change", () => {
+    pageSize = parseInt(pageSizeSelect.value);
+    currentPage = 1;
+    fetchMovies();
+});
+
+function fetchMovies() {
+    const offset = (currentPage - 1) * pageSize;
+    const url = `api/topmovies?pageSize=${pageSize}&offset=${offset}`;
+
+    jQuery.ajax({
+        url: url,
+        method: "GET",
+        dataType: "json",
+        // success: (data) => {
+        //     totalPages = Math.ceil(data.totalCount / pageSize); // update totalPages
+        //     renderPageNumbers();
+        // }
+        success: (resultData) => handleResult(resultData)
+    });
+}
+
+pageSizeSelect.addEventListener("change", () => {
+    pageSize = parseInt(pageSizeSelect.value);
+    currentPage = 1;
+    fetchMovies();
+});
+
+
 function handleResult(resultData) {
     // Populate the star table
     // Find the empty table body by id "movie_table_body"
     let movieTableBodyElement = jQuery("#movie-table-body");
+    movieTableBodyElement.empty();
     console.log(movieTableBodyElement);
 
     // Concatenate the html tags with resultData jsonObject to create table rows

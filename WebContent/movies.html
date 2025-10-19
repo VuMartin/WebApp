@@ -32,8 +32,8 @@
             <h1 id="site-name"> FABFLIX </h1>
         </header>
         <div class="container">
-            <h3 class="h3-title">
-                Top 20 Rated Movies
+            <h3 class="h3-container">
+                <span id="h3-title"> Top Rated Movies</span>
                 <div class="sort-container">
                     <div class="sort-group">
                         <span class="sort-label">Sorted By:</span>
@@ -49,6 +49,15 @@
                         <span class="sort-label">Title:</span>
                         <span class="sort-option selected" data-field="title" data-order="asc">Ascending ↑ </span>
                         <span class="sort-option" data-field="title" data-order="desc">Descending ↓ </span>
+                    </div>
+                    <div class="sort-group">
+                        <span class="sort-label">Movies per page:</span>
+                        <select id="page-size">
+                            <option value="10">10</option>
+                            <option value="25">25</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                        </select>
                     </div>
                 </div>
             </h3>
@@ -68,6 +77,13 @@
                 <!-- movies.js will find this html element by it's id "movie-table-body" -->
                 <tbody id="movie-table-body"></tbody>
             </table>
+        </div>
+        <div class="pagination">
+            <button id="first-page">«</button>
+            <button id="prev-page">‹</button>
+            <span id="page-numbers"></span>
+            <button id="next-page">›</button>
+            <button id="last-page">»</button>
         </div>
 
         <!-- Load jQuery and Bootstrap JS -->

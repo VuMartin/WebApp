@@ -47,6 +47,8 @@ public class MovieListServlet extends HttpServlet {
         String director = request.getParameter("director");
         String genre = request.getParameter("genre");
         String star = request.getParameter("star");
+        String pageSizeStr = request.getParameter("pageSize");
+        int pageSize = (pageSizeStr != null) ? Integer.parseInt(pageSizeStr) : 10;
 
         // Output stream to STDOUT
         PrintWriter out = response.getWriter();
@@ -93,15 +95,17 @@ public class MovieListServlet extends HttpServlet {
                                  "WHERE s.name LIKE ?) "
             );
             topMoviesQuery.append("ORDER BY r.rating DESC ");
-            topMoviesQuery.append("LIMIT 20");
+            topMoviesQuery.append("LIMIT ?");
 
             PreparedStatement statement = conn.prepareStatement(topMoviesQuery.toString());
             int index = 1;
+//            statement.setInt(paramIndex, (currentPage - 1) * pageSize);
             if (title != null && !title.isEmpty()) statement.setString(index++, "%" + title + "%");
             if (year != null && !year.isEmpty()) statement.setString(index++, year);
             if (director != null && !director.isEmpty()) statement.setString(index++, "%" + director + "%");
             if (genre != null && !genre.isEmpty()) statement.setString(index++, genre);
-            if (star != null && !star.isEmpty()) statement.setString(index, "%" + star + "%");
+            if (star != null && !star.isEmpty()) statement.setString(index++, "%" + star + "%");
+            statement.setInt(index, pageSize);
 
             ResultSet rs = statement.executeQuery();
 
