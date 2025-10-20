@@ -45,8 +45,24 @@ function handleResult(resultData) {
     jQuery("#name").text(resultData["movieTitle"] + " (" + resultData["movieYear"] + ")");
     jQuery("#movieRating").text(resultData["movieRating"] + "/10");
     jQuery("#movieDirector").text(resultData["movieDirector"]);
-    jQuery("#movieGenres").text(resultData["movieGenres"]);
-    jQuery("#movieStars").text(resultData["movieStars"]);
+
+    // Genres (link to browse-by-genre on movies.html later)
+    const genresEl = $("#movieGenres").empty();
+    (resultData.movieGenres || []).forEach((g, i) => {
+        $("<a>").text(g.name)
+            .attr("href", "movies.html?genre=" + encodeURIComponent(g.name))
+            .appendTo(genresEl);
+        if (i < resultData.movieGenres.length - 1) genresEl.append(", ");
+    });
+
+    // Stars (sorted server-side)
+    const starsEl = $("#movieStars").empty();
+    (resultData.movieStars || []).forEach((s, i) => {
+        $("<a>").text(s.name)
+            .attr("href", "star.html?id=" + encodeURIComponent(s.id))
+            .appendTo(starsEl);
+        if (i < resultData.movieStars.length - 1) starsEl.append(", ");
+    });
 
     let starsData = resultData["movieStars"].split(", ");  // ["Fred Astaire", "nm0000001", "Ginger Rogers", "nm0000002"]
     let starsContainer = jQuery("#movieStars");

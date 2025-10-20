@@ -1,6 +1,7 @@
 package main.java.org.example.servlets;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonArray;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import jakarta.servlet.ServletConfig;
@@ -84,8 +85,6 @@ public class SingleMovieServlet extends HttpServlet {
                 String movieTitle = rs.getString("title");
                 String movieYear = rs.getString("year");
                 String movieDirector = rs.getString("director");
-                String movieGenres = rs.getString("genres");
-                String movieStars = rs.getString("stars");
                 String rating = rs.getString("rating");
                 if (rating == null) rating = "N/A";
 
@@ -94,12 +93,64 @@ public class SingleMovieServlet extends HttpServlet {
                 jsonObject.addProperty("movieTitle", movieTitle);
                 jsonObject.addProperty("movieYear", movieYear);
                 jsonObject.addProperty("movieDirector", movieDirector);
-                jsonObject.addProperty("movieGenres", movieGenres);
-                jsonObject.addProperty("movieStars", movieStars);
                 jsonObject.addProperty("movieRating", rating);
             }
             rs.close();
             statement.close();
+
+            JsonArray genreArr = new JsonArray();
+
+            String sqlGenres =
+                    "SELECT g.id, g.name " +
+                            "FROM genres g " +
+                            "JOIN genres_in_movies gim ON gim.genre_id = g.id " +
+                            "WHERE gim.movie_id = ? ";
+
+            PreparedStatement psGenres = conn.prepareStatement(sqlGenres);
+            psGenres.setString(1, id);
+
+            ResultSet rs2 = psGenres.executeQuery();
+            while (rs2.next()) {
+                JsonObject g = new JsonObject();
+                g.addProperty("id", rs2.getInt("id"));
+                g.addProperty("name", rs2.getString("name"));
+                genreArr.add(g);
+            }
+            rs2.close();
+            psGenres.close();
+
+            jsonObject.add("movieGenres", genreArr);
+
+// --- STARS (by movie_count DESC, then name ASC) ---
+            JsonArray starArr = new JsonArray();
+
+            String sqlStars =
+                    "SELECT s.id, s.name, cnt.movie_count " +
+                            "FROM stars s " +
+                            "JOIN stars_in_movies sim ON sim.star_id = s.id " +
+                            "JOIN ( " +
+                            "  SELECT star_id, COUNT(*) AS movie_count " +
+                            "  FROM stars_in_movies " +
+                            "  GROUP BY star_id " +
+                            ") AS cnt ON cnt.star_id = s.id " +
+                            "WHERE sim.movie_id = ? " +
+                            "ORDER BY cnt.movie_count DESC";
+
+            PreparedStatement psStars = conn.prepareStatement(sqlStars);
+            psStars.setString(1, id);
+
+            ResultSet rs3 = psStars.executeQuery();
+            while (rs3.next()) {
+                JsonObject s = new JsonObject();
+                s.addProperty("id", rs3.getString("id"));
+                s.addProperty("name", rs3.getString("name"));
+                s.addProperty("movieCount", rs3.getInt("movie_count"));
+                starArr.add(s);
+            }
+            rs3.close();
+            psStars.close();
+
+            jsonObject.add("movieStars", starArr);
 
             // Log to localhost log
             request.getServletContext().log("getting " + jsonObject.size() + " results");
