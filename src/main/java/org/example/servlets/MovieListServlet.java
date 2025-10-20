@@ -16,7 +16,6 @@ import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.Statement;
 
 // http://localhost:8080/2025_fall_cs_122b_marjoe_war/api/topmovies
 // http://localhost:8080/2025_fall_cs_122b_marjoe_war/movies.html
@@ -49,6 +48,8 @@ public class MovieListServlet extends HttpServlet {
         String star = request.getParameter("star");
         String pageSizeStr = request.getParameter("pageSize");
         int pageSize = (pageSizeStr != null) ? Integer.parseInt(pageSizeStr) : 10;
+        String offsetStr = request.getParameter("offset");
+        int offset = (offsetStr != null) ? Integer.parseInt(offsetStr) : 0;
 
         // Output stream to STDOUT
         PrintWriter out = response.getWriter();
@@ -95,22 +96,52 @@ public class MovieListServlet extends HttpServlet {
                                  "WHERE s.name LIKE ?) "
             );
             topMoviesQuery.append("ORDER BY r.rating DESC ");
-            topMoviesQuery.append("LIMIT ?");
+            topMoviesQuery.append("LIMIT ? OFFSET ?");
 
             PreparedStatement statement = conn.prepareStatement(topMoviesQuery.toString());
             int index = 1;
-//            statement.setInt(paramIndex, (currentPage - 1) * pageSize);
             if (title != null && !title.isEmpty()) statement.setString(index++, "%" + title + "%");
             if (year != null && !year.isEmpty()) statement.setString(index++, year);
             if (director != null && !director.isEmpty()) statement.setString(index++, "%" + director + "%");
             if (genre != null && !genre.isEmpty()) statement.setString(index++, genre);
             if (star != null && !star.isEmpty()) statement.setString(index++, "%" + star + "%");
-            statement.setInt(index, pageSize);
+            statement.setInt(index++, pageSize);
+            statement.setInt(index, offset);
 
             ResultSet rs = statement.executeQuery();
 
-            JsonArray jsonArray = new JsonArray();
+            String countQuery =
+                    "SELECT COUNT(DISTINCT m.id) AS total " +
+                    "FROM movies m " +
+                    "LEFT JOIN ratings r ON m.id = r.movie_id " +
+                    "LEFT JOIN genres_in_movies gm ON m.id = gm.movie_id " +
+                    "LEFT JOIN genres g ON gm.genre_id = g.id " +
+                    "LEFT JOIN stars_in_movies sm ON m.id = sm.movie_id " +
+                    "LEFT JOIN stars s ON sm.star_id = s.id " +
+                    "WHERE 1=1 " +
+                    (title != null && !title.isEmpty() ? "AND m.title LIKE ? " : "") +
+                    (year != null && !year.isEmpty() ? "AND m.year = ? " : "") +
+                    (director != null && !director.isEmpty() ? "AND m.director LIKE ? " : "") +
+                    (genre != null && !genre.isEmpty() ? "AND g.name = ? " : "") +
+                    (star != null && !star.isEmpty() ? "AND s.name LIKE ? " : "");
 
+            PreparedStatement countStmt = conn.prepareStatement(countQuery);
+            index = 1;
+            if (title != null && !title.isEmpty()) countStmt.setString(index++, "%" + title + "%");
+            if (year != null && !year.isEmpty()) countStmt.setString(index++, year);
+            if (director != null && !director.isEmpty()) countStmt.setString(index++, "%" + director + "%");
+            if (genre != null && !genre.isEmpty()) countStmt.setString(index++, genre);
+            if (star != null && !star.isEmpty()) countStmt.setString(index, "%" + star + "%");
+
+            ResultSet countRs = countStmt.executeQuery();
+            int totalCount = 0;
+            if (countRs.next()) {
+                totalCount = countRs.getInt("total");
+            }
+            JsonObject jsonObject = new JsonObject();
+            jsonObject.addProperty("totalCount", totalCount);
+            JsonArray moviesArray = new JsonArray();
+            jsonObject.add("movies", moviesArray);
             // Iterate through each row of rs
             while (rs.next()) {
                 // get a movie from result set
@@ -123,24 +154,26 @@ public class MovieListServlet extends HttpServlet {
                 String rating = rs.getString("rating");
 
                 // Create a JsonObject based on the data we retrieve from rs
-                JsonObject jsonObject = new JsonObject();
-                jsonObject.addProperty("movieID", movieID);
-                jsonObject.addProperty("movieTitle", movieTitle);
-                jsonObject.addProperty("movieYear", movieYear);
-                jsonObject.addProperty("movieDirector", movieDirector);
-                jsonObject.addProperty("movieGenres", movieGenres);
-                jsonObject.addProperty("movieStars", movieStars);
-                jsonObject.addProperty("movieRating", rating);
-                jsonArray.add(jsonObject);
+                JsonObject movieObject = new JsonObject();
+                movieObject.addProperty("movieID", movieID);
+                movieObject.addProperty("movieTitle", movieTitle);
+                movieObject.addProperty("movieYear", movieYear);
+                movieObject.addProperty("movieDirector", movieDirector);
+                movieObject.addProperty("movieGenres", movieGenres);
+                movieObject.addProperty("movieStars", movieStars);
+                movieObject.addProperty("movieRating", rating);
+                moviesArray.add(movieObject);
             }
+            countRs.close();
+            countStmt.close();
             rs.close();
             statement.close();
 
             // Log to localhost log
-            request.getServletContext().log("getting " + jsonArray.size() + " results");
+            request.getServletContext().log("getting " + moviesArray.size() + " results");
 
             // Write JSON string to output
-            out.write(jsonArray.toString());
+            out.write(jsonObject.toString());
             // Set response status to 200 (OK)
             response.setStatus(200);
 

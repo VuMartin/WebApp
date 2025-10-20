@@ -44,23 +44,13 @@ document.querySelectorAll(".sort-group").forEach(group => {
 
 let currentPage = 1;
 let pageSize = 10;
-let totalPages = 1; // set after fetching total count from backend
+let totalPages = 1;
 
-const pageNumbersContainer = document.getElementById("page-numbers");
+const pageNumber = document.getElementById("page-numbers");
 const pageSizeSelect = document.getElementById("page-size");
 
 function renderPageNumbers() {
-    pageNumbersContainer.innerHTML = "";
-    for (let i = 1; i <= totalPages; i++) {
-        const btn = document.createElement("button");
-        btn.textContent = i;
-        btn.className = i === currentPage ? "active" : "";
-        btn.addEventListener("click", () => {
-            currentPage = i;
-            fetchMovies();
-        });
-        pageNumbersContainer.appendChild(btn);
-    }
+    pageNumber.textContent = `Page ${currentPage} of ${totalPages}`;
 }
 
 document.getElementById("prev-page").addEventListener("click", () => {
@@ -91,11 +81,12 @@ function fetchMovies() {
         url: url,
         method: "GET",
         dataType: "json",
-        // success: (data) => {
-        //     totalPages = Math.ceil(data.totalCount / pageSize); // update totalPages
-        //     renderPageNumbers();
-        // }
-        success: (resultData) => handleResult(resultData)
+        success: (resultData) => {
+            totalPages = Math.ceil(resultData.totalCount / pageSize);
+            handleResult(resultData)
+            renderPageNumbers();
+            history.pushState(null, "", `?page=${currentPage}`);
+        }
     });
 }
 
@@ -114,15 +105,16 @@ function handleResult(resultData) {
     console.log(movieTableBodyElement);
 
     // Concatenate the html tags with resultData jsonObject to create table rows
-    for (let i = 0; i < resultData.length; i++) {
+    for (let i = 0; i < resultData.movies.length; i++) {
+        let movie = resultData.movies[i];
         let rowHTML = "<tr>";
         rowHTML += "<td>" + (i + 1) + ". <a href='movie.html?id=" +
-            encodeURIComponent(resultData[i]["movieID"]) + "'>" +
-            resultData[i]["movieTitle"] + "</a></td>";
-        rowHTML += "<td>" + resultData[i]["movieYear"] + "</td>";
-        rowHTML += "<td>" + resultData[i]["movieDirector"] + "</td>";
+            encodeURIComponent(movie["movieID"]) + "'>" +
+            movie["movieTitle"] + "</a></td>";
+        rowHTML += "<td>" + movie["movieYear"] + "</td>";
+        rowHTML += "<td>" + movie["movieDirector"] + "</td>";
 
-        let genresData = resultData[i]["movieGenres"].split(", ");
+        let genresData = movie["movieGenres"].split(", ");
         let genreLinks = "";
         for (let j = 0; j < genresData.length; j++) {
             let genre = genresData[j];
@@ -131,7 +123,7 @@ function handleResult(resultData) {
         }
         rowHTML += "<td>" + genreLinks + "</td>";
 
-        let starsData = resultData[i]["movieStars"].split(", ");  // ["Fred Astaire", "nm0000001", "Ginger Rogers", "nm0000002"]
+        let starsData = movie["movieStars"].split(", ");  // ["Fred Astaire", "nm0000001", "Ginger Rogers", "nm0000002"]
         let starLinks = "";
         console.log(starsData);
         for (let j = 0; j < starsData.length; j += 2) {
@@ -141,11 +133,12 @@ function handleResult(resultData) {
             if (j + 2 < starsData.length) starLinks += ", ";
         }
         rowHTML += "<td>" + starLinks + "</td>";
-        rowHTML += "<td>" + "⭐️ " + resultData[i]["movieRating"] + "</td>";
+        rowHTML += "<td>" + "⭐️ " + movie["movieRating"] + "</td>";
         rowHTML += "</tr>";
 
         // Append the row created to the table body, which will refresh the page
         movieTableBodyElement.append(rowHTML);
+        renderPageNumbers();
     }
 }
 
@@ -174,5 +167,8 @@ jQuery.ajax({
     dataType: "json",  // Setting return data type
     method: "GET",// Setting request method
     url: url, // Setting request url
-    success: (resultData) => handleResult(resultData) // Setting callback function to handle data returned successfully by the MovieListServlet
+    success: (resultData) => {
+        totalPages = Math.ceil(resultData.totalCount / pageSize);
+        handleResult(resultData)
+    } // Setting callback function to handle data returned successfully by the MovieListServlet
 });

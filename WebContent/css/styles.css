@@ -224,6 +224,7 @@
     justify-content: center;
     text-align: center;
     margin-top: 20px;
+    margin-bottom: 20px;
 }
 
 .pagination button,
@@ -244,6 +245,12 @@
     background: #08F;
     color: white;
     border-color: #08F;
+}
+
+#page-numbers {
+    padding: 0 30px;
+    text-align: center;
+    margin-top: 5px;
 }
 
 /* single movie */
