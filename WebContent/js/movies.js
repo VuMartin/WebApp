@@ -36,8 +36,7 @@ document.querySelectorAll(".sort-group").forEach(group => {
         option.addEventListener("click", () => {
             options.forEach(o => o.classList.remove("selected"));
             option.classList.add("selected");
-
-            // jQuery.ajax({
+            fetchMovies();
         });
     });
 });
@@ -66,29 +65,6 @@ document.getElementById("next-page").addEventListener("click", () => {
         fetchMovies();
     }
 });
-
-pageSizeSelect.addEventListener("change", () => {
-    pageSize = parseInt(pageSizeSelect.value);
-    currentPage = 1;
-    fetchMovies();
-});
-
-function fetchMovies() {
-    const offset = (currentPage - 1) * pageSize;
-    const url = `api/topmovies?pageSize=${pageSize}&offset=${offset}`;
-
-    jQuery.ajax({
-        url: url,
-        method: "GET",
-        dataType: "json",
-        success: (resultData) => {
-            totalPages = Math.ceil(resultData.totalCount / pageSize);
-            handleResult(resultData)
-            renderPageNumbers();
-            history.pushState(null, "", `?page=${currentPage}`);
-        }
-    });
-}
 
 pageSizeSelect.addEventListener("change", () => {
     pageSize = parseInt(pageSizeSelect.value);
@@ -146,29 +122,60 @@ function handleResult(resultData) {
  * Once this .js is loaded, following scripts will be executed by the browser\
  */
 
-let title = getParameterByName("title");
-let year = getParameterByName("year");
-let director = getParameterByName("director");
-let star = getParameterByName("star");
-let genre = getParameterByName("genre");
-let url;
-if (!title && !year && !director && !star && !genre) {
-    url = "api/topmovies";
-} else {
-    url = "api/topmovies?";
-    if (title) url += "title=" + encodeURIComponent(title) + "&";
-    if (year) url += "year=" + encodeURIComponent(year) + "&";
-    if (director) url += "director=" + encodeURIComponent(director) + "&";
-    if (genre) url += "genre=" + encodeURIComponent(genre) + "&";
-    if (star) url += "star=" + encodeURIComponent(star);
-}
 // Makes the HTTP GET request and registers on success callback function handleResult
-jQuery.ajax({
-    dataType: "json",  // Setting return data type
-    method: "GET",// Setting request method
-    url: url, // Setting request url
-    success: (resultData) => {
-        totalPages = Math.ceil(resultData.totalCount / pageSize);
-        handleResult(resultData)
-    } // Setting callback function to handle data returned successfully by the MovieListServlet
-});
+
+function fetchMovies() {
+    let title = getParameterByName("title");
+    let year = getParameterByName("year");
+    let director = getParameterByName("director");
+    let star = getParameterByName("star");
+    let genre = getParameterByName("genre");
+    let back = getParameterByName("restore");
+    const offset = (currentPage - 1) * pageSize;
+    let sortField = document.querySelector(".sort-option.selected").dataset.field;
+    let sortOrder = document.querySelector(".sort-option.selected").dataset.order;
+    let url;
+    if (back === "true") url = "api/topmovies?restore=true";
+    else if (!title && !year && !director && !star && !genre) {
+        url = `api/topmovies?pageSize=${pageSize}&offset=${offset}&sortField=${encodeURIComponent(sortField)}&sortOrder=${encodeURIComponent(sortOrder)}&currentPage=${currentPage}`;
+    } else {
+        url = "api/topmovies?";
+        if (title) url += "title=" + encodeURIComponent(title) + "&";
+        if (year) url += "year=" + encodeURIComponent(year) + "&";
+        if (director) url += "director=" + encodeURIComponent(director) + "&";
+        if (genre) url += "genre=" + encodeURIComponent(genre) + "&";
+        if (star) url += "star=" + encodeURIComponent(star) + "&";
+        url += `pageSize=${pageSize}&offset=${offset}&sortField=${encodeURIComponent(sortField)}&sortOrder=${encodeURIComponent(sortOrder)}&currentPage=${currentPage}`;
+    }
+    jQuery.ajax({
+        url: url,
+        method: "GET",
+        dataType: "json",
+        success: (resultData) => {
+            currentPage = resultData.currentPage;
+            pageSize = resultData.pageSize;
+            pageSizeSelect.value = pageSize;
+            // const restoredField = resultData.sortField;
+            // const restoredOrder = resultData.sortOrder;
+            //
+            // document.querySelectorAll(".sort-option").forEach(option => {
+            //     if (option.dataset.field === restoredField && option.dataset.order === restoredOrder) {
+            //         option.classList.add("selected");
+            //     } else {
+            //         option.classList.remove("selected");
+            //     }
+            // });
+            totalPages = Math.ceil(resultData.totalCount / pageSize);
+            handleResult(resultData)
+            renderPageNumbers();
+
+            if (back === "true") {
+                const offset = (currentPage - 1) * pageSize;
+                const newUrl = `?pageSize=${pageSize}&offset=${offset}&sortField=${encodeURIComponent(resultData.sortField)}&sortOrder=${encodeURIComponent(resultData.sortOrder)}&currentPage=${currentPage}`;
+                history.replaceState(null, "", newUrl);
+            }
+        }
+    });
+}
+
+fetchMovies();

@@ -10,6 +10,8 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -26,12 +28,52 @@ public class MovieListServlet extends HttpServlet {
 
     // Create a dataSource which registered in web.
     private DataSource dataSource;
+    private SessionAttribute<String> nameAttribute;
+    private SessionAttribute<String> titleAttr;
+    private SessionAttribute<String> yearAttr;
+    private SessionAttribute<String> directorAttr;
+    private SessionAttribute<String> genreAttr;
+    private SessionAttribute<String> starAttr;
+    private SessionAttribute<String> sortFieldAttr;
+    private SessionAttribute<String> sortOrderAttr;
+    private SessionAttribute<Integer> pageSizeAttr;
+    private SessionAttribute<Integer> offsetAttr;
+    private SessionAttribute<Integer> currPageAttr;
 
     public void init(ServletConfig config) {
         try {
             dataSource = (DataSource) new InitialContext().lookup("java:comp/env/jdbc/moviedb");
         } catch (NamingException e) {
             e.printStackTrace();
+        }
+        this.nameAttribute = new SessionAttribute<>(String.class, "name");
+        titleAttr = new SessionAttribute<>(String.class, "title");
+        yearAttr = new SessionAttribute<>(String.class, "year");
+        directorAttr = new SessionAttribute<>(String.class, "director");
+        genreAttr = new SessionAttribute<>(String.class, "genre");
+        starAttr = new SessionAttribute<>(String.class, "star");
+        sortFieldAttr = new SessionAttribute<>(String.class, "sortField");
+        sortOrderAttr = new SessionAttribute<>(String.class, "sortOrder");
+        pageSizeAttr = new SessionAttribute<>(Integer.class, "pageSize");
+        offsetAttr = new SessionAttribute<>(Integer.class, "offset");
+        currPageAttr = new SessionAttribute<>(Integer.class, "page");
+    }
+
+    class SessionAttribute<T> {
+        private final Class<T> clazz;
+        private final String name;
+
+        SessionAttribute(Class<T> clazz, String name) {
+            this.name = name;
+            this.clazz = clazz;
+        }
+
+        T get(HttpSession session) {
+            return clazz.cast(session.getAttribute(name));
+        }
+
+        void set(HttpSession session, T value) {
+            session.setAttribute(name, value);
         }
     }
 
@@ -41,15 +83,56 @@ public class MovieListServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
 
         response.setContentType("application/json"); // Response mime type
-        String title = request.getParameter("title");
-        String year = request.getParameter("year");
-        String director = request.getParameter("director");
-        String genre = request.getParameter("genre");
-        String star = request.getParameter("star");
-        String pageSizeStr = request.getParameter("pageSize");
-        int pageSize = (pageSizeStr != null) ? Integer.parseInt(pageSizeStr) : 10;
-        String offsetStr = request.getParameter("offset");
-        int offset = (offsetStr != null) ? Integer.parseInt(offsetStr) : 0;
+        HttpSession session = request.getSession();
+        String title;
+        String year;
+        String director;
+        String genre;
+        String star;
+        int pageSize;
+        int offset;
+        String sortField;
+        String sortOrder;
+        int currentPage;
+
+        String back = request.getParameter("restore");
+        if (back != null && back.equals("true")) {
+            title = titleAttr.get(session);
+            year = yearAttr.get(session);
+            director = directorAttr.get(session);
+            genre = genreAttr.get(session);
+            star = starAttr.get(session);
+            pageSize = pageSizeAttr.get(session);
+            offset = offsetAttr.get(session);
+            sortField = sortFieldAttr.get(session);
+            sortOrder = sortOrderAttr.get(session);
+            currentPage = currPageAttr.get(session);
+        } else {
+            title = request.getParameter("title");
+            year = request.getParameter("year");
+            director = request.getParameter("director");
+            genre = request.getParameter("genre");
+            star = request.getParameter("star");
+            String pageSizeStr = request.getParameter("pageSize");
+            pageSize = (pageSizeStr != null) ? Integer.parseInt(pageSizeStr) : 10;
+            String offsetStr = request.getParameter("offset");
+            offset = (offsetStr != null) ? Integer.parseInt(offsetStr) : 0;
+            sortField = request.getParameter("sortField");
+            sortOrder = request.getParameter("sortOrder");
+            String pageStr = request.getParameter("currentPage");
+            currentPage = (pageStr != null) ? Integer.parseInt(pageStr) : 1;
+
+            titleAttr.set(session, title);
+            yearAttr.set(session, year);
+            directorAttr.set(session, director);
+            genreAttr.set(session, genre);
+            starAttr.set(session, star);
+            pageSizeAttr.set(session, pageSize);
+            offsetAttr.set(session, offset);
+            currPageAttr.set(session, currentPage);
+            sortFieldAttr.set(session, sortField);
+            sortOrderAttr.set(session, sortOrder);
+        }
 
         // Output stream to STDOUT
         PrintWriter out = response.getWriter();
@@ -140,6 +223,10 @@ public class MovieListServlet extends HttpServlet {
             }
             JsonObject jsonObject = new JsonObject();
             jsonObject.addProperty("totalCount", totalCount);
+            jsonObject.addProperty("currentPage", currentPage);
+            jsonObject.addProperty("pageSize", pageSize);
+            jsonObject.addProperty("sortField", sortField);
+            jsonObject.addProperty("sortOrder", sortOrder);
             JsonArray moviesArray = new JsonArray();
             jsonObject.add("movies", moviesArray);
             // Iterate through each row of rs
