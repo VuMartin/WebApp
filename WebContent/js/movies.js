@@ -30,37 +30,91 @@ function getParameterByName(target) {
     return decodeURIComponent(results[2].replace(/\+/g, " "));
 }
 
+document.querySelectorAll(".sort-group").forEach(group => {
+    const options = group.querySelectorAll(".sort-option");
+    options.forEach(option => {
+        option.addEventListener("click", () => {
+            options.forEach(o => o.classList.remove("selected"));
+            option.classList.add("selected");
+            fetchMovies();
+        });
+    });
+});
+
+let currentPage = 1;
+let pageSize = 10;
+let totalPages = 1;
+
+const pageNumber = document.getElementById("page-numbers");
+const pageSizeSelect = document.getElementById("page-size");
+
+function renderPageNumbers() {
+    pageNumber.textContent = `Page ${currentPage} of ${totalPages}`;
+}
+
+document.getElementById("prev-page").addEventListener("click", () => {
+    if (currentPage > 1) {
+        currentPage--;
+        fetchMovies();
+    }
+});
+
+document.getElementById("next-page").addEventListener("click", () => {
+    if (currentPage < totalPages) {
+        currentPage++;
+        fetchMovies();
+    }
+});
+
+pageSizeSelect.addEventListener("change", () => {
+    pageSize = parseInt(pageSizeSelect.value);
+    currentPage = 1;
+    fetchMovies();
+});
+
+
 function handleResult(resultData) {
     // Populate the star table
     // Find the empty table body by id "movie_table_body"
     let movieTableBodyElement = jQuery("#movie-table-body");
+    movieTableBodyElement.empty();
     console.log(movieTableBodyElement);
 
     // Concatenate the html tags with resultData jsonObject to create table rows
-    for (let i = 0; i < resultData.length; i++) {
+    for (let i = 0; i < resultData.movies.length; i++) {
+        let movie = resultData.movies[i];
         let rowHTML = "<tr>";
         rowHTML += "<td>" + (i + 1) + ". <a href='movie.html?id=" +
-            encodeURIComponent(resultData[i]["movieID"]) + "'>" +
-            resultData[i]["movieTitle"] + "</a></td>";
-        rowHTML += "<td>" + resultData[i]["movieYear"] + "</td>";
-        rowHTML += "<td>" + resultData[i]["movieDirector"] + "</td>";
-        rowHTML += "<td>" + resultData[i]["movieGenres"] + "</td>";
+            encodeURIComponent(movie["movieID"]) + "'>" +
+            movie["movieTitle"] + "</a></td>";
+        rowHTML += "<td>" + movie["movieYear"] + "</td>";
+        rowHTML += "<td>" + movie["movieDirector"] + "</td>";
 
-        let starsData = resultData[i]["movieStars"].split(", ");  // ["Fred Astaire", "nm0000001", "Ginger Rogers", "nm0000002"]
+        let genresData = movie["movieGenres"].split(", ");
+        let genreLinks = "";
+        for (let j = 0; j < genresData.length; j++) {
+            let genre = genresData[j];
+            genreLinks += "<a href='movies.html?genre=" + encodeURIComponent(genre) + "'>" + genre + "</a>";
+            if (j + 1 < genresData.length) genreLinks += ", ";
+        }
+        rowHTML += "<td>" + genreLinks + "</td>";
+
+        let starsData = movie["movieStars"].split(", ");  // ["Fred Astaire", "nm0000001", "Ginger Rogers", "nm0000002"]
         let starLinks = "";
         console.log(starsData);
-        for (let i = 0; i < starsData.length; i += 2) {
-            let name = starsData[i];
-            let id = starsData[i + 1];
+        for (let j = 0; j < starsData.length; j += 2) {
+            let name = starsData[j];
+            let id = starsData[j + 1];
             starLinks += "<a href='star.html?id=" + encodeURIComponent(id) + "'>" + name + "</a>";
-            if (i + 2 < starsData.length) starLinks += ", ";
+            if (j + 2 < starsData.length) starLinks += ", ";
         }
         rowHTML += "<td>" + starLinks + "</td>";
-        rowHTML += "<td>" + "⭐️ " + resultData[i]["movieRating"] + "</td>";
+        rowHTML += "<td>" + "⭐️ " + movie["movieRating"] + "</td>";
         rowHTML += "</tr>";
 
         // Append the row created to the table body, which will refresh the page
         movieTableBodyElement.append(rowHTML);
+        renderPageNumbers();
     }
 }
 
@@ -68,24 +122,60 @@ function handleResult(resultData) {
  * Once this .js is loaded, following scripts will be executed by the browser\
  */
 
-let title = getParameterByName("title");
-let year = getParameterByName("year");
-let director = getParameterByName("director");
-let star = getParameterByName("star");
-let url;
-if (!title && !year && !director && !star) {
-    url = "api/topmovies";
-} else {
-    url = "api/topmovies?";
-    if (title) url += "title=" + encodeURIComponent(title) + "&";
-    if (year) url += "year=" + encodeURIComponent(year) + "&";
-    if (director) url += "director=" + encodeURIComponent(director) + "&";
-    if (star) url += "star=" + encodeURIComponent(star);
-}
 // Makes the HTTP GET request and registers on success callback function handleResult
-jQuery.ajax({
-    dataType: "json",  // Setting return data type
-    method: "GET",// Setting request method
-    url: url, // Setting request url
-    success: (resultData) => handleResult(resultData) // Setting callback function to handle data returned successfully by the MovieListServlet
-});
+
+function fetchMovies() {
+    let title = getParameterByName("title");
+    let year = getParameterByName("year");
+    let director = getParameterByName("director");
+    let star = getParameterByName("star");
+    let genre = getParameterByName("genre");
+    let back = getParameterByName("restore");
+    const offset = (currentPage - 1) * pageSize;
+    let sortField = document.querySelector(".sort-option.selected").dataset.field;
+    let sortOrder = document.querySelector(".sort-option.selected").dataset.order;
+    let url;
+    if (back === "true") url = "api/topmovies?restore=true";
+    else if (!title && !year && !director && !star && !genre) {
+        url = `api/topmovies?pageSize=${pageSize}&offset=${offset}&sortField=${encodeURIComponent(sortField)}&sortOrder=${encodeURIComponent(sortOrder)}&currentPage=${currentPage}`;
+    } else {
+        url = "api/topmovies?";
+        if (title) url += "title=" + encodeURIComponent(title) + "&";
+        if (year) url += "year=" + encodeURIComponent(year) + "&";
+        if (director) url += "director=" + encodeURIComponent(director) + "&";
+        if (genre) url += "genre=" + encodeURIComponent(genre) + "&";
+        if (star) url += "star=" + encodeURIComponent(star) + "&";
+        url += `pageSize=${pageSize}&offset=${offset}&sortField=${encodeURIComponent(sortField)}&sortOrder=${encodeURIComponent(sortOrder)}&currentPage=${currentPage}`;
+    }
+    jQuery.ajax({
+        url: url,
+        method: "GET",
+        dataType: "json",
+        success: (resultData) => {
+            currentPage = resultData.currentPage;
+            pageSize = resultData.pageSize;
+            pageSizeSelect.value = pageSize;
+            // const restoredField = resultData.sortField;
+            // const restoredOrder = resultData.sortOrder;
+            //
+            // document.querySelectorAll(".sort-option").forEach(option => {
+            //     if (option.dataset.field === restoredField && option.dataset.order === restoredOrder) {
+            //         option.classList.add("selected");
+            //     } else {
+            //         option.classList.remove("selected");
+            //     }
+            // });
+            totalPages = Math.ceil(resultData.totalCount / pageSize);
+            handleResult(resultData)
+            renderPageNumbers();
+
+            if (back === "true") {
+                const offset = (currentPage - 1) * pageSize;
+                const newUrl = `?pageSize=${pageSize}&offset=${offset}&sortField=${encodeURIComponent(resultData.sortField)}&sortOrder=${encodeURIComponent(resultData.sortOrder)}&currentPage=${currentPage}`;
+                history.replaceState(null, "", newUrl);
+            }
+        }
+    });
+}
+
+fetchMovies();
