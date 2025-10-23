@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport"
+              content="width=device-width, initial-scale=1, shrink-to-fit=no">  <!-- support mobile devices -->
+
+        <!-- Bootstrap CSS -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+              integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+        <link rel="stylesheet" href="css/styles.css">
+
+        <title>Shopping Cart - Fablix</title>
+
+        <!-- favicon links -->
+        <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+        <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+        <link rel="manifest" href="site.webmanifest">
+    </head>
+
+    <body>
+        <header class="site-header">
+            <span class="arrow">←</span>
+            <a href="movies.html?restore=true" class="back-link">
+                Back to Top Rated Movies
+            </a>
+            <h1 id="single-site-name">FABFLIX</h1>
+        </header>
+        <div class="container mt-5">
+            <h1 class="mb-4">Payment</h1>
+
+            <!-- Total price display -->
+            <div class="mb-4">
+                <h4>Total: $<span id="total-price">122</span></h4>
+            </div>
+
+            <!-- Payment form -->
+            <form action="PlaceOrderServlet" method="POST">
+                <div class="row mb-3">
+                    <div class="col">
+                        <label for="firstName" class="form-label">First Name</label>
+                        <input type="text" class="form-control" id="firstName" name="firstName" required>
+                    </div>
+                    <div class="col">
+                        <label for="lastName" class="form-label">Last Name</label>
+                        <input type="text" class="form-control" id="lastName" name="lastName" required>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="cardNumber" class="form-label">Credit Card Number</label>
+                    <input type="text" class="form-control" id="cardNumber" name="cardNumber" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="expiration" class="form-label">Expiration Date</label>
+                    <input type="month" class="form-control" id="expiration" name="expiration" required>
+                </div>
+
+                <!-- Error message (hidden by default, show if invalid) -->
+                <div class="mb-3 text-danger" id="error-message" style="display: none;">
+                    Invalid payment information. Please try again.
+                </div>
+
+                <button type="submit" class="btn btn-success">Place Order</button>
+            </form>
+        </div>
+        <!-- Load jQuery and Bootstrap JS -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <!--        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>-->
+        <!--        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>-->
+
+        <script src="js/payment.js"></script>
+    </body>
+</html>

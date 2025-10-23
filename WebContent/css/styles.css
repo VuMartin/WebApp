@@ -342,3 +342,23 @@
 #error-msg {
     color: red;
 }
+
+/* cart page */
+
+#shop-quantity-input {
+    width: 100px;
+}
+
+#shop-actions, #shop-quantity {
+    padding-left: 20px;
+}
+
+#shop-movie-title {
+    padding-left: 14px;
+}
+
+
+#shop-proceed {
+    margin-left: 930px;
+    margin-top: 10px;
+}
