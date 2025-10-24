@@ -98,6 +98,11 @@
     text-decoration: underline;
 }
 
+#cart-icon {
+    width: 30px;
+    margin-right: 7px;
+}
+
 /* main page */
 
 #welcome-main {
@@ -292,6 +297,7 @@
 }
 
 .movie-container {
+    margin-top: 95px;
     padding-left: 30px;
     padding-right: 30px;
 }
@@ -345,7 +351,7 @@
 
 /* cart page */
 
-#shop-quantity-input {
+.shop-quantity-input {
     width: 100px;
 }
 

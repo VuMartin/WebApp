@@ -74,7 +74,6 @@ pageSizeSelect.addEventListener("change", () => {
 
 
 function handleResult(resultData) {
-    // Populate the star table
     // Find the empty table body by id "movie_table_body"
     let movieTableBodyElement = jQuery("#movie-table-body");
     movieTableBodyElement.empty();
@@ -84,6 +83,7 @@ function handleResult(resultData) {
     for (let i = 0; i < resultData.movies.length; i++) {
         let movie = resultData.movies[i];
         let rowHTML = "<tr>";
+        rowHTML += "<td> $122 <br><button class='btn btn-sm btn-success mt-1'>Add</button></td>";
         rowHTML += "<td>" + (i + 1) + ". <a href='movie.html?id=" +
             encodeURIComponent(movie["movieID"]) + "'>" +
             movie["movieTitle"] + "</a></td>";

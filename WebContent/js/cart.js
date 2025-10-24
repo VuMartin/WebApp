@@ -1,74 +1,82 @@
-let cart = $("#cart");
+// Render the cart table
+function displayCart(cartData) {
+    let tbody = $("#cart-items");
+    tbody.empty();
 
-/**
- * Handle the data returned by IndexServlet
- * @param resultDataString jsonObject, consists of session info
- */
-function handleSessionData(resultDataString) {
-    let resultDataJson = JSON.parse(resultDataString);
+    let totalPrice = 0;
+    cartData.forEach(item => {
+        let movieTotal = item.price * item.quantity;
+        totalPrice += movieTotal;
 
-    console.log("handle session response");
-    console.log(resultDataJson);
-    console.log(resultDataJson["sessionID"]);
-
-    // show the session information
-    $("#sessionID").text("Session ID: " + resultDataJson["sessionID"]);
-    $("#lastAccessTime").text("Last access time: " + resultDataJson["lastAccessTime"]);
-
-    // show cart information
-    handleCartArray(resultDataJson["previousItems"]);
-}
-
-/**
- * Handle the items in item list
- * @param resultArray jsonObject, needs to be parsed to html
- */
-function handleCartArray(resultArray) {
-    console.log(resultArray);
-    let item_list = $("#item_list");
-    // change it to html list
-    let res = "<ul>";
-    for (let i = 0; i < resultArray.length; i++) {
-        // each item will be in a bullet point
-        res += "<li>" + resultArray[i] + "</li>";
-    }
-    res += "</ul>";
-
-    // clear the old array and show the new array in the frontend
-    item_list.html("");
-    item_list.append(res);
-}
-
-/**
- * Submit form content with POST method
- * @param cartEvent
- */
-function handleCartInfo(cartEvent) {
-    console.log("submit cart form");
-    /**
-     * When users click the submit button, the browser will not direct
-     * users to the url defined in HTML form. Instead, it will call this
-     * event handler when the event is triggered.
-     */
-    cartEvent.preventDefault();
-
-    $.ajax("api/index", {
-        method: "POST",
-        data: cart.serialize(),
-        success: resultDataString => {
-            let resultDataJson = JSON.parse(resultDataString);
-            handleCartArray(resultDataJson["previousItems"]);
-        }
+        let row = `<tr data-movie-id="${item.movieId}">
+            <td>${item.title}</td>
+            <td><input type="number" class="form-control shop-quantity-input" value="${item.quantity}" min="1"></td>
+            <td>$${item.price}</td>
+            <td>$${movieTotal}</td>
+            <td>
+                <button class="btn btn-danger btn-sm remove-btn">Remove</button>
+            </td>
+        </tr>`;
+        tbody.append(row);
     });
 
-    // clear input form
-    cart[0].reset();
+    $("#shop-total").text(`Total: $${totalPrice}`);
 }
 
-$.ajax("api/index", {
-    method: "GET",
-    success: handleSessionData
+// Add to cart from movie list
+function addToCart(movieId, title, price = 122) {
+    $.ajax("/api/cart", {
+        method: "POST",
+        data: { movieId, title, price, action: "add" },
+        success: (resultData) => {
+            displayCart(resultData);
+        }
+    });
+}
+
+// Update quantity or remove item
+$("#cart-items").on("change", ".shop-quantity-input", function() {
+    let row = $(this).closest("tr");
+    let movieId = row.data("movie-id");
+    let newQty = parseInt($(this).val());
+
+    $.ajax("/api/cart", {
+        method: "POST",
+        data: { movieId, quantity: newQty, action: "update" },
+        success: (resultData) => {
+            displayCart(resultData);
+        }
+    });
 });
 
-// Bind the submit action of the form to a event handler function
-cart.submit(handleCartInfo);
+$("#cart-items").on("click", ".remove-btn", function() {
+    let row = $(this).closest("tr");
+    let movieId = row.data("movie-id");
+
+    $.ajax("/api/cart", {
+        method: "POST",
+        data: { movieId, action: "remove" },
+        success: (resultData) => {
+            displayCart(resultData);
+        }
+    });
+});
+
+function loadCart() {
+    $.ajax("/api/cart", {
+        method: "GET",
+        success: (resultData) => {
+            displayCart(resultData);
+        }
+    });
+}
+
+// let testCartData = [
+//     { movieId: "m1", title: "Inception", quantity: 1, price: 10 },
+//     { movieId: "m2", title: "Interstellar", quantity: 2, price: 12 }
+// ];
+//
+// // call the function to test UI
+// displayCart(testCartData);
+
+loadCart();
