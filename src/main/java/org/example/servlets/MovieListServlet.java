@@ -179,7 +179,14 @@ public class MovieListServlet extends HttpServlet {
                                  "WHERE s.name LIKE ?) "
             );
             topMoviesQuery.append("ORDER BY r.rating DESC ");
-            topMoviesQuery.append("LIMIT ? OFFSET ?");
+
+            boolean hasGenre = (genre != null && !genre.isEmpty());
+            if (!hasGenre) {
+                topMoviesQuery.append("LIMIT 20");
+            } else {
+                topMoviesQuery.append("LIMIT ? OFFSET ?");
+            }
+
 
             PreparedStatement statement = conn.prepareStatement(topMoviesQuery.toString());
             int index = 1;
@@ -188,8 +195,11 @@ public class MovieListServlet extends HttpServlet {
             if (director != null && !director.isEmpty()) statement.setString(index++, "%" + director + "%");
             if (genre != null && !genre.isEmpty()) statement.setString(index++, genre);
             if (star != null && !star.isEmpty()) statement.setString(index++, "%" + star + "%");
-            statement.setInt(index++, pageSize);
-            statement.setInt(index, offset);
+
+            if (hasGenre) {
+                statement.setInt(index++, pageSize);
+                statement.setInt(index++, (currentPage - 1) * pageSize);
+            }
 
             ResultSet rs = statement.executeQuery();
 
@@ -220,6 +230,12 @@ public class MovieListServlet extends HttpServlet {
             int totalCount = 0;
             if (countRs.next()) {
                 totalCount = countRs.getInt("total");
+            }
+            if (!hasGenre) {
+                // Top 20 mode: force one page
+                totalCount = Math.min(totalCount, 20); // 20 total
+                currentPage = 1;                       // page 1
+                pageSize = 20;                         // 20 per page
             }
             JsonObject jsonObject = new JsonObject();
             jsonObject.addProperty("totalCount", totalCount);
