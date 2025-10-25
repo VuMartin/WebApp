@@ -243,11 +243,6 @@ public class MovieListServlet extends HttpServlet {
             if (star  != null && !star.isEmpty())       countStmt.setString(index++, "%" + star + "%");
             if (hasPrefix)                                countStmt.setString(index++, prefix.toUpperCase() + "%");
 
-            if (paginate) {
-                statement.setInt(index++, pageSize);
-                statement.setInt(index++, offset);
-            }
-
             ResultSet countRs = countStmt.executeQuery();
             int totalCount = 0;
             if (countRs.next()) {
@@ -287,7 +282,6 @@ public class MovieListServlet extends HttpServlet {
                 movieObject.addProperty("movieDirector", movieDirector);
                 movieObject.addProperty("movieGenres", movieGenres);
                 movieObject.addProperty("movieStars", movieStars);
-                movieObject.addProperty("movieRating", rating);
                 movieObject.addProperty("movieRating", ratingOut);
                 moviesArray.add(movieObject);
             }
