@@ -1,4 +1,4 @@
-/* all pages */
+/* all pages/header page */
 #movie-page-header {
     position: fixed;
     top: 0;
@@ -101,6 +101,22 @@
 #cart-icon {
     width: 30px;
     margin-right: 7px;
+}
+
+#cart-link {
+    position: relative;
+    display: inline-block;
+}
+
+#cart-count {
+    position: absolute;
+    top: -6px;
+    right: -4px;
+    background: red;
+    color: white;
+    border-radius: 50%;
+    padding: 0 4px;
+    font-size: 12px;
 }
 
 /* main page */

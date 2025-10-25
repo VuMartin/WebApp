@@ -23,24 +23,13 @@ function displayCart(cartData) {
     $("#shop-total").text(`Total: $${totalPrice}`);
 }
 
-// Add to cart from movie list
-function addToCart(movieId, title, price = 122) {
-    $.ajax("/api/cart", {
-        method: "POST",
-        data: { movieId, title, price, action: "add" },
-        success: (resultData) => {
-            displayCart(resultData);
-        }
-    });
-}
-
 // Update quantity or remove item
 $("#cart-items").on("change", ".shop-quantity-input", function() {
     let row = $(this).closest("tr");
     let movieId = row.data("movie-id");
     let newQty = parseInt($(this).val());
 
-    $.ajax("/api/cart", {
+    $.ajax("api/cart", {
         method: "POST",
         data: { movieId, quantity: newQty, action: "update" },
         success: (resultData) => {
@@ -53,7 +42,7 @@ $("#cart-items").on("click", ".remove-btn", function() {
     let row = $(this).closest("tr");
     let movieId = row.data("movie-id");
 
-    $.ajax("/api/cart", {
+    $.ajax("api/cart", {
         method: "POST",
         data: { movieId, action: "remove" },
         success: (resultData) => {
@@ -63,7 +52,7 @@ $("#cart-items").on("click", ".remove-btn", function() {
 });
 
 function loadCart() {
-    $.ajax("/api/cart", {
+    $.ajax("api/cart", {
         method: "GET",
         success: (resultData) => {
             displayCart(resultData);

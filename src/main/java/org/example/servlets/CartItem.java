@@ -1,20 +1,20 @@
 package main.java.org.example.servlets;
 
 public class CartItem {
-    private final String movieId;
+    private final String movieID;
     private final String title;
     private final double price;
     private int quantity;
 
     public CartItem(String movieId, String title, double price, int quantity) {
-        this.movieId = movieId;
+        this.movieID = movieId;
         this.title = title;
         this.price = price;
         this.quantity = quantity;
     }
 
     // getters
-    public String getMovieId() { return movieId; }
+    public String getMovieID() { return movieID; }
     public String getTitle() { return title; }
     public double getPrice() { return price; }
     public int getQuantity() { return quantity; }

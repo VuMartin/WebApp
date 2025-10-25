@@ -19,8 +19,8 @@ public class ShoppingCartServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
         response.setContentType("application/json");
 
-        String movieId = request.getParameter("movieId");
-        String title = request.getParameter("title"); // for adding
+        String movieID = request.getParameter("movieID");
+        String title = request.getParameter("title");
         double price = request.getParameter("price") != null ? Double.parseDouble(request.getParameter("price")) : 0;
         String action = request.getParameter("action");
 
@@ -33,17 +33,17 @@ public class ShoppingCartServlet extends HttpServlet {
 
         synchronized(cart) {
             if ("remove".equals(action)) {
-                cart.remove(movieId);
+                cart.remove(movieID);
             } else if ("update".equals(action)) {
-                CartItem item = cart.get(movieId);
+                CartItem item = cart.get(movieID);
                 if (item != null) {
                     int newQty = Integer.parseInt(request.getParameter("quantity"));
                     item.setQuantity(newQty);
                 }
             } else {
-                CartItem item = cart.getOrDefault(movieId, new CartItem(movieId, title, price, 0));
+                CartItem item = cart.getOrDefault(movieID, new CartItem(movieID, title, price, 0));
                 item.setQuantity(item.getQuantity() + 1);
-                cart.put(movieId, item);
+                cart.put(movieID, item);
             }
         }
 
@@ -52,7 +52,7 @@ public class ShoppingCartServlet extends HttpServlet {
         synchronized(cart) {
             for (CartItem item : cart.values()) {
                 JsonObject obj = new JsonObject();
-                obj.addProperty("movieId", item.getMovieId());
+                obj.addProperty("movieID", item.getMovieID());
                 obj.addProperty("title", item.getTitle());
                 obj.addProperty("quantity", item.getQuantity());
                 obj.addProperty("price", item.getPrice());
@@ -61,28 +61,32 @@ public class ShoppingCartServlet extends HttpServlet {
         }
 
         response.getWriter().write(cartArray.toString());
+        response.setStatus(200);
     }
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        response.setContentType("application/json"); // Response mime type
+        response.setContentType("application/json");
         HttpSession session = request.getSession(false);
         if (session == null || session.getAttribute("cart") == null) {
-            response.getWriter().write("{\"cart\": []}");
+            response.getWriter().write("[]"); // empty array
             return;
         }
 
-        Map<String, Integer> cart = (Map<String, Integer>) session.getAttribute("cart");
+        Map<String, CartItem> cart = (Map<String, CartItem>) session.getAttribute("cart");
         JsonArray cartJson = new JsonArray();
 
-        for (Map.Entry<String, Integer> entry : cart.entrySet()) {
-            JsonObject item = new JsonObject();
-            item.addProperty("movieId", entry.getKey());
-            item.addProperty("quantity", entry.getValue());
-            cartJson.add(item);
+        synchronized(cart) {
+            for (CartItem item : cart.values()) {
+                JsonObject obj = new JsonObject();
+                obj.addProperty("movieID", item.getMovieID());
+                obj.addProperty("title", item.getTitle());
+                obj.addProperty("quantity", item.getQuantity());
+                obj.addProperty("price", item.getPrice());
+                cartJson.add(obj);
+            }
         }
 
-        JsonObject jsonResponse = new JsonObject();
-        jsonResponse.add("cart", cartJson);
-        response.getWriter().write(jsonResponse.toString());
+        response.getWriter().write(cartJson.toString()); // send array directly
+        response.setStatus(200);
     }
 }
