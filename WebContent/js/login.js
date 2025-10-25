@@ -26,7 +26,6 @@ jQuery("#login-form").submit(function(event) {
     let email = jQuery("#email").val();
     let password = jQuery("#password").val();
 
-    // AJAX POST request to LoginServlet
     jQuery.ajax({
         dataType: "json",
         method: "POST",

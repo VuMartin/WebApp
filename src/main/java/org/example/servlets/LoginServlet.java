@@ -70,10 +70,12 @@ public class LoginServlet extends HttpServlet {
         } catch (SQLException e) {
             e.printStackTrace();
             out.println("<p>Database error: " + e.getMessage() + "</p>");
+            response.setStatus(500);
         }
         catch (Exception e) {
             e.printStackTrace();
             out.println("<p>Unexpected error: " + e.getMessage() + "</p>");
+            response.setStatus(500);
         }
     }
 }
