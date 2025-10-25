@@ -36,7 +36,7 @@ function getParameterByName(target) {
  * @param resultData jsonObject
  */
 
-function handleResult(resultData) {
+function handleResult(resultData, cartData) {
     console.log("handleResult: populating movie info from resultData");
 
     // Populate the movie info
@@ -63,26 +63,35 @@ function handleResult(resultData) {
             .appendTo(starsEl);
         if (i < resultData.movieStars.length - 1) starsEl.append(", ");
     });
+    const cardEl = $(".card");
 
-    let starsData = resultData["movieStars"].split(", ");  // ["Fred Astaire", "nm0000001", "Ginger Rogers", "nm0000002"]
-    let starsContainer = jQuery("#movieStars");
-    starsContainer.empty();
-    console.log(starsData);
+    // Check if movie is already in cart
+    let inCart = cartData.some(item => item.movieID === resultData.movieID);
+    let buttonText = inCart ? "✔ Added" : "Add to Cart";
+    let disabledAttr = inCart ? "disabled" : "";
 
-    for (let i = 0; i < starsData.length; i += 2) {
-        let name = starsData[i];
-        let id = starsData[i + 1];
+    // Create the button
+    let button = $(`<button id="add-to-cart" class="btn" ${disabledAttr}>${buttonText}</button>`);
+    button.css({
+        "display": "block",
+        "margin": "1rem auto",  // center the button
+        "padding": "0.25rem 0.5rem",
+        "font-size": "15px",
+        "background-color": "#28a745",
+        "color": "white",
+        "border-radius": "0.25rem",
+        "width": "120px"
+    });
 
-        let link = jQuery("<a></a>")
-            .text(name)
-            .attr("href", "star.html?id=" + encodeURIComponent(id));
+    // Add click handler
+    button.on("click", () => {
+        addToCart(resultData.movieID, resultData.movieTitle, 122);
+        button.text("✔ Added");
+        button.prop("disabled", true);
+    });
 
-        starsContainer.append(link);
-
-        if (i + 2 < starsData.length) {
-            starsContainer.append(", ");
-        }
-    }
+    // Append button to card
+    cardEl.append(button)
 }
 
 /**
@@ -97,5 +106,10 @@ jQuery.ajax({
     dataType: "json",  // Setting return data type
     method: "GET",// Setting request method
     url: "api/movie?id=" + movieID, // Setting request url, which is mapped by StarsServlet in Stars.java
-    success: (resultData) => handleResult(resultData) // Setting callback function to handle data returned successfully by the SingleStarServlet
+    success: (resultData) => {
+        $.getJSON("api/cart", (cartData) => {
+            handleResult(resultData, cartData);
+            updateCartCount(cartData);
+        });
+    }
 });

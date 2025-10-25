@@ -54,18 +54,12 @@ public class SingleMovieServlet extends HttpServlet {
 
         // Get a connection from dataSource and let resource manager close the connection after usage.
         try (Connection conn = dataSource.getConnection()) {
-            String movieQuery = "SELECT m.id, m.title, m.year, m.director, " +
-                                    "GROUP_CONCAT(DISTINCT g.name SEPARATOR ', ') AS genres, " +
-                                    "GROUP_CONCAT(DISTINCT CONCAT(s.name, ', ', s.id) SEPARATOR ', ') AS stars, " +
-                                    "MAX(r.rating) AS rating " +
-                                "FROM movies m " +
-                                "LEFT JOIN ratings r ON m.id = r.movie_id " +
-                                "LEFT JOIN genres_in_movies gm ON m.id = gm.movie_id " +  // left join to include movies with no genres, stars, ratings
-                                "LEFT JOIN genres g ON gm.genre_id = g.id " +
-                                "LEFT JOIN stars_in_movies sm ON m.id = sm.movie_id " +
-                                "LEFT JOIN stars s ON sm.star_id = s.id " +
-                                "WHERE m.id = ? " +
-                                "GROUP BY m.id";
+            String movieQuery =
+                    "SELECT m.id, m.title, m.year, m.director, MAX(r.rating) AS rating " +
+                            "FROM movies m " +
+                            "LEFT JOIN ratings r ON m.id = r.movie_id " +
+                            "WHERE m.id = ? " +
+                            "GROUP BY m.id";
 
 
             // Declare our statement
@@ -104,7 +98,8 @@ public class SingleMovieServlet extends HttpServlet {
                     "SELECT g.id, g.name " +
                             "FROM genres g " +
                             "JOIN genres_in_movies gim ON gim.genre_id = g.id " +
-                            "WHERE gim.movie_id = ? ";
+                            "WHERE gim.movie_id = ? " +
+                            "ORDER BY g.name ASC";
 
             PreparedStatement psGenres = conn.prepareStatement(sqlGenres);
             psGenres.setString(1, id);
@@ -134,7 +129,7 @@ public class SingleMovieServlet extends HttpServlet {
                             "  GROUP BY star_id " +
                             ") AS cnt ON cnt.star_id = s.id " +
                             "WHERE sim.movie_id = ? " +
-                            "ORDER BY cnt.movie_count DESC";
+                            "ORDER BY cnt.movie_count DESC, s.name ASC";
 
             PreparedStatement psStars = conn.prepareStatement(sqlStars);
             psStars.setString(1, id);

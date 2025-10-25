@@ -161,7 +161,26 @@
     font-weight: bold;
 }
 
+/* movie page */
+
+#add-to-cart {
+    font-size: 15px;
+    padding: 0.25rem 0.5rem;
+    background-color: #28a745;
+    color: white;
+    border-radius: 0.25rem;
+    margin: 1rem auto 0;
+    width: 120px;
+}
+
 /* movies list page */
+
+.no-back-link .back-link,
+.no-back-link .arrow,
+#login-header .back-link,
+#login-header .arrow {
+    display: none;
+}
 
 .container {
     padding-left: 30px;
@@ -357,7 +376,7 @@
     text-align: center;
 }
 
-#login-header {
+#login-header, body {
     background-color: #f0f2f5;
 }
 

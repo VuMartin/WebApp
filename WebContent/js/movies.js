@@ -72,22 +72,6 @@ pageSizeSelect.addEventListener("change", () => {
     fetchMovies();
 });
 
-function addToCart(movieID, title, price = 122) {
-    const button = document.querySelector(`button[data-movie-id='${movieID}']`);
-    $.ajax("api/cart", {
-        method: "POST",
-        data: { movieID, title, price, action: "add" },
-        success: (resultData) => {
-            updateCartCount(resultData);
-            if (button) {
-                button.textContent = "✔ Added";
-                button.disabled = true;
-            }
-        }
-    });
-}
-
-
 function handleResult(resultData, cartData) {
     // Find the empty table body by id "movie_table_body"
     let movieTableBodyElement = jQuery("#movie-table-body");
