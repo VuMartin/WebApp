@@ -39,6 +39,7 @@ public class MovieListServlet extends HttpServlet {
     private SessionAttribute<Integer> pageSizeAttr;
     private SessionAttribute<Integer> offsetAttr;
     private SessionAttribute<Integer> currPageAttr;
+    private SessionAttribute<String> prefixAttr;
 
     public void init(ServletConfig config) {
         try {
@@ -57,6 +58,7 @@ public class MovieListServlet extends HttpServlet {
         pageSizeAttr = new SessionAttribute<>(Integer.class, "pageSize");
         offsetAttr = new SessionAttribute<>(Integer.class, "offset");
         currPageAttr = new SessionAttribute<>(Integer.class, "page");
+        prefixAttr = new SessionAttribute<>(String.class, "prefix");
     }
 
     class SessionAttribute<T> {
@@ -89,6 +91,7 @@ public class MovieListServlet extends HttpServlet {
         String director;
         String genre;
         String star;
+        String prefix;
         int pageSize;
         int offset;
         String sortField;
@@ -102,6 +105,7 @@ public class MovieListServlet extends HttpServlet {
             director = directorAttr.get(session);
             genre = genreAttr.get(session);
             star = starAttr.get(session);
+            prefix = prefixAttr.get(session);
             pageSize = pageSizeAttr.get(session);
             offset = offsetAttr.get(session);
             sortField = sortFieldAttr.get(session);
@@ -113,6 +117,8 @@ public class MovieListServlet extends HttpServlet {
             director = request.getParameter("director");
             genre = request.getParameter("genre");
             star = request.getParameter("star");
+            prefix = request.getParameter("prefix");
+
             String pageSizeStr = request.getParameter("pageSize");
             pageSize = (pageSizeStr != null) ? Integer.parseInt(pageSizeStr) : 10;
             String offsetStr = request.getParameter("offset");
@@ -127,6 +133,7 @@ public class MovieListServlet extends HttpServlet {
             directorAttr.set(session, director);
             genreAttr.set(session, genre);
             starAttr.set(session, star);
+            prefixAttr.set(session, prefix);
             pageSizeAttr.set(session, pageSize);
             offsetAttr.set(session, offset);
             currPageAttr.set(session, currentPage);
@@ -161,9 +168,12 @@ public class MovieListServlet extends HttpServlet {
                             "       LIMIT 3) AS stars_sub) AS stars, " +  // stars is the column name
                             "r.rating " +
                             "FROM movies m " +
-                            "JOIN ratings r ON m.id = r.movie_id " +
+                            "LEFT JOIN ratings r ON m.id = r.movie_id " +
                             "WHERE 1=1 "
             );
+
+            boolean hasGenre = (genre != null && !genre.isEmpty());
+            boolean hasPrefix = (prefix != null && !prefix.isEmpty());
 
             if (title != null && !title.isEmpty()) topMoviesQuery.append("AND m.title LIKE ? ");
             if (year != null && !year.isEmpty()) topMoviesQuery.append("AND m.year = ? ");
@@ -178,27 +188,31 @@ public class MovieListServlet extends HttpServlet {
                                  "FROM stars_in_movies sm JOIN stars s ON s.id = sm.star_id " +
                                  "WHERE s.name LIKE ?) "
             );
-            topMoviesQuery.append("ORDER BY r.rating DESC ");
 
-            boolean hasGenre = (genre != null && !genre.isEmpty());
-            if (!hasGenre) {
-                topMoviesQuery.append("LIMIT 20");
-            } else {
+            if (hasPrefix) topMoviesQuery.append("AND UPPER(m.title) LIKE ? ");   // NEW
+
+            topMoviesQuery.append("ORDER BY (r.rating IS NULL), r.rating DESC, m.title ASC ");
+
+            if (!( !hasGenre && !hasPrefix )) {
                 topMoviesQuery.append("LIMIT ? OFFSET ?");
+            } else {
+                topMoviesQuery.append("LIMIT 20");
             }
 
 
             PreparedStatement statement = conn.prepareStatement(topMoviesQuery.toString());
             int index = 1;
-            if (title != null && !title.isEmpty()) statement.setString(index++, "%" + title + "%");
-            if (year != null && !year.isEmpty()) statement.setString(index++, year);
+            if (title != null && !title.isEmpty())       statement.setString(index++, "%" + title + "%");
+            if (year  != null && !year.isEmpty())        statement.setString(index++, year);
             if (director != null && !director.isEmpty()) statement.setString(index++, "%" + director + "%");
-            if (genre != null && !genre.isEmpty()) statement.setString(index++, genre);
-            if (star != null && !star.isEmpty()) statement.setString(index++, "%" + star + "%");
+            if (hasGenre)                                 statement.setString(index++, genre);
+            if (star  != null && !star.isEmpty())        statement.setString(index++, "%" + star + "%");
+            if (hasPrefix)                                 statement.setString(index++, prefix.toUpperCase() + "%");
 
-            if (hasGenre) {
+            boolean paginate = (hasGenre || hasPrefix);
+            if (paginate) {
                 statement.setInt(index++, pageSize);
-                statement.setInt(index++, (currentPage - 1) * pageSize);
+                statement.setInt(index++, offset); // or (currentPage - 1) * pageSize
             }
 
             ResultSet rs = statement.executeQuery();
@@ -216,22 +230,30 @@ public class MovieListServlet extends HttpServlet {
                     (year != null && !year.isEmpty() ? "AND m.year = ? " : "") +
                     (director != null && !director.isEmpty() ? "AND m.director LIKE ? " : "") +
                     (genre != null && !genre.isEmpty() ? "AND g.name = ? " : "") +
-                    (star != null && !star.isEmpty() ? "AND s.name LIKE ? " : "");
+                    (star != null && !star.isEmpty() ? "AND s.name LIKE ? " : "") +
+                    (hasPrefix? "AND UPPER(m.title) LIKE ? " : "");
+
 
             PreparedStatement countStmt = conn.prepareStatement(countQuery);
             index = 1;
-            if (title != null && !title.isEmpty()) countStmt.setString(index++, "%" + title + "%");
-            if (year != null && !year.isEmpty()) countStmt.setString(index++, year);
-            if (director != null && !director.isEmpty()) countStmt.setString(index++, "%" + director + "%");
-            if (genre != null && !genre.isEmpty()) countStmt.setString(index++, genre);
-            if (star != null && !star.isEmpty()) countStmt.setString(index, "%" + star + "%");
+            if (title != null && !title.isEmpty())      countStmt.setString(index++, "%" + title + "%");
+            if (year  != null && !year.isEmpty())       countStmt.setString(index++, year);
+            if (director != null && !director.isEmpty())countStmt.setString(index++, "%" + director + "%");
+            if (hasGenre)                                countStmt.setString(index++, genre);
+            if (star  != null && !star.isEmpty())       countStmt.setString(index++, "%" + star + "%");
+            if (hasPrefix)                                countStmt.setString(index++, prefix.toUpperCase() + "%");
+
+            if (paginate) {
+                statement.setInt(index++, pageSize);
+                statement.setInt(index++, offset);
+            }
 
             ResultSet countRs = countStmt.executeQuery();
             int totalCount = 0;
             if (countRs.next()) {
                 totalCount = countRs.getInt("total");
             }
-            if (!hasGenre) {
+            if (!hasGenre && !hasPrefix) {
                 // Top 20 mode: force one page
                 totalCount = Math.min(totalCount, 20); // 20 total
                 currentPage = 1;                       // page 1
@@ -255,6 +277,7 @@ public class MovieListServlet extends HttpServlet {
                 String movieGenres = rs.getString("genres");
                 String movieStars = rs.getString("stars");
                 String rating = rs.getString("rating");
+                String ratingOut = (rating == null ? "N/A" : rating);
 
                 // Create a JsonObject based on the data we retrieve from rs
                 JsonObject movieObject = new JsonObject();
@@ -265,6 +288,7 @@ public class MovieListServlet extends HttpServlet {
                 movieObject.addProperty("movieGenres", movieGenres);
                 movieObject.addProperty("movieStars", movieStars);
                 movieObject.addProperty("movieRating", rating);
+                movieObject.addProperty("movieRating", ratingOut);
                 moviesArray.add(movieObject);
             }
             countRs.close();

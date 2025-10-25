@@ -97,7 +97,7 @@ function handleResult(resultData, cartData) {
     // Concatenate the html tags with resultData jsonObject to create table rows
     for (let i = 0; i < resultData.movies.length; i++) {
         let movie = resultData.movies[i];
-        let inCart = cartData.some(item => item.movieID === movie.movieID);
+        let inCart = Array.isArray(cartData) && cartData.some(item => item.movieID === movie.movieID);
         let buttonText = inCart ? "✔ Added" : "Add";
         let disabledAttr = inCart ? "disabled" : "";
         let rowHTML = "<tr>";
@@ -109,7 +109,8 @@ function handleResult(resultData, cartData) {
                 ${buttonText}
             </button>
         </td>`;
-        rowHTML += "<td>" + (i + 1) + ". <a href='movie.html?id=" +
+        const startIndex = (currentPage - 1) * pageSize;
+        rowHTML += "<td>" + (startIndex + i + 1) + ". <a href='movie.html?id=" +
             encodeURIComponent(movie["movieID"]) + "'>" +
             movie["movieTitle"] + "</a></td>";
         rowHTML += "<td>" + movie["movieYear"] + "</td>";
@@ -156,12 +157,27 @@ function fetchMovies() {
     let star = getParameterByName("star");
     let genre = getParameterByName("genre");
     let back = getParameterByName("restore");
+    let prefix = getParameterByName("prefix");
+
+    // Page heading & tab title for alphanumeric browsing
+    const heading = $("#h3-title");
+    if (genre && genre.trim() !== "") {
+        heading.text(`${genre} Movies`);
+        document.title = `${genre} Movies - Fabflix`;
+    } else if (prefix && prefix.trim() !== "") {
+        heading.text(`Titles starting with “${prefix.toUpperCase()}”`);
+        document.title = `Titles starting with ${prefix.toUpperCase()} - Fabflix`;
+    } else {
+        heading.text("Top Rated Movies");
+        document.title = "Top Rated Movies - Fabflix";
+    }
+
     const offset = (currentPage - 1) * pageSize;
     let sortField = document.querySelector(".sort-option.selected").dataset.field;
     let sortOrder = document.querySelector(".sort-option.selected").dataset.order;
     let url;
     if (back === "true") url = "api/topmovies?restore=true";
-    else if (!title && !year && !director && !star && !genre) {
+    else if (!title && !year && !director && !star && !genre && !prefix) {
         url = `api/topmovies?pageSize=${pageSize}&offset=${offset}&sortField=${encodeURIComponent(sortField)}&sortOrder=${encodeURIComponent(sortOrder)}&currentPage=${currentPage}`;
     } else {
         url = "api/topmovies?";
@@ -170,6 +186,7 @@ function fetchMovies() {
         if (director) url += "director=" + encodeURIComponent(director) + "&";
         if (genre) url += "genre=" + encodeURIComponent(genre) + "&";
         if (star) url += "star=" + encodeURIComponent(star) + "&";
+        if (prefix) url += "prefix=" + encodeURIComponent(prefix) + "&";
         url += `pageSize=${pageSize}&offset=${offset}&sortField=${encodeURIComponent(sortField)}&sortOrder=${encodeURIComponent(sortOrder)}&currentPage=${currentPage}`;
     }
     jQuery.ajax({
@@ -180,17 +197,16 @@ function fetchMovies() {
             currentPage = resultData.currentPage;
             pageSize = resultData.pageSize;
             pageSizeSelect.value = pageSize;
-            // const restoredField = resultData.sortField;
-            // const restoredOrder = resultData.sortOrder;
-            //
-            // document.querySelectorAll(".sort-option").forEach(option => {
-            //     if (option.dataset.field === restoredField && option.dataset.order === restoredOrder) {
-            //         option.classList.add("selected");
-            //     } else {
-            //         option.classList.remove("selected");
-            //     }
-            // });
-            totalPages = Math.ceil(resultData.totalCount / pageSize);
+
+            const serverTotal = Number(resultData.totalCount) || 0;
+            totalPages = Math.max(1, Math.ceil(serverTotal / pageSize));
+
+            const currOffset = (currentPage - 1) * pageSize;
+            if (currOffset > Math.max(0, serverTotal - 1) && totalPages > 0) {
+                currentPage = totalPages;
+                return fetchMovies();
+            }
+
             $.getJSON("api/cart", (cartData) => {
                 handleResult(resultData, cartData);
                 updateCartCount(cartData);
@@ -199,11 +215,17 @@ function fetchMovies() {
 
             if (back === "true") {
                 const offset = (currentPage - 1) * pageSize;
-                const newUrl = `?pageSize=${pageSize}&offset=${offset}&sortField=${encodeURIComponent(resultData.sortField)}&sortOrder=${encodeURIComponent(resultData.sortOrder)}&currentPage=${currentPage}`;
+                const newUrl =
+                    `?pageSize=${pageSize}&offset=${offset}` +
+                    `&sortField=${encodeURIComponent(resultData.sortField || "")}` +
+                    `&sortOrder=${encodeURIComponent(resultData.sortOrder || "")}` +
+                    `&currentPage=${currentPage}`;
                 history.replaceState(null, "", newUrl);
             }
+        },
+        error: (xhr) => {
+            console.error("movies fetch failed:", xhr.status, xhr.responseText);
         }
     });
 }
-
 fetchMovies();

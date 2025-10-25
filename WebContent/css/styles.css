@@ -365,10 +365,7 @@
     color: red;
 }
 
-.genre-section{
-    text-align: center;
-    margin: 0 auto;
-}
+.genre-section { text-align: center; }
 
 .genre-list{
     display: inline-block;
@@ -390,7 +387,6 @@
     break-inside: avoid;
 }
 
-.genre-list a{ display: inline; }
 @media (max-width: 900px){ .genre-list{ column-count: 2; } }
 @media (max-width: 600px){ .genre-list{ column-count: 1; } }
 
@@ -419,4 +415,18 @@
 #shop-proceed {
     margin-left: 930px;
     margin-top: 10px;
+}
+
+.alpha-list{
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .65rem 1rem;
+    justify-content: center;
+}
+.alpha-list a{
+    text-decoration: none;
+    font-weight: 600;
 }
