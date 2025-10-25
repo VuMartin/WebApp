@@ -365,6 +365,36 @@
     color: red;
 }
 
+.genre-section{
+    text-align: center;
+    margin: 0 auto;
+}
+
+.genre-list{
+    display: inline-block;
+    margin: 0;
+    padding: 0;
+    list-style: disc inside;
+    column-count: 3;
+    column-gap: 3.5rem;
+    -webkit-column-count: 3;
+    -webkit-column-gap: 3.5rem;
+    -moz-column-count: 3;
+    -moz-column-gap: 3.5rem;
+}
+
+.genre-list li{
+    margin: .25rem 0;
+    text-indent: 0;
+    padding-left: 0;
+    break-inside: avoid;
+}
+
+.genre-list a{ display: inline; }
+@media (max-width: 900px){ .genre-list{ column-count: 2; } }
+@media (max-width: 600px){ .genre-list{ column-count: 1; } }
+
+
 /* cart page */
 
 .shop-quantity-input {
