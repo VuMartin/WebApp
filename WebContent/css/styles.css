@@ -394,6 +394,12 @@
 @media (max-width: 900px){ .genre-list{ column-count: 2; } }
 @media (max-width: 600px){ .genre-list{ column-count: 1; } }
 
+.header-row { display: flex; gap: 1rem; align-items: center; justify-content: space-between; }
+.h3-title { margin: 0; }
+.sort-container { display: flex; gap: 1.25rem; flex-wrap: wrap; }
+.sort-group { display: flex; gap: .5rem; align-items: center; }
+
+
 
 /* cart page */
 

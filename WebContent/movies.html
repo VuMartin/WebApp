@@ -30,26 +30,24 @@
     <body>
         <div id="header-placeholder"></div>
         <div class="container">
-            <h3 class="h3-container">
-                <span id="h3-title"> Top Rated Movies</span>
+            <div class="header-row">
+                <h3 id="h3-title" class="h3-title">Top Rated Movies</h3>
+
                 <div class="sort-container">
                     <div class="sort-group">
                         <span class="sort-label">Sorted By:</span>
                         <span class="sort-option selected" data-field="rating">Rating</span>
                         <span class="sort-option" data-field="title">Title</span>
                     </div>
+
                     <div class="sort-group">
                         <span class="sort-label">Rating:</span>
-                        <span class="sort-option" data-field="rating" data-order="asc">Ascending ↑ </span>
-                        <span class="sort-option selected" data-field="rating" data-order="desc">Descending ↓ </span>
+                        <span class="sort-option" data-field="rating" data-order="asc">Ascending ↑</span>
+                        <span class="sort-option selected" data-field="rating" data-order="desc">Descending ↓</span>
                     </div>
+
                     <div class="sort-group">
-                        <span class="sort-label">Title:</span>
-                        <span class="sort-option selected" data-field="title" data-order="asc">Ascending ↑ </span>
-                        <span class="sort-option" data-field="title" data-order="desc">Descending ↓ </span>
-                    </div>
-                    <div class="sort-group">
-                        <span class="sort-label">Movies per page:</span>
+                        <label for="page-size" class="sort-label">Movies per page:</label>
                         <select id="page-size">
                             <option value="10">10</option>
                             <option value="25">25</option>
@@ -58,7 +56,8 @@
                         </select>
                     </div>
                 </div>
-            </h3>
+            </div>
+
             <table class="table table-striped">
                 <thead>
                     <tr>

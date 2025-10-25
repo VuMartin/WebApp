@@ -26,7 +26,7 @@ public class GenresServlet extends HttpServlet {
         try (PrintWriter out = resp.getWriter();
              Connection conn = dataSource.getConnection();
              PreparedStatement ps = conn.prepareStatement(
-                     "SELECT id, name FROM genres ORDER BY name ASC");
+                     "SELECT id, name FROM genres");
              ResultSet rs = ps.executeQuery()) {
 
             JsonArray arr = new JsonArray();
