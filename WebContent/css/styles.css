@@ -1,4 +1,4 @@
-/* all pages */
+/* all pages/header page */
 #movie-page-header {
     position: fixed;
     top: 0;
@@ -96,6 +96,27 @@
 }
 #logout-btn:hover {
     text-decoration: underline;
+}
+
+#cart-icon {
+    width: 30px;
+    margin-right: 7px;
+}
+
+#cart-link {
+    position: relative;
+    display: inline-block;
+}
+
+#cart-count {
+    position: absolute;
+    top: -6px;
+    right: -4px;
+    background: red;
+    color: white;
+    border-radius: 50%;
+    padding: 0 4px;
+    font-size: 12px;
 }
 
 /* main page */
@@ -292,6 +313,7 @@
 }
 
 .movie-container {
+    margin-top: 95px;
     padding-left: 30px;
     padding-right: 30px;
 }
@@ -341,4 +363,24 @@
 
 #error-msg {
     color: red;
+}
+
+/* cart page */
+
+.shop-quantity-input {
+    width: 100px;
+}
+
+#shop-actions, #shop-quantity {
+    padding-left: 20px;
+}
+
+#shop-movie-title {
+    padding-left: 14px;
+}
+
+
+#shop-proceed {
+    margin-left: 930px;
+    margin-top: 10px;
 }

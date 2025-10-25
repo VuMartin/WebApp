@@ -72,9 +72,23 @@ pageSizeSelect.addEventListener("change", () => {
     fetchMovies();
 });
 
+function addToCart(movieID, title, price = 122) {
+    const button = document.querySelector(`button[data-movie-id='${movieID}']`);
+    $.ajax("api/cart", {
+        method: "POST",
+        data: { movieID, title, price, action: "add" },
+        success: (resultData) => {
+            updateCartCount(resultData);
+            if (button) {
+                button.textContent = "✔ Added";
+                button.disabled = true;
+            }
+        }
+    });
+}
 
-function handleResult(resultData) {
-    // Populate the star table
+
+function handleResult(resultData, cartData) {
     // Find the empty table body by id "movie_table_body"
     let movieTableBodyElement = jQuery("#movie-table-body");
     movieTableBodyElement.empty();
@@ -83,7 +97,18 @@ function handleResult(resultData) {
     // Concatenate the html tags with resultData jsonObject to create table rows
     for (let i = 0; i < resultData.movies.length; i++) {
         let movie = resultData.movies[i];
+        let inCart = cartData.some(item => item.movieID === movie.movieID);
+        let buttonText = inCart ? "✔ Added" : "Add";
+        let disabledAttr = inCart ? "disabled" : "";
         let rowHTML = "<tr>";
+        rowHTML += `<td>$122 <br>
+            <button class="btn btn-sm btn-success mt-1" 
+                data-movie-id="${movie.movieID}"
+                onclick="addToCart('${movie.movieID}', '${movie.movieTitle}', 122)"
+                ${disabledAttr}>
+                ${buttonText}
+            </button>
+        </td>`;
         rowHTML += "<td>" + (i + 1) + ". <a href='movie.html?id=" +
             encodeURIComponent(movie["movieID"]) + "'>" +
             movie["movieTitle"] + "</a></td>";
@@ -166,8 +191,11 @@ function fetchMovies() {
             //     }
             // });
             totalPages = Math.ceil(resultData.totalCount / pageSize);
-            handleResult(resultData)
-            renderPageNumbers();
+            $.getJSON("api/cart", (cartData) => {
+                handleResult(resultData, cartData);
+                updateCartCount(cartData);
+                renderPageNumbers();
+            });
 
             if (back === "true") {
                 const offset = (currentPage - 1) * pageSize;

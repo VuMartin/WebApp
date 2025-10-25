@@ -28,9 +28,7 @@
     </head>
 
     <body>
-        <header id="movie-page-header">
-            <h1 id="site-name"> FABFLIX </h1>
-        </header>
+        <div id="header-placeholder"></div>
         <div class="container">
             <h3 class="h3-container">
                 <span id="h3-title"> Top Rated Movies</span>
@@ -64,6 +62,7 @@
             <table class="table table-striped">
                 <thead>
                     <tr>
+                        <th></th>
                         <th>Movie Title</th>
                         <th>Release Year</th>
                         <th>Director</th>
@@ -95,6 +94,7 @@
         <!-- The path is relative to movie.html, since these two files are in the same directory -->
         <!-- Note the url does not contain a "/" in the beginning, which means the url is relative to current path
              otherwise the url is relative to the root path-->
+        <script src="js/header.js"></script>
         <script src="js/movies.js"></script>
     </body>
 </html>
