@@ -127,10 +127,6 @@
 }
 
 .genre-section { text-align: center; }
-.genre-section,
-.browse-section {
-    margin-top: 500px;
-}
 
 .genre-list{
     display: inline-block;
@@ -139,14 +135,9 @@
     list-style: disc inside;
     column-count: 3;
     column-gap: 3.5rem;
-    -webkit-column-count: 3;
-    -webkit-column-gap: 3.5rem;
-    -moz-column-count: 3;
-    -moz-column-gap: 3.5rem;
 }
 
 .genre-list li{
-    margin: .25rem 0;
     text-indent: 0;
     padding-left: 0;
     break-inside: avoid;
@@ -156,10 +147,6 @@
 @media (max-width: 600px){ .genre-list{ column-count: 1; } }
 
 .header-row { display: flex; gap: 1rem; align-items: center; justify-content: space-between; }
-.h3-title { margin: 0; }
-.sort-container { display: flex; gap: 1.25rem; flex-wrap: wrap; }
-.sort-group { display: flex; gap: .5rem; align-items: center; }
-
 .alpha-list{
     list-style: none;
     padding: 0;

@@ -34,6 +34,7 @@ public class MovieListServlet extends HttpServlet {
     private SessionAttribute<String> directorAttr;
     private SessionAttribute<String> genreAttr;
     private SessionAttribute<String> starAttr;
+    private SessionAttribute<String> prefixAttr;
     private SessionAttribute<String> sortFieldAttr;
     private SessionAttribute<String> sortOrderAttr;
     private SessionAttribute<Integer> pageSizeAttr;
@@ -53,6 +54,7 @@ public class MovieListServlet extends HttpServlet {
         genreAttr = new SessionAttribute<>(String.class, "genre");
         starAttr = new SessionAttribute<>(String.class, "star");
         sortFieldAttr = new SessionAttribute<>(String.class, "sortField");
+        prefixAttr = new SessionAttribute<>(String.class, "prefix");
         sortOrderAttr = new SessionAttribute<>(String.class, "sortOrder");
         pageSizeAttr = new SessionAttribute<>(Integer.class, "pageSize");
         offsetAttr = new SessionAttribute<>(Integer.class, "offset");
@@ -89,6 +91,7 @@ public class MovieListServlet extends HttpServlet {
         String director;
         String genre;
         String star;
+        String prefix;
         int pageSize;
         int offset;
         String sortField;
@@ -107,6 +110,7 @@ public class MovieListServlet extends HttpServlet {
             sortField = sortFieldAttr.get(session);
             sortOrder = sortOrderAttr.get(session);
             currentPage = currPageAttr.get(session);
+            prefix = prefixAttr.get(session);
         } else {
             title = request.getParameter("title");
             year = request.getParameter("year");
@@ -129,6 +133,7 @@ public class MovieListServlet extends HttpServlet {
 
             String pageStr = request.getParameter("currentPage");
             currentPage = (pageStr != null) ? Integer.parseInt(pageStr) : 1;
+            prefix = request.getParameter("prefix");
 
             titleAttr.set(session, title);
             yearAttr.set(session, year);
@@ -140,6 +145,7 @@ public class MovieListServlet extends HttpServlet {
             currPageAttr.set(session, currentPage);
             sortFieldAttr.set(session, sortField);
             sortOrderAttr.set(session, sortOrder);
+            sortOrderAttr.set(session, prefix);
         }
 
         // Output stream to STDOUT
@@ -186,6 +192,7 @@ public class MovieListServlet extends HttpServlet {
                             "FROM stars_in_movies sm JOIN stars s ON s.id = sm.star_id " +
                             "WHERE s.name LIKE ?) "
             );
+            if (prefix != null && !prefix.isEmpty()) topMoviesQuery.append("AND m.title LIKE ? ");
 
             String dir = sortOrder.equalsIgnoreCase("asc") ? "ASC" : "DESC";
             String colRating = "IFNULL(r.rating, 0)";
@@ -209,6 +216,7 @@ public class MovieListServlet extends HttpServlet {
             if (director != null && !director.isEmpty()) statement.setString(index++, "%" + director + "%");
             if (genre != null && !genre.isEmpty()) statement.setString(index++, genre);
             if (star != null && !star.isEmpty()) statement.setString(index++, "%" + star + "%");
+            if (prefix != null && !prefix.isEmpty()) statement.setString(index++,prefix + "%");
             statement.setInt(index++, pageSize);
             statement.setInt(index, offset);
 
