@@ -76,32 +76,19 @@ public class PaymentServlet extends HttpServlet {
                 java.sql.Date today = java.sql.Date.valueOf(LocalDate.now());
                 Map<String, CartItem> cart = (Map<String, CartItem>) session.getAttribute("cart");
                 for (CartItem item : cart.values()) {
-                    insertStmt.setInt(1, customerID);
-                    insertStmt.setString(2, item.getMovieID());
-                    insertStmt.setDate(3, today);
-                    insertStmt.executeUpdate();
+                    for (int i = 0; i < item.getQuantity(); i++) {
+                        insertStmt.setInt(1, customerID);
+                        insertStmt.setString(2, item.getMovieID());
+                        insertStmt.setDate(3, today);
+                        insertStmt.executeUpdate();
+                    }
                 }
 
                 insertStmt.close();
-                // Build confirmation info
-                JsonArray itemsJson = new JsonArray();
-                double total = 0;
-
-                for (CartItem item : cart.values()) {
-                    JsonObject obj = new JsonObject();
-                    obj.addProperty("title", item.getTitle());
-                    obj.addProperty("quantity", item.getQuantity());
-                    total += item.getPrice() * item.getQuantity();
-                    itemsJson.add(obj);
-                }
 
 // Add everything to the response JSON
                 responseJson.addProperty("status", "success");
                 responseJson.addProperty("message", "Payment processed successfully!");
-                responseJson.addProperty("firstName", (String) session.getAttribute("firstName"));
-                responseJson.addProperty("cardNumber", (String) session.getAttribute("creditCardID"));
-                responseJson.addProperty("total", total);
-                responseJson.add("items", itemsJson);
             } else {
                 responseJson.addProperty("status", "fail");
                 responseJson.addProperty("message", "Invalid payment information. Please try again.");

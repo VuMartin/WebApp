@@ -13,33 +13,7 @@ $("#payment-form").submit(function(event) {
         data: { firstName, lastName, cardNumber, expiration },
         success: (resultData) => {
             if (resultData.status === "success") {
-                $("#customerName").text(resultData.firstName);
-                $("#totalPrice").text(resultData.total);
-                $("#cardLast2").text(resultData.cardNumber.slice(-2));
-
-                let orderList = $("#orderList");
-                orderList.empty();
-                resultData.items.forEach(item => {
-                    orderList.append(`<li>${item.title} × ${item.quantity}</li>`);
-                });
-
-                $("#error-message").hide();
-
-                $.ajax({
-                    url: "api/cart",
-                    method: "POST",
-                    dataType: "json",
-                    data: { action: "empty" },
-                    success: (cartData) => {
-                        updateCartCount(cartData);
-                        window.location.href = "confirmation.html";
-                    },
-                    error: () => {
-                        console.error("Failed to empty cart");
-                        window.location.href = "confirmation.html";
-                    }
-                });
-
+                window.location.href = "confirmation.html";
             } else {
                 $("#error-message").text(resultData.message).show();
             }
@@ -49,6 +23,7 @@ $("#payment-form").submit(function(event) {
         }
     });
 });
+
 $.ajax("api/cart", {
     method: "GET",
     success: (resultData) => {
