@@ -188,16 +188,25 @@ function fetchMovies() {
             pageSize = resultData.pageSize;
             pageSizeSelect.value = pageSize;
 
-            const restoredField = resultData.sortField;
-            const restoredOrder = resultData.sortOrder;
+            const sf = (resultData.sortField || "rating").toLowerCase();
+            const so = (resultData.sortOrder || "desc").toLowerCase();
+            applySortSelections(sf, so);
 
-            document.querySelectorAll(".sort-option").forEach(option => {
-                if (option.dataset.field === restoredField && option.dataset.order === restoredOrder) {
-                    option.classList.add("selected");
-                } else {
-                    option.classList.remove("selected");
-                }
-            });
+            function applySortSelections(sf, so) {
+                // clear all chips
+                document.querySelectorAll(".sort-group .sort-option").forEach(o => o.classList.remove("selected"));
+
+                // select primary field (title/rating)
+                let fieldEl = document.querySelector(`.sort-group .sort-option[data-field="${sf}"]:not([data-order])`);
+                if (!fieldEl) fieldEl = document.querySelector(`.sort-group .sort-option[data-field="rating"]:not([data-order])`);
+                if (fieldEl) fieldEl.classList.add("selected");
+
+                // select order (asc/desc)
+                let orderEl = document.querySelector(`.sort-group .sort-option[data-order="${so}"]`);
+                if (!orderEl) orderEl = document.querySelector(`.sort-group .sort-option[data-order="desc"]`);
+                if (orderEl) orderEl.classList.add("selected");
+            }
+
 
             const serverTotal = Number(resultData.totalCount) || 0;
             totalPages = Math.max(1, Math.ceil(serverTotal / pageSize));
