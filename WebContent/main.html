@@ -46,58 +46,16 @@
     <div class="more-link">
         <a href="movies.html">More &raquo;</a>
     </div>
-    <div class="main-title">Browse By:</div>
-
-    <div class="main-title">Genres</div>
-
-    <div class="genre-section">
-        <ul id="genresList" class="genre-list"></ul>
-    </div>
-
-    <div class="browse-section">
-        <div class="main-title">Titles</div>
-        <ul id="alphaList" class="alpha-list"></ul>
-    </div>
-
+    <div id="browse-placeholder"></div>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-
-    <script>
-        // Build 0-9 + A-Z links to movies.html?prefix=X
-        $(function () {
-            const $ul = $("#alphaList").empty();
-            const makeItem = (txt) =>
-                $("<li>").append($("<a>").text(txt).attr("href", "movies.html?prefix=" + encodeURIComponent(txt)));
-
-            for (let d = 0; d <= 9; d++) $ul.append(makeItem(String(d)));
-            for (let c = 65; c <= 90; c++) $ul.append(makeItem(String.fromCharCode(c))); // A–Z
-        });
-    </script>
-
     <!-- Load jQuery and Bootstrap JS -->
     <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script> -->
     <!--        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>-->
     <!--        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>-->
 
-    <script>
-        $(function () {
-            $.ajax({
-                url: "api/genres",
-                dataType: "json",
-                success: function (genres) {
-                    const list = $("#genresList").empty();
-                    (genres || []).forEach((g) => {
-                        $("<li>").append(
-                            $("<a>")
-                                .text(g.name)
-                                .attr("href", "movies.html?genre=" + encodeURIComponent(g.name))
-                        ).appendTo(list);
-                    });
-                }
-            });
-        });
-    </script>
-
     <script src="js/header.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/browse.js"></script>
 </body>
 
 </html>
