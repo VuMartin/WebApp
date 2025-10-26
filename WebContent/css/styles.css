@@ -23,6 +23,10 @@
     margin: 0;
 }
 
+#site-name a {
+    color: white;
+}
+
 #search-form {
     display: flex;
     position: relative;

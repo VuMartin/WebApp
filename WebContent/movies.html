@@ -7,113 +7,113 @@
 
 <!doctype html>
 <html lang="en">
-<head>
-    <!-- Required meta tags -->
-    <meta charset="utf-8">
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1, shrink-to-fit=no">  <!-- support mobile devices -->
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport"
+              content="width=device-width, initial-scale=1, shrink-to-fit=no">  <!-- support mobile devices -->
 
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
-          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-    <link rel="stylesheet" href="css/styles.css">
+        <!-- Bootstrap CSS -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+              integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+        <link rel="stylesheet" href="css/styles.css">
 
-    <title>Top Rated Movies</title>
+        <title>Top Rated Movies</title>
 
-    <!-- favicon links -->
-    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
-    <link rel="manifest" href="site.webmanifest">
-</head>
+        <!-- favicon links -->
+        <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+        <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+        <link rel="manifest" href="site.webmanifest">
+    </head>
 
-<body class="no-back-link">
-<div id="header-placeholder"></div>
-<div class="main-content">
-    <div class="container">
-        <div class="header-row">
-            <h3 id="h3-title" class="h3-title">Top Rated Movies</h3>
+    <body class="no-back-link">
+        <div id="header-placeholder"></div>
+        <div class="main-content">
+            <div class="container">
+                <div class="header-row">
+                    <h3 id="h3-title" class="h3-title">Top Rated Movies</h3>
 
-            <div class="sort-container">
-                <!-- Sorted By row: label on the left, then Primary + Secondary -->
-                <div class="sort-row">
-                    <span class="sort-label-main">Sorted By:</span>
+                    <div class="sort-container">
+                        <!-- Sorted By row: label on the left, then Primary + Secondary -->
+                        <div class="sort-row">
+                            <span class="sort-label-main">Sorted By:</span>
 
-                    <!-- Primary -->
-                    <div class="sort-group" id="group-primary">
-                        <span class="sort-label"><strong>Primary</strong></span>
-                        <span class="sort-option selected" data-field="rating">Rating</span>
-                        <span class="sort-option" data-field="title">Title</span>
+                            <!-- Primary -->
+                            <div class="sort-group" id="group-primary">
+                                <span class="sort-label"><strong>Primary</strong></span>
+                                <span class="sort-option selected" data-field="rating">Rating</span>
+                                <span class="sort-option" data-field="title">Title</span>
+                            </div>
+
+                            <!-- Secondary -->
+                            <div class="sort-group" id="group-secondary">
+                                <span class="sort-label"><strong>Secondary</strong></span>
+                                <span class="sort-option" data-secondary="rating">Rating</span>
+                                <span class="sort-option selected" data-secondary="title">Title</span>
+                            </div>
+                        </div>
+
+                        <!-- Order -->
+                        <div class="sort-group" id="group-order">
+                            <span class="sort-label"><strong>Rating</strong></span>
+                            <span class="sort-option" data-order="asc">Ascending ↑</span>
+                            <span class="sort-option selected" data-order="desc">Descending ↓</span>
+                        </div>
+
+                        <!-- Page size -->
+                        <div class="sort-group">
+                            <label for="page-size" class="sort-label">Movies per page:</label>
+                            <select id="page-size">
+                                <option value="10">10</option>
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                        </div>
                     </div>
-
-                    <!-- Secondary -->
-                    <div class="sort-group" id="group-secondary">
-                        <span class="sort-label"><strong>Secondary</strong></span>
-                        <span class="sort-option" data-secondary="rating">Rating</span>
-                        <span class="sort-option selected" data-secondary="title">Title</span>
-                    </div>
                 </div>
 
-                <!-- Order -->
-                <div class="sort-group" id="group-order">
-                    <span class="sort-label"><strong>Rating</strong></span>
-                    <span class="sort-option" data-order="asc">Ascending ↑</span>
-                    <span class="sort-option selected" data-order="desc">Descending ↓</span>
-                </div>
+                <table class="table table-striped">
+                    <thead>
+                    <tr>
+                        <th></th>
+                        <th>Movie Title</th>
+                        <th>Release Year</th>
+                        <th>Director</th>
+                        <th>Genres</th>
+                        <th>Stars</th>
+                        <th class="ratings-col">Rating</th>
+                    </tr>
+                    </thead>
 
-                <!-- Page size -->
-                <div class="sort-group">
-                    <label for="page-size" class="sort-label">Movies per page:</label>
-                    <select id="page-size">
-                        <option value="10">10</option>
-                        <option value="25">25</option>
-                        <option value="50">50</option>
-                        <option value="100">100</option>
-                    </select>
-                </div>
+                    <!-- Table body is left empty here, will be populated with the data retrieved with movies.js -->
+                    <!-- movies.js will find this html element by its id "movie-table-body" -->
+                    <tbody id="movie-table-body"></tbody>
+                </table>
+            </div>
+            <div class="pagination">
+                <!--            <button id="first-page">«</button>-->
+                <button id="prev-page">‹</button>
+                <span id="page-numbers">Page 1 of 1 </span>
+                <button id="next-page">›</button>
+                <!--            <button id="last-page">»</button>-->
             </div>
         </div>
+        <div id="browse-placeholder"></div>
 
-        <table class="table table-striped">
-            <thead>
-            <tr>
-                <th></th>
-                <th>Movie Title</th>
-                <th>Release Year</th>
-                <th>Director</th>
-                <th>Genres</th>
-                <th>Stars</th>
-                <th class="ratings-col">Rating</th>
-            </tr>
-            </thead>
+        <!-- Load jQuery and Bootstrap JS -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <!--        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>-->
+        <!--        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>-->
 
-            <!-- Table body is left empty here, will be populated with the data retrieved with movies.js -->
-            <!-- movies.js will find this html element by its id "movie-table-body" -->
-            <tbody id="movie-table-body"></tbody>
-        </table>
-    </div>
-    <div class="pagination">
-        <!--            <button id="first-page">«</button>-->
-        <button id="prev-page">‹</button>
-        <span id="page-numbers">Page 1 of 1 </span>
-        <button id="next-page">›</button>
-        <!--            <button id="last-page">»</button>-->
-    </div>
-</div>
-<div id="browse-placeholder"></div>
-
-<!-- Load jQuery and Bootstrap JS -->
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-<!--        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>-->
-<!--        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>-->
-
-<!-- Load our own JS file -->
-<!-- The path is relative to movie.html, since these two files are in the same directory -->
-<!-- Note the url does not contain a "/" in the beginning, which means the url is relative to current path
-     otherwise the url is relative to the root path-->
-<script src="js/header.js"></script>
-<script src="js/movies.js"></script>
-<script src="js/addtoCart.js"></script>
-<script src="js/browse.js"></script>
-</body>
+        <!-- Load our own JS file -->
+        <!-- The path is relative to movie.html, since these two files are in the same directory -->
+        <!-- Note the url does not contain a "/" in the beginning, which means the url is relative to current path
+             otherwise the url is relative to the root path-->
+        <script src="js/header.js"></script>
+        <script src="js/movies.js"></script>
+        <script src="js/addtoCart.js"></script>
+        <script src="js/browse.js"></script>
+    </body>
 </html>
