@@ -41,6 +41,24 @@ document.querySelectorAll(".sort-group").forEach(group => {
     });
 });
 
+function getSelectedSorts() {
+    // primary field ("rating" or "title")
+    const primaryEl = document.querySelector("#group-primary .sort-option.selected[data-field]");
+    const sortField = primaryEl ? primaryEl.dataset.field : "rating";
+
+    // secondary field ("rating" or "title")
+    const secondaryEl = document.querySelector("#group-secondary .sort-option.selected[data-secondary]");
+    const sortSecondary = secondaryEl
+        ? secondaryEl.dataset.secondary
+        : (sortField === "rating" ? "title" : "rating"); // sensible default
+
+    // global order ("asc" or "desc")
+    const orderEl = document.querySelector("#group-order .sort-option.selected[data-order]");
+    const sortOrder = orderEl ? orderEl.dataset.order : "desc";
+
+    return { sortField, sortSecondary, sortOrder };
+}
+
 let currentPage = 1;
 let pageSize = 10;
 let totalPages = 1;
@@ -156,13 +174,7 @@ function fetchMovies() {
         document.title = "Top Rated Movies - Fabflix";
     }
 
-    // Check for selected options (rating or title)
-    const selectedSortFieldEl = document.querySelector(".sort-group .sort-option.selected[data-field]:not([data-order])");
-    const selectedOrderEl     = document.querySelector(".sort-group .sort-option.selected[data-order]");
-
-    // Fallbacks
-    let sortField = (selectedSortFieldEl && selectedSortFieldEl.dataset.field) ? selectedSortFieldEl.dataset.field : "rating";
-    let sortOrder = (selectedOrderEl && selectedOrderEl.dataset.order) ? selectedOrderEl.dataset.order : "desc";
+    const { sortField, sortSecondary, sortOrder } = getSelectedSorts();
 
     const offset = (currentPage - 1) * pageSize;
     let url;
@@ -175,7 +187,11 @@ function fetchMovies() {
         if (genre) url += "genre=" + encodeURIComponent(genre) + "&";
         if (star) url += "star=" + encodeURIComponent(star) + "&";
         if (prefix) url += "prefix=" + encodeURIComponent(prefix) + "&";
-        url += `pageSize=${pageSize}&offset=${offset}&sortField=${encodeURIComponent(sortField)}&sortOrder=${encodeURIComponent(sortOrder)}&currentPage=${currentPage}`;
+        url += `pageSize=${pageSize}&offset=${offset}`
+            + `&sortField=${encodeURIComponent(sortField)}`
+            + `&sortSecondary=${encodeURIComponent(sortSecondary)}`
+            + `&sortOrder=${encodeURIComponent(sortOrder)}`
+            + `&currentPage=${currentPage}`;
     }
     jQuery.ajax({
         url: url,
@@ -187,21 +203,27 @@ function fetchMovies() {
             pageSizeSelect.value = pageSize;
 
             const sf = (resultData.sortField || "rating").toLowerCase();
+            const ss = (resultData.sortSecondary || (sf === "rating" ? "title" : "rating")).toLowerCase();
             const so = (resultData.sortOrder || "desc").toLowerCase();
-            applySortSelections(sf, so);
+            applySortSelections(sf, ss, so);
 
-            function applySortSelections(sf, so) {
+            function applySortSelections(sf, ss, so) {
                 // clear all chips
                 document.querySelectorAll(".sort-group .sort-option").forEach(o => o.classList.remove("selected"));
 
-                // select primary field (title/rating)
-                let fieldEl = document.querySelector(`.sort-group .sort-option[data-field="${sf}"]:not([data-order])`);
-                if (!fieldEl) fieldEl = document.querySelector(`.sort-group .sort-option[data-field="rating"]:not([data-order])`);
+                // primary (title/rating)
+                let fieldEl = document.querySelector(`#group-primary .sort-option[data-field="${sf}"]`);
+                if (!fieldEl) fieldEl = document.querySelector(`#group-primary .sort-option[data-field="rating"]`);
                 if (fieldEl) fieldEl.classList.add("selected");
 
-                // select order (asc/desc)
-                let orderEl = document.querySelector(`.sort-group .sort-option[data-order="${so}"]`);
-                if (!orderEl) orderEl = document.querySelector(`.sort-group .sort-option[data-order="desc"]`);
+                // secondary (title/rating)
+                let secEl = document.querySelector(`#group-secondary .sort-option[data-secondary="${ss}"]`);
+                if (!secEl) secEl = document.querySelector(`#group-secondary .sort-option[data-secondary="${sf === "rating" ? "title" : "rating"}"]`);
+                if (secEl) secEl.classList.add("selected");
+
+                // order (asc/desc)
+                let orderEl = document.querySelector(`#group-order .sort-option[data-order="${so}"]`);
+                if (!orderEl) orderEl = document.querySelector(`#group-order .sort-option[data-order="desc"]`);
                 if (orderEl) orderEl.classList.add("selected");
             }
 
