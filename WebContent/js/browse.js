@@ -20,7 +20,7 @@ fetch("browse.html")
 
         const $ul = $("#alphaList").empty();
         const makeItem = (txt) =>
-            $("<li>").append($("<a>").text(txt).attr("href", "movies.html?title=" + encodeURIComponent(txt)));
+            $("<li>").append($("<a>").text(txt).attr("href", "movies.html?prefix=" + encodeURIComponent(txt)));
 
         for (let d = 0; d <= 9; d++) $ul.append(makeItem(String(d)));
         for (let c = 65; c <= 90; c++) $ul.append(makeItem(String.fromCharCode(c)));
