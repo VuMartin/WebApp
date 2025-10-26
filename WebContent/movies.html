@@ -35,35 +35,23 @@
             <h3 id="h3-title" class="h3-title">Top Rated Movies</h3>
 
             <div class="sort-container">
-                <!-- Sorted By row: label on the left, then Primary + Secondary -->
-                <div class="sort-row">
-                    <span class="sort-label-main">Sorted By:</span>
-
-                    <!-- Primary -->
-                    <div class="sort-group" id="group-primary">
-                        <span class="sort-label"><strong>Primary</strong></span>
-                        <span class="sort-option selected" data-field="rating">Rating</span>
-                        <span class="sort-option" data-field="title">Title</span>
-                    </div>
-
-                    <!-- Secondary -->
-                    <div class="sort-group" id="group-secondary">
-                        <span class="sort-label"><strong>Secondary</strong></span>
-                        <span class="sort-option" data-secondary="rating">Rating</span>
-                        <span class="sort-option selected" data-secondary="title">Title</span>
-                    </div>
-                </div>
-
-                <!-- Order -->
-                <div class="sort-group" id="group-order">
-                    <span class="sort-label"><strong>Rating</strong></span>
-                    <span class="sort-option" data-order="asc">Ascending ↑</span>
-                    <span class="sort-option selected" data-order="desc">Descending ↓</span>
-                </div>
-
-                <!-- Page size -->
                 <div class="sort-group">
-                    <label for="page-size" class="sort-label">Movies per page:</label>
+                    <span class="sort-label">Sorted By:</span>
+                    <span class="sort-option selected" data-field="rating">Rating</span>
+                    <span class="sort-option" data-field="title">Title</span>
+                </div>
+                <div class="sort-group">
+                    <span class="sort-label">Rating:</span>
+                    <span class="sort-option" data-field="rating" data-order="asc">Ascending ↑</span>
+                    <span class="sort-option selected" data-field="rating" data-order="desc">Descending ↓</span>
+                </div>
+                <div class="sort-group">
+                    <span class="sort-label">Title:</span>
+                    <span class="sort-option selected" data-field="title" data-order="asc">Ascending ↑</span>
+                    <span class="sort-option" data-field="title" data-order="desc">Descending ↓</span>
+                </div>
+                <div class="sort-group">
+                    <span class="sort-label">Movies per page:</span>
                     <select id="page-size">
                         <option value="10">10</option>
                         <option value="25">25</option>
@@ -86,9 +74,6 @@
                 <th class="ratings-col">Rating</th>
             </tr>
             </thead>
-
-            <!-- Table body is left empty here, will be populated with the data retrieved with movies.js -->
-            <!-- movies.js will find this html element by its id "movie-table-body" -->
             <tbody id="movie-table-body"></tbody>
         </table>
     </div>

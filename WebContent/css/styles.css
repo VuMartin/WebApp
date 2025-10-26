@@ -467,23 +467,3 @@ body {
 #expiration {
     max-width: 120px;
 }
-
-.sort-row { display: flex; align-items: flex-start; gap: 16px; }
-.sort-label-main { font-weight: 700; white-space: nowrap; margin-right: 4px; }
-.sort-group { display: flex; flex-direction: column; gap: 4px; }
-/* Base chip sizing (Primary/Secondary + Order) */
-.sort-option {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    white-space: nowrap;     /* keep text + arrow on one line */
-    box-sizing: border-box;
-    padding: 6px 10px;
-    min-height: 32px;
-    min-width: 78px;         /* size for Rating/Title chips */
-}
-
-/* Make Asc/Desc just a little wider (but not huge) */
-#group-order .sort-option {
-    min-width: 96px;         /* tweak to taste: 92–100px works well */
-}

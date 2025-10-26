@@ -36,8 +36,9 @@ public class MovieListServlet extends HttpServlet {
     private SessionAttribute<String> starAttr;
     private SessionAttribute<String> prefixAttr;
     private SessionAttribute<String> sortFieldAttr;
-    private SessionAttribute<String> sortSecondaryAttr;
     private SessionAttribute<String> sortOrderAttr;
+    private SessionAttribute<String> sortSecondaryAttr;
+    private SessionAttribute<String> sortSecondaryOrderAttr;
     private SessionAttribute<Integer> pageSizeAttr;
     private SessionAttribute<Integer> offsetAttr;
     private SessionAttribute<Integer> currPageAttr;
@@ -55,9 +56,10 @@ public class MovieListServlet extends HttpServlet {
         genreAttr = new SessionAttribute<>(String.class, "genre");
         starAttr = new SessionAttribute<>(String.class, "star");
         sortFieldAttr = new SessionAttribute<>(String.class, "sortField");
-        sortSecondaryAttr = new SessionAttribute<>(String.class, "sortSecondary");
         prefixAttr = new SessionAttribute<>(String.class, "prefix");
         sortOrderAttr = new SessionAttribute<>(String.class, "sortOrder");
+        sortSecondaryAttr = new SessionAttribute<>(String.class, "sortSecondary");
+        sortSecondaryOrderAttr = new SessionAttribute<>(String.class, "sortSecondaryOrder");
         pageSizeAttr = new SessionAttribute<>(Integer.class, "pageSize");
         offsetAttr = new SessionAttribute<>(Integer.class, "offset");
         currPageAttr = new SessionAttribute<>(Integer.class, "page");
@@ -99,6 +101,7 @@ public class MovieListServlet extends HttpServlet {
         String sortField;
         String sortOrder;
         String sortSecondary;
+        String sortSecondaryOrder;
         int currentPage;
 
         String back = request.getParameter("restore");
@@ -112,8 +115,9 @@ public class MovieListServlet extends HttpServlet {
             offset = offsetAttr.get(session);
             sortField = sortFieldAttr.get(session);
             sortOrder = sortOrderAttr.get(session);
-            currentPage = currPageAttr.get(session);
             sortSecondary = sortSecondaryAttr.get(session);
+            sortSecondaryOrder = sortSecondaryOrderAttr.get(session);
+            currentPage = currPageAttr.get(session);
             prefix = prefixAttr.get(session);
         } else {
             title = request.getParameter("title");
@@ -128,20 +132,13 @@ public class MovieListServlet extends HttpServlet {
             sortField = request.getParameter("sortField");
             sortOrder = request.getParameter("sortOrder");
             sortSecondary = request.getParameter("sortSecondary");
+            sortSecondaryOrder = request.getParameter("sortSecondaryOrder");
 
-            if (sortField == null || (!sortField.equals("rating") && !sortField.equals("title"))) {
-                sortField = "rating";
-            }
-            if (sortSecondary == null || (!sortSecondary.equals("rating") && !sortSecondary.equals("title"))) {
-                sortSecondary = sortField.equals("rating") ? "title" : "rating";
-            }
-            if (sortOrder == null || (!sortOrder.equalsIgnoreCase("asc") && !sortOrder.equalsIgnoreCase("desc"))) {
-                sortOrder = "desc";
-            }
-
-            // Map to actual SQL columns (adjust aliases to your query!)
-            String primaryCol   = sortField.equals("title") ? "m.title"   : "r.rating";
-            String secondaryCol = sortSecondary.equals("title") ? "m.title" : "r.rating";
+            //  defaults if any sorts are missing
+            if (sortField == null || sortField.isEmpty()) sortField = "rating";
+            if (sortOrder == null || sortOrder.isEmpty()) sortOrder = "desc";
+            if (sortSecondary == null || sortSecondary.isEmpty()) sortSecondary = "title";
+            if (sortSecondaryOrder == null || sortSecondaryOrder.isEmpty()) sortSecondaryOrder = "asc";
 
             String pageStr = request.getParameter("currentPage");
             currentPage = (pageStr != null) ? Integer.parseInt(pageStr) : 1;
@@ -158,8 +155,16 @@ public class MovieListServlet extends HttpServlet {
             sortFieldAttr.set(session, sortField);
             sortOrderAttr.set(session, sortOrder);
             sortSecondaryAttr.set(session, sortSecondary);
+            sortSecondaryOrderAttr.set(session, sortSecondaryOrder);
             prefixAttr.set(session, prefix);
         }
+
+        // ---- defaults (apply to both normal and restore=true paths) ----
+        if (sortField == null || sortField.isEmpty()) sortField = "rating";
+        if (sortOrder == null || sortOrder.isEmpty()) sortOrder = "desc";
+        if (sortSecondary == null || sortSecondary.isEmpty()) sortSecondary = "title";
+        if (sortSecondaryOrder == null || sortSecondaryOrder.isEmpty()) sortSecondaryOrder = "asc";
+
 
         // Output stream to STDOUT
         PrintWriter out = response.getWriter();
@@ -206,28 +211,17 @@ public class MovieListServlet extends HttpServlet {
                             "WHERE s.name LIKE ?) "
             );
             if (prefix != null && !prefix.isEmpty()) topMoviesQuery.append("AND m.title LIKE ? ");
+            // ---- build a safe ORDER BY from whitelisted values ----
+            String primaryCol   = "title".equalsIgnoreCase(sortField) ? "m.title" : "r.rating";
+            String primaryDir   = "asc".equalsIgnoreCase(sortOrder) ? "ASC" : "DESC";
+            String secondaryCol = "title".equalsIgnoreCase(sortSecondary) ? "m.title" : "r.rating";
+            String secondaryDir = "asc".equalsIgnoreCase(sortSecondaryOrder) ? "ASC" : "DESC";
 
-            String dir = sortOrder.equalsIgnoreCase("asc") ? "ASC" : "DESC";
-            String colRating = "IFNULL(r.rating, 0)";
-            String colTitle  = "m.title";
-
-            // Map primary & secondary from params
-            String primaryCol   = sortField.equalsIgnoreCase("title") ? colTitle : colRating;
-            String secondaryCol = sortSecondary.equalsIgnoreCase("title") ? colTitle : colRating;
-
-            // Build ORDER BY
             topMoviesQuery.append("ORDER BY ")
-                    .append(primaryCol).append(" ").append(dir);
-
-            // If primary and secondary are different, add the secondary
-            if (!primaryCol.equals(secondaryCol)) {
-                topMoviesQuery.append(", ").append(secondaryCol).append(" ").append(dir);
-            }
-
-            // Deterministic tiebreaker (keeps pagination stable)
-            topMoviesQuery.append(", m.id ASC ");
-
-            topMoviesQuery.append(" LIMIT ? OFFSET ?");
+                    .append(primaryCol).append(" ").append(primaryDir)
+                    .append(", ")
+                    .append(secondaryCol).append(" ").append(secondaryDir)
+                    .append(" ");            topMoviesQuery.append(" LIMIT ? OFFSET ?");
 
             PreparedStatement statement = conn.prepareStatement(topMoviesQuery.toString());
             int index = 1;
@@ -277,8 +271,9 @@ public class MovieListServlet extends HttpServlet {
             jsonObject.addProperty("currentPage", currentPage);
             jsonObject.addProperty("pageSize", pageSize);
             jsonObject.addProperty("sortField", sortField);
-            jsonObject.addProperty("sortSecondary", sortSecondary);
             jsonObject.addProperty("sortOrder", sortOrder);
+            jsonObject.addProperty("sortSecondary", sortSecondary);
+            jsonObject.addProperty("sortSecondaryOrder", sortSecondaryOrder);
             jsonObject.addProperty("prefix", prefix);
             JsonArray moviesArray = new JsonArray();
             jsonObject.add("movies", moviesArray);
