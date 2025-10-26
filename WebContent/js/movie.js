@@ -66,23 +66,12 @@ function handleResult(resultData, cartData) {
     const cardEl = $(".card");
 
     // Check if movie is already in cart
-    let inCart = cartData.some(item => item.movieID === resultData.movieID);
+    let inCart = Array.isArray(cartData.items) && cartData.items.some(item => item.movieID === resultData.movieID);
     let buttonText = inCart ? "✔ Added" : "Add to Cart";
     let disabledAttr = inCart ? "disabled" : "";
 
     // Create the button
     let button = $(`<button id="add-to-cart" class="btn" ${disabledAttr}>${buttonText}</button>`);
-    button.css({
-        "display": "block",
-        "margin": "1rem auto",  // center the button
-        "padding": "0.25rem 0.5rem",
-        "font-size": "15px",
-        "background-color": "#28a745",
-        "color": "white",
-        "border-radius": "0.25rem",
-        "width": "120px"
-    });
-
     // Add click handler
     button.on("click", () => {
         addToCart(resultData.movieID, resultData.movieTitle, 122);

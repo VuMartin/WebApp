@@ -25,21 +25,20 @@
         <div class="container">
             <h1 class="mb-4">Order Confirmation</h1>
 
-            <div class="mb-3">
-                <p>Thank you, <strong>Martin</strong>! Your order has been successfully placed.</p>
-            </div>
+            <div id="confirmation-section">
+                <div class="mb-3">
+                    <p>Thank you, <strong id="customerName"></strong>! Your order has been successfully placed.</p>
+                </div>
 
-            <div class="mb-3">
-                <h4>Order Summary</h4>
-                <ul>
-                    <li>Movie 1 × 1</li>
-                    <li>Movie 2 × 2</li>
-                </ul>
-                <p>Total: $122</p>
-            </div>
+                <div class="mb-3">
+                    <h4>Order Summary</h4>
+                    <ul id="orderList"></ul>
+                    <p>Total: $<span id="totalPrice"></span></p>
+                </div>
 
-            <div class="mb-3">
-                <p>Payment method: Credit Card ending in **** 1234</p>
+                <div class="mb-3">
+                    <p>Payment method: Credit Card ending in **** <span id="cardLast2"></span></p>
+                </div>
             </div>
 
             <div class="mb-3">
@@ -52,6 +51,6 @@
         <!--        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>-->
         <!--        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>-->
         <script src="js/header.js"></script>
-        <script src="js/payment.js"></script>
+        <script src="js/confirmation.js"></script>
     </body>
 </html>

@@ -1,10 +1,10 @@
 // Render the cart table
-function displayCart(cartData) {
+function displayCart(resultData) {
     let tbody = $("#cart-items");
     tbody.empty();
 
     let totalPrice = 0;
-    cartData.forEach(item => {
+    resultData.items.forEach(item => {
         let movieTotal = item.price * item.quantity;
         totalPrice += movieTotal;
 
@@ -20,7 +20,7 @@ function displayCart(cartData) {
         tbody.append(row);
     });
 
-    $("#shop-total").text(`Total: $${totalPrice}`);
+    $("#shop-total").text(`Total: $${resultData.total.toFixed(2)}`);
 }
 
 // Update quantity or remove item
@@ -57,7 +57,7 @@ function loadCart() {
     $.ajax("api/cart", {
         method: "GET",
         success: (resultData) => {
-            updateCartCount(resultData)
+            updateCartCount(resultData);
             displayCart(resultData);
         }
     });

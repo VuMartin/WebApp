@@ -81,7 +81,7 @@ function handleResult(resultData, cartData) {
     // Concatenate the html tags with resultData jsonObject to create table rows
     for (let i = 0; i < resultData.movies.length; i++) {
         let movie = resultData.movies[i];
-        let inCart = Array.isArray(cartData) && cartData.some(item => item.movieID === movie.movieID);
+        let inCart = Array.isArray(cartData.items) && cartData.items.some(item => item.movieID === movie.movieID);
         let buttonText = inCart ? "✔ Added" : "Add";
         let disabledAttr = inCart ? "disabled" : "";
         let rowHTML = "<tr>";

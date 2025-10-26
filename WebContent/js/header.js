@@ -1,9 +1,5 @@
 function updateCartCount(cartData) {
-    let totalCount = 0;
-    cartData.forEach(item => {
-        totalCount += item.quantity; // add up all quantities
-    });
-    document.getElementById("cart-count").textContent = totalCount;
+    document.getElementById("cart-count").textContent = cartData.totalCount || 0;
 }
 
 fetch("header.html")

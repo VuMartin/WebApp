@@ -17,7 +17,7 @@ import java.util.Map;
 public class ShoppingCartServlet extends HttpServlet {
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        response.setContentType("application/json");
+        response.setContentType("application/json"); // JSON output
 
         String movieID = request.getParameter("movieID");
         String title = request.getParameter("title");
@@ -32,48 +32,68 @@ public class ShoppingCartServlet extends HttpServlet {
         }
 
         synchronized(cart) {
-            if ("remove".equals(action)) {
-                cart.remove(movieID);
-            } else if ("update".equals(action)) {
-                CartItem item = cart.get(movieID);
-                if (item != null) {
-                    int newQty = Integer.parseInt(request.getParameter("quantity"));
-                    item.setQuantity(newQty);
-                }
-            } else {
-                CartItem item = cart.getOrDefault(movieID, new CartItem(movieID, title, price, 0));
-                item.setQuantity(item.getQuantity() + 1);
-                cart.put(movieID, item);
+            switch (action) {
+                case "remove":
+                    cart.remove(movieID);
+                    break;
+                case "update":
+                    CartItem itemToUpdate = cart.get(movieID);
+                    if (itemToUpdate != null) {
+                        int newQty = Integer.parseInt(request.getParameter("quantity"));
+                        itemToUpdate.setQuantity(newQty);
+                    }
+                    break;
+                case "empty":
+                    cart.clear();
+                    break;
+                default: // add
+                    CartItem item = cart.getOrDefault(movieID, new CartItem(movieID, title, price, 0));
+                    item.setQuantity(item.getQuantity() + 1);
+                    cart.put(movieID, item);
+                    break;
             }
-        }
 
-        // Build JSON array to return
-        JsonArray cartArray = new JsonArray();
-        synchronized(cart) {
-            for (CartItem item : cart.values()) {
+            // Build JSON response
+            JsonArray cartJson = new JsonArray();
+            double total = 0;
+            int totalCount = 0;
+            for (CartItem cItem : cart.values()) {
                 JsonObject obj = new JsonObject();
-                obj.addProperty("movieID", item.getMovieID());
-                obj.addProperty("title", item.getTitle());
-                obj.addProperty("quantity", item.getQuantity());
-                obj.addProperty("price", item.getPrice());
-                cartArray.add(obj);
+                obj.addProperty("movieID", cItem.getMovieID());
+                obj.addProperty("title", cItem.getTitle());
+                obj.addProperty("quantity", cItem.getQuantity());
+                obj.addProperty("price", cItem.getPrice());
+                total += cItem.getPrice() * cItem.getQuantity();
+                totalCount += cItem.getQuantity();
+                cartJson.add(obj);
             }
-        }
 
-        response.getWriter().write(cartArray.toString());
-        response.setStatus(200);
+            JsonObject responseJson = new JsonObject();
+            responseJson.addProperty("firstName", (String) session.getAttribute("firstName"));
+            responseJson.addProperty("cardNumber", (String) session.getAttribute("creditCardID"));
+            responseJson.add("items", cartJson);
+            responseJson.addProperty("total", total);
+            responseJson.addProperty("totalCount", totalCount);
+
+            response.getWriter().write(responseJson.toString());
+            response.setStatus(200);
+        }
     }
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        response.setContentType("application/json");
+        response.setContentType("application/json"); // JSON output
+
         HttpSession session = request.getSession(false);
         if (session == null || session.getAttribute("cart") == null) {
-            response.getWriter().write("[]"); // empty array
+            response.getWriter().write("[]"); // empty cart
             return;
         }
 
         Map<String, CartItem> cart = (Map<String, CartItem>) session.getAttribute("cart");
+
         JsonArray cartJson = new JsonArray();
+        double total = 0;
+        int totalCount = 0;
 
         synchronized(cart) {
             for (CartItem item : cart.values()) {
@@ -82,11 +102,20 @@ public class ShoppingCartServlet extends HttpServlet {
                 obj.addProperty("title", item.getTitle());
                 obj.addProperty("quantity", item.getQuantity());
                 obj.addProperty("price", item.getPrice());
+                total += item.getPrice() * item.getQuantity();
+                totalCount += item.getQuantity();
                 cartJson.add(obj);
             }
         }
 
-        response.getWriter().write(cartJson.toString()); // send array directly
+        JsonObject responseJson = new JsonObject();
+        responseJson.addProperty("firstName", (String) session.getAttribute("firstName"));
+        responseJson.addProperty("cardNumber", (String) session.getAttribute("creditCardID"));
+        responseJson.add("items", cartJson);
+        responseJson.addProperty("total", total);
+        responseJson.addProperty("totalCount", totalCount);
+
+        response.getWriter().write(responseJson.toString());
         response.setStatus(200);
     }
 }

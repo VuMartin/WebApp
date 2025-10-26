@@ -1,0 +1,58 @@
+$("#payment-form").submit(function(event) {
+    event.preventDefault();
+
+    let firstName = $("#firstName").val();
+    let lastName = $("#lastName").val();
+    let cardNumber = $("#cardNumber").val();
+    let expiration = $("#expiration").val();
+
+    $.ajax({
+        url: "api/payment",
+        method: "POST",
+        dataType: "json",
+        data: { firstName, lastName, cardNumber, expiration },
+        success: (resultData) => {
+            if (resultData.status === "success") {
+                $("#customerName").text(resultData.firstName);
+                $("#totalPrice").text(resultData.total);
+                $("#cardLast2").text(resultData.cardNumber.slice(-2));
+
+                let orderList = $("#orderList");
+                orderList.empty();
+                resultData.items.forEach(item => {
+                    orderList.append(`<li>${item.title} × ${item.quantity}</li>`);
+                });
+
+                $("#error-message").hide();
+
+                $.ajax({
+                    url: "api/cart",
+                    method: "POST",
+                    dataType: "json",
+                    data: { action: "empty" },
+                    success: (cartData) => {
+                        updateCartCount(cartData);
+                        window.location.href = "confirmation.html";
+                    },
+                    error: () => {
+                        console.error("Failed to empty cart");
+                        window.location.href = "confirmation.html";
+                    }
+                });
+
+            } else {
+                $("#error-message").text(resultData.message).show();
+            }
+        },
+        error: () => {
+            $("#error-message").text("Server error. Please try again later.").show();
+        }
+    });
+});
+$.ajax("api/cart", {
+    method: "GET",
+    success: (resultData) => {
+        updateCartCount(resultData);
+        $("#total-price").text(resultData.total.toFixed(2));
+    }
+});
