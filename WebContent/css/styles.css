@@ -128,18 +128,14 @@
 
 .genre-section { text-align: center; }
 
-.genre-list{
-    display: inline-block;
-    margin: 0;
-    padding: 0;
-    list-style: disc inside;
+.genre-list {
+    list-style: disc inside;   /* bullets inside list */
     column-count: 3;
     column-gap: 3.5rem;
 }
 
-.genre-list li{
-    text-indent: 0;
-    padding-left: 0;
+.genre-list li {
+    margin: 0.25rem 0;
     break-inside: avoid;
 }
 
@@ -326,6 +322,26 @@
     background: #08F;
     color: white;
     border-color: #08F;
+}
+
+html, body {
+    height: 100%;
+    margin: 0;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+#browse-placeholder {
+    margin-top: auto;
+}
+
+.main-content {
+    flex: 1;  /* takes up all remaining space */
+    display: flex;
+    flex-direction: column;
 }
 
 #page-numbers {

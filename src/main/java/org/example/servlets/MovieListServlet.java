@@ -145,7 +145,7 @@ public class MovieListServlet extends HttpServlet {
             currPageAttr.set(session, currentPage);
             sortFieldAttr.set(session, sortField);
             sortOrderAttr.set(session, sortOrder);
-            sortOrderAttr.set(session, prefix);
+            prefixAttr.set(session, prefix);
         }
 
         // Output stream to STDOUT
@@ -235,7 +235,8 @@ public class MovieListServlet extends HttpServlet {
                             (year != null && !year.isEmpty() ? "AND m.year = ? " : "") +
                             (director != null && !director.isEmpty() ? "AND m.director LIKE ? " : "") +
                             (genre != null && !genre.isEmpty() ? "AND g.name = ? " : "") +
-                            (star != null && !star.isEmpty() ? "AND s.name LIKE ? " : "");
+                            (star != null && !star.isEmpty() ? "AND s.name LIKE ? " : "") +
+                            (prefix != null && !prefix.isEmpty() ? "AND m.title LIKE ? " : "");
 
             PreparedStatement countStmt = conn.prepareStatement(countQuery);
             index = 1;
@@ -243,7 +244,8 @@ public class MovieListServlet extends HttpServlet {
             if (year != null && !year.isEmpty()) countStmt.setString(index++, year);
             if (director != null && !director.isEmpty()) countStmt.setString(index++, "%" + director + "%");
             if (genre != null && !genre.isEmpty()) countStmt.setString(index++, genre);
-            if (star != null && !star.isEmpty()) countStmt.setString(index, "%" + star + "%");
+            if (star != null && !star.isEmpty()) countStmt.setString(index++, "%" + star + "%");
+            if (prefix != null && !prefix.isEmpty()) countStmt.setString(index, prefix + "%");
 
             ResultSet countRs = countStmt.executeQuery();
             int totalCount = 0;
@@ -256,6 +258,7 @@ public class MovieListServlet extends HttpServlet {
             jsonObject.addProperty("pageSize", pageSize);
             jsonObject.addProperty("sortField", sortField);
             jsonObject.addProperty("sortOrder", sortOrder);
+            jsonObject.addProperty("prefix", prefix);
             JsonArray moviesArray = new JsonArray();
             jsonObject.add("movies", moviesArray);
             // Iterate through each row of rs

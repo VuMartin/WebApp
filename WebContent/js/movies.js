@@ -167,9 +167,7 @@ function fetchMovies() {
     const offset = (currentPage - 1) * pageSize;
     let url;
     if (back === "true") url = "api/topmovies?restore=true";
-    else if (!title && !year && !director && !star && !genre && !prefix) {
-        url = `api/topmovies?pageSize=${pageSize}&offset=${offset}&sortField=${encodeURIComponent(sortField)}&sortOrder=${encodeURIComponent(sortOrder)}&currentPage=${currentPage}`;
-    } else {
+    else {
         url = "api/topmovies?";
         if (title) url += "title=" + encodeURIComponent(title) + "&";
         if (year) url += "year=" + encodeURIComponent(year) + "&";
@@ -225,11 +223,11 @@ function fetchMovies() {
 
             if (back === "true") {
                 const offset = (currentPage - 1) * pageSize;
-                const newUrl =
-                    `?pageSize=${pageSize}&offset=${offset}` +
-                    `&sortField=${encodeURIComponent(resultData.sortField || "")}` +
-                    `&sortOrder=${encodeURIComponent(resultData.sortOrder || "")}` +
-                    `&currentPage=${currentPage}`;
+                let newUrl = `?pageSize=${pageSize}&offset=${offset}`;
+                if (resultData.sortField) newUrl += `&sortField=${encodeURIComponent(resultData.sortField)}`;
+                if (resultData.sortOrder) newUrl += `&sortOrder=${encodeURIComponent(resultData.sortOrder)}`;
+                if (resultData.prefix) newUrl += `&prefix=${encodeURIComponent(resultData.prefix)}`;
+                newUrl += `&currentPage=${currentPage}`;
                 history.replaceState(null, "", newUrl);
             }
         },
