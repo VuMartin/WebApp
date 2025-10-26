@@ -11,7 +11,7 @@
               integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
         <link rel="stylesheet" href="css/styles.css">
 
-        <title>Shopping Cart - Fablix</title>
+        <title>Payment - Fablix</title>
 
         <!-- favicon links -->
         <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
@@ -50,11 +50,10 @@
 
                 <div class="mb-3">
                     <label for="expiration" class="form-label">Expiration Date</label>
-                    <input type="month" class="form-control" id="expiration" name="expiration" required>
+                    <input type="date" class="form-control" id="expiration" name="expiration" required placeholder="YYYY/MM/DD">
                 </div>
-
                 <!-- Error message (hidden by default, show if invalid) -->
-                <div class="mb-3 text-danger" id="error-message" style="display: none;">
+                <div class="mb-3 text-danger" id="error-message">
                     Invalid payment information. Please try again.
                 </div>
 

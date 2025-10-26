@@ -220,9 +220,7 @@
 }
 
 .container {
-    padding-left: 30px;
-    padding-right: 30px;
-    padding-bottom: 5px;
+    padding: 15px 30px;
     border-radius: 8px;
     box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     margin-top: 95px;
@@ -459,4 +457,13 @@ body {
 #shop-proceed {
     margin-left: 930px;
     margin-top: 10px;
+}
+
+/* payment page */
+#error-message {
+    display: none;
+}
+
+#expiration {
+    max-width: 120px;
 }
