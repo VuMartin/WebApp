@@ -41,24 +41,6 @@ document.querySelectorAll(".sort-group").forEach(group => {
     });
 });
 
-function getSelectedSorts() {
-    // primary field ("rating" or "title")
-    const primaryEl = document.querySelector("#group-primary .sort-option.selected[data-field]");
-    const sortField = primaryEl ? primaryEl.dataset.field : "rating";
-
-    // secondary field ("rating" or "title")
-    const secondaryEl = document.querySelector("#group-secondary .sort-option.selected[data-secondary]");
-    const sortSecondary = secondaryEl
-        ? secondaryEl.dataset.secondary
-        : (sortField === "rating" ? "title" : "rating"); // sensible default
-
-    // global order ("asc" or "desc")
-    const orderEl = document.querySelector("#group-order .sort-option.selected[data-order]");
-    const sortOrder = orderEl ? orderEl.dataset.order : "desc";
-
-    return { sortField, sortSecondary, sortOrder };
-}
-
 let currentPage = 1;
 let pageSize = 10;
 let totalPages = 1;
@@ -174,25 +156,57 @@ function fetchMovies() {
         document.title = "Top Rated Movies - Fabflix";
     }
 
-    const { sortField, sortSecondary, sortOrder } = getSelectedSorts();
+    // --- figure out sorting from the 3 groups ---
+    const groups = document.querySelectorAll(".sort-group");
+    const primaryGroup = groups[0];
+    const ratingGroup  = groups[1];
+    const titleGroup   = groups[2];
+
+    const primarySelected = primaryGroup.querySelector(".sort-option.selected");            // data-field = "rating" | "title"
+    const ratingSelected  = ratingGroup.querySelector(".sort-option.selected");             // data-order = "asc" | "desc"
+    const titleSelected   = titleGroup.querySelector(".sort-option.selected");              // data-order = "asc" | "desc"
+
+    const primaryField = (primarySelected && primarySelected.dataset.field) || "rating";
+    const ratingOrder  = (ratingSelected  && ratingSelected.dataset.order)  || "desc";
+    const titleOrder   = (titleSelected   && titleSelected.dataset.order)   || "asc";
+
+    // Build primary/secondary from the above
+    let sortField, sortOrder, sortSecondary, sortSecondaryOrder;
+    if (primaryField === "rating") {
+        sortField = "rating";             sortOrder = ratingOrder;
+        sortSecondary = "title";          sortSecondaryOrder = titleOrder;
+    } else {
+        sortField = "title";              sortOrder = titleOrder;
+        sortSecondary = "rating";         sortSecondaryOrder = ratingOrder;
+    }
 
     const offset = (currentPage - 1) * pageSize;
+
+    // --- construct URL with ALL sort params ---
     let url;
-    if (back === "true") url = "api/topmovies?restore=true";
-    else {
-        url = "api/topmovies?";
-        if (title) url += "title=" + encodeURIComponent(title) + "&";
-        if (year) url += "year=" + encodeURIComponent(year) + "&";
-        if (director) url += "director=" + encodeURIComponent(director) + "&";
-        if (genre) url += "genre=" + encodeURIComponent(genre) + "&";
-        if (star) url += "star=" + encodeURIComponent(star) + "&";
-        if (prefix) url += "prefix=" + encodeURIComponent(prefix) + "&";
-        url += `pageSize=${pageSize}&offset=${offset}`
-            + `&sortField=${encodeURIComponent(sortField)}`
-            + `&sortSecondary=${encodeURIComponent(sortSecondary)}`
-            + `&sortOrder=${encodeURIComponent(sortOrder)}`
-            + `&currentPage=${currentPage}`;
+    const baseParams =
+        `pageSize=${pageSize}&offset=${offset}` +
+        `&sortField=${encodeURIComponent(sortField)}` +
+        `&sortOrder=${encodeURIComponent(sortOrder)}` +
+        `&sortSecondary=${encodeURIComponent(sortSecondary)}` +
+        `&sortSecondaryOrder=${encodeURIComponent(sortSecondaryOrder)}` +
+        `&currentPage=${currentPage}`;
+
+    if (back === "true") {
+        url = `api/topmovies?restore=true`;
+    } else if (!title && !year && !director && !star && !genre && !prefix) {
+        url = `api/topmovies?${baseParams}`;
+    } else {
+        const q = new URLSearchParams();
+        if (title)    q.append("title",    title);
+        if (year)     q.append("year",     year);
+        if (director) q.append("director", director);
+        if (genre)    q.append("genre",    genre);
+        if (star)     q.append("star",     star);
+        if (prefix)   q.append("prefix",   prefix);
+        url = `api/topmovies?${q.toString()}&${baseParams}`;
     }
+
     jQuery.ajax({
         url: url,
         method: "GET",
@@ -202,35 +216,33 @@ function fetchMovies() {
             pageSize = resultData.pageSize;
             pageSizeSelect.value = pageSize;
 
-            const sf = (resultData.sortField || "rating").toLowerCase();
-            const ss = (resultData.sortSecondary || (sf === "rating" ? "title" : "rating")).toLowerCase();
-            const so = (resultData.sortOrder || "desc").toLowerCase();
-            applySortSelections(sf, ss, so);
+            const restoredField = resultData.sortField;
+            const restoredOrder = resultData.sortOrder;
+            const restoredSec    = resultData.sortSecondary;
+            const restoredSecOrd = resultData.sortSecondaryOrder;
 
-            function applySortSelections(sf, ss, so) {
-                // clear all chips
-                document.querySelectorAll(".sort-group .sort-option").forEach(o => o.classList.remove("selected"));
+            // First clear all selections
+            document.querySelectorAll(".sort-option").forEach(o => o.classList.remove("selected"));
 
-                // primary (title/rating)
-                let fieldEl = document.querySelector(`#group-primary .sort-option[data-field="${sf}"]`);
-                if (!fieldEl) fieldEl = document.querySelector(`#group-primary .sort-option[data-field="rating"]`);
-                if (fieldEl) fieldEl.classList.add("selected");
-
-                // secondary (title/rating)
-                let secEl = document.querySelector(`#group-secondary .sort-option[data-secondary="${ss}"]`);
-                if (!secEl) secEl = document.querySelector(`#group-secondary .sort-option[data-secondary="${sf === "rating" ? "title" : "rating"}"]`);
-                if (secEl) secEl.classList.add("selected");
-
-                // order (asc/desc)
-                let orderEl = document.querySelector(`#group-order .sort-option[data-order="${so}"]`);
-                if (!orderEl) orderEl = document.querySelector(`#group-order .sort-option[data-order="desc"]`);
-                if (orderEl) orderEl.classList.add("selected");
-            }
-
-
+            // Re-select primary field
+            primaryGroup.querySelectorAll(".sort-option").forEach(o => {
+                if (o.dataset.field === (restoredField || sortField)) o.classList.add("selected");
+            });
+            // Re-select rating order
+            ratingGroup.querySelectorAll(".sort-option").forEach(o => {
+                if (o.dataset.order === ((restoredField === "rating" ? restoredOrder : restoredSecOrd) || ratingOrder)) {
+                    o.classList.add("selected");
+                }
+            });
+            // Re-select title order
+            titleGroup.querySelectorAll(".sort-option").forEach(o => {
+                if (o.dataset.order === ((restoredField === "title" ? restoredOrder : restoredSecOrd) || titleOrder)) {
+                    o.classList.add("selected");
+                }
+            });
+            // total pages + render
             const serverTotal = Number(resultData.totalCount) || 0;
             totalPages = Math.max(1, Math.ceil(serverTotal / pageSize));
-
             const currOffset = (currentPage - 1) * pageSize;
             if (currOffset > Math.max(0, serverTotal - 1) && totalPages > 0) {
                 currentPage = totalPages;
@@ -243,13 +255,9 @@ function fetchMovies() {
                 renderPageNumbers();
             });
 
+            // keep the URL nice when using restore=true
             if (back === "true") {
-                const offset = (currentPage - 1) * pageSize;
-                let newUrl = `?pageSize=${pageSize}&offset=${offset}`;
-                if (resultData.sortField) newUrl += `&sortField=${encodeURIComponent(resultData.sortField)}`;
-                if (resultData.sortOrder) newUrl += `&sortOrder=${encodeURIComponent(resultData.sortOrder)}`;
-                if (resultData.prefix) newUrl += `&prefix=${encodeURIComponent(resultData.prefix)}`;
-                newUrl += `&currentPage=${currentPage}`;
+                const newUrl = `?${baseParams}`;
                 history.replaceState(null, "", newUrl);
             }
         },
