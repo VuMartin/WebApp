@@ -119,6 +119,14 @@ public class MovieListServlet extends HttpServlet {
             offset = (offsetStr != null) ? Integer.parseInt(offsetStr) : 0;
             sortField = request.getParameter("sortField");
             sortOrder = request.getParameter("sortOrder");
+
+            if (sortField == null || (!sortField.equalsIgnoreCase("rating") && !sortField.equalsIgnoreCase("title"))) {
+                sortField = "rating";
+            }
+            if (sortOrder == null || (!sortOrder.equalsIgnoreCase("asc") && !sortOrder.equalsIgnoreCase("desc"))) {
+                sortOrder = "desc";
+            }
+
             String pageStr = request.getParameter("currentPage");
             currentPage = (pageStr != null) ? Integer.parseInt(pageStr) : 1;
 
@@ -178,7 +186,20 @@ public class MovieListServlet extends HttpServlet {
                             "FROM stars_in_movies sm JOIN stars s ON s.id = sm.star_id " +
                             "WHERE s.name LIKE ?) "
             );
-            topMoviesQuery.append("ORDER BY r.rating DESC ");
+
+            String dir = sortOrder.equalsIgnoreCase("asc") ? "ASC" : "DESC";
+            String colRating = "IFNULL(r.rating, 0)";
+            String colTitle  = "m.title";
+
+            // Primary/secondary columns
+            String primaryCol   = sortField.equalsIgnoreCase("rating") ? colRating : colTitle;
+            String secondaryCol = sortField.equalsIgnoreCase("rating") ? colTitle  : colRating;
+
+            // ORDER BY primary, then secondary (both same direction)
+            topMoviesQuery.append("ORDER BY ")
+                    .append(primaryCol).append(" ").append(dir).append(", ")
+                    .append(secondaryCol).append(" ").append(dir).append(" ");
+
             topMoviesQuery.append("LIMIT ? OFFSET ?");
 
             PreparedStatement statement = conn.prepareStatement(topMoviesQuery.toString());

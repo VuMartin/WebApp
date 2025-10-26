@@ -156,9 +156,15 @@ function fetchMovies() {
         document.title = "Top Rated Movies - Fabflix";
     }
 
+    // Check for selected options (rating or title)
+    const selectedSortFieldEl = document.querySelector(".sort-group .sort-option.selected[data-field]:not([data-order])");
+    const selectedOrderEl     = document.querySelector(".sort-group .sort-option.selected[data-order]");
+
+    // Fallbacks
+    let sortField = (selectedSortFieldEl && selectedSortFieldEl.dataset.field) ? selectedSortFieldEl.dataset.field : "rating";
+    let sortOrder = (selectedOrderEl && selectedOrderEl.dataset.order) ? selectedOrderEl.dataset.order : "desc";
+
     const offset = (currentPage - 1) * pageSize;
-    let sortField = document.querySelector(".sort-option.selected").dataset.field;
-    let sortOrder = document.querySelector(".sort-option.selected").dataset.order;
     let url;
     if (back === "true") url = "api/topmovies?restore=true";
     else if (!title && !year && !director && !star && !genre && !prefix) {
