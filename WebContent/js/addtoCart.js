@@ -1,13 +1,18 @@
 function addToCart(movieID, title, price = 122) {
-    const button = document.querySelector(`button[data-movie-id='${movieID}']`);
     $.ajax("api/cart", {
         method: "POST",
         data: { movieID, title, price, action: "add" },
         success: (resultData) => {
             updateCartCount(resultData);
-            if (button) {
-                button.textContent = "✔ Added";
-                button.disabled = true;
+
+            // Show the message under the button
+            const messageEl = document.getElementById(`message-${movieID}`);
+            if (messageEl) {
+                messageEl.textContent = "✔ Added to cart!";
+                messageEl.style.display = "block";
+                setTimeout(() => {
+                    messageEl.style.display = "none";
+                }, 1000);
             }
         }
     });

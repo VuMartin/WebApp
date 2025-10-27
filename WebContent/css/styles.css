@@ -161,6 +161,13 @@
     font-weight: 600;
 }
 
+.cart-message {
+    color: green;
+    font-size: 0.9em;
+    display: none;
+    margin-top: 4px;
+}
+
 /* main page */
 
 #welcome-main {

@@ -36,7 +36,7 @@ function getParameterByName(target) {
  * @param resultData jsonObject
  */
 
-function handleResult(resultData, cartData) {
+function handleResult(resultData) {
     console.log("handleResult: populating movie info from resultData");
 
     // Populate the movie info
@@ -65,22 +65,19 @@ function handleResult(resultData, cartData) {
     });
     const cardEl = $(".card");
 
-    // Check if movie is already in cart
-    let inCart = Array.isArray(cartData.items) && cartData.items.some(item => item.movieID === resultData.movieID);
-    let buttonText = inCart ? "✔ Added" : "Add to Cart";
-    let disabledAttr = inCart ? "disabled" : "";
+    let button = $(`<button id="add-to-cart" class="btn">Add to Cart</button>`);
 
-    // Create the button
-    let button = $(`<button id="add-to-cart" class="btn" ${disabledAttr}>${buttonText}</button>`);
-    // Add click handler
     button.on("click", () => {
         addToCart(resultData.movieID, resultData.movieTitle, 122);
-        button.text("✔ Added");
-        button.prop("disabled", true);
+
+        // Show message instead of disabling
+        const messageEl = $(`#message-${resultData.movieID}`);
+        messageEl.text("✔ Added to cart!").show();
+        setTimeout(() => messageEl.hide(), 1000);
     });
 
-    // Append button to card
-    cardEl.append(button)
+    cardEl.append(button);
+    cardEl.append(`<div class="cart-message" id="message-${resultData.movieID}"></div>`);
 }
 
 /**
@@ -97,7 +94,7 @@ jQuery.ajax({
     url: "api/movie?id=" + movieID, // Setting request url, which is mapped by StarsServlet in Stars.java
     success: (resultData) => {
         $.getJSON("api/cart", (cartData) => {
-            handleResult(resultData, cartData);
+            handleResult(resultData);
             updateCartCount(cartData);
         });
     }

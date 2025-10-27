@@ -72,7 +72,7 @@ pageSizeSelect.addEventListener("change", () => {
     fetchMovies();
 });
 
-function handleResult(resultData, cartData) {
+function handleResult(resultData) {
     // Find the empty table body by id "movie_table_body"
     let movieTableBodyElement = jQuery("#movie-table-body");
     movieTableBodyElement.empty();
@@ -81,18 +81,15 @@ function handleResult(resultData, cartData) {
     // Concatenate the html tags with resultData jsonObject to create table rows
     for (let i = 0; i < resultData.movies.length; i++) {
         let movie = resultData.movies[i];
-        let inCart = Array.isArray(cartData.items) && cartData.items.some(item => item.movieID === movie.movieID);
-        let buttonText = inCart ? "✔ Added" : "Add";
-        let disabledAttr = inCart ? "disabled" : "";
         let rowHTML = "<tr>";
         rowHTML += `<td>$122 <br>
-            <button class="btn btn-sm btn-success mt-1" 
-                data-movie-id="${movie.movieID}"
-                onclick="addToCart('${movie.movieID}', '${movie.movieTitle}', 122)"
-                ${disabledAttr}>
-                ${buttonText}
-            </button>
-        </td>`;
+                    <button class="btn btn-sm btn-success mt-1" 
+                            data-movie-id="${movie.movieID}"
+                            onclick="addToCart('${movie.movieID}', '${movie.movieTitle}', 122)">
+                        Add
+                    </button>
+                    <div class="cart-message" id="message-${movie.movieID}"></div>
+                </td>`;
         const startIndex = (currentPage - 1) * pageSize;
         rowHTML += "<td>" + (startIndex + i + 1) + ". <a href='movie.html?id=" +
             encodeURIComponent(movie["movieID"]) + "'>" +
@@ -248,9 +245,8 @@ function fetchMovies() {
                 currentPage = totalPages;
                 return fetchMovies();
             }
-
             $.getJSON("api/cart", (cartData) => {
-                handleResult(resultData, cartData);
+                handleResult(resultData);
                 updateCartCount(cartData);
                 renderPageNumbers();
             });
