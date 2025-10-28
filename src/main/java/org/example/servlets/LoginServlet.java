@@ -14,6 +14,7 @@ import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.*;
+import main.java.org.example.utils.RecaptchaVerify;
 
 
 // http://localhost:8080/2025_fall_cs_122b_marjoe_war/api/login
@@ -36,6 +37,17 @@ public class LoginServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
 
+        String gRecaptchaResponse = request.getParameter("g-recaptcha-response");
+        if (!RecaptchaVerify.verify(gRecaptchaResponse)) {
+            response.setContentType("application/json");
+            PrintWriter out = response.getWriter();
+            JsonObject jsonObject = new JsonObject();
+            jsonObject.addProperty("status", "error");
+            jsonObject.addProperty("message", "reCAPTCHA verification failed.");
+            out.write(jsonObject.toString());
+            response.setStatus(200);
+            return;
+        }
         String email = request.getParameter("email");
         String password = request.getParameter("password");
 

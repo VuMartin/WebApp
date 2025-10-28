@@ -25,14 +25,23 @@ jQuery("#login-form").submit(function(event) {
 
     let email = jQuery("#email").val();
     let password = jQuery("#password").val();
+    let gRecaptchaResponse = grecaptcha.getResponse(); // get token
+    if (!gRecaptchaResponse) {
+        jQuery("#error-msg").text("Please complete the reCAPTCHA.");
+        return;
+    }
 
     jQuery.ajax({
         dataType: "json",
         method: "POST",
         url: "api/login",
-        data: { email: email, password: password },
-        success: (resultData) => handleResult(resultData),
+        data: { email: email, password: password, "g-recaptcha-response": gRecaptchaResponse },
+        success: (resultData) => {
+            grecaptcha.reset();
+            handleResult(resultData)
+        },
         error: () => {
+            grecaptcha.reset();
             jQuery("#error-msg").text("Server error. Try again later.");
         }
     });
