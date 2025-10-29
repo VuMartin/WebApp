@@ -35,9 +35,9 @@ public class MovieListServlet extends HttpServlet {
     private SessionAttribute<String> genreAttr;
     private SessionAttribute<String> starAttr;
     private SessionAttribute<String> prefixAttr;
-    private SessionAttribute<String> sortFieldAttr;
-    private SessionAttribute<String> sortOrderAttr;
-    private SessionAttribute<String> sortSecondaryAttr;
+    private SessionAttribute<String> sortPrimaryFieldAttr;
+    private SessionAttribute<String> sortPrimaryOrderAttr;
+    private SessionAttribute<String> sortSecondaryFieldAttr;
     private SessionAttribute<String> sortSecondaryOrderAttr;
     private SessionAttribute<Integer> pageSizeAttr;
     private SessionAttribute<Integer> offsetAttr;
@@ -55,14 +55,14 @@ public class MovieListServlet extends HttpServlet {
         directorAttr = new SessionAttribute<>(String.class, "director");
         genreAttr = new SessionAttribute<>(String.class, "genre");
         starAttr = new SessionAttribute<>(String.class, "star");
-        sortFieldAttr = new SessionAttribute<>(String.class, "sortField");
-        prefixAttr = new SessionAttribute<>(String.class, "prefix");
-        sortOrderAttr = new SessionAttribute<>(String.class, "sortOrder");
-        sortSecondaryAttr = new SessionAttribute<>(String.class, "sortSecondary");
+        sortPrimaryFieldAttr = new SessionAttribute<>(String.class, "sortField");
+        sortPrimaryOrderAttr = new SessionAttribute<>(String.class, "sortOrder");
+        sortSecondaryFieldAttr = new SessionAttribute<>(String.class, "sortSecondary");
         sortSecondaryOrderAttr = new SessionAttribute<>(String.class, "sortSecondaryOrder");
         pageSizeAttr = new SessionAttribute<>(Integer.class, "pageSize");
         offsetAttr = new SessionAttribute<>(Integer.class, "offset");
         currPageAttr = new SessionAttribute<>(Integer.class, "page");
+        prefixAttr = new SessionAttribute<>(String.class, "prefix");
     }
 
     class SessionAttribute<T> {
@@ -96,12 +96,12 @@ public class MovieListServlet extends HttpServlet {
         String genre;
         String star;
         String prefix;
+        String sortPrimaryField;
+        String sortPrimaryOrder;
+        String sortSecondaryField;
+        String sortSecondaryOrder;
         int pageSize;
         int offset;
-        String sortField;
-        String sortOrder;
-        String sortSecondary;
-        String sortSecondaryOrder;
         int currentPage;
 
         String back = request.getParameter("restore");
@@ -113,9 +113,9 @@ public class MovieListServlet extends HttpServlet {
             star = starAttr.get(session);
             pageSize = pageSizeAttr.get(session);
             offset = offsetAttr.get(session);
-            sortField = sortFieldAttr.get(session);
-            sortOrder = sortOrderAttr.get(session);
-            sortSecondary = sortSecondaryAttr.get(session);
+            sortPrimaryField = sortPrimaryFieldAttr.get(session);
+            sortPrimaryOrder = sortPrimaryOrderAttr.get(session);
+            sortSecondaryField = sortSecondaryFieldAttr.get(session);
             sortSecondaryOrder = sortSecondaryOrderAttr.get(session);
             currentPage = currPageAttr.get(session);
             prefix = prefixAttr.get(session);
@@ -129,17 +129,10 @@ public class MovieListServlet extends HttpServlet {
             pageSize = (pageSizeStr != null) ? Integer.parseInt(pageSizeStr) : 10;
             String offsetStr = request.getParameter("offset");
             offset = (offsetStr != null) ? Integer.parseInt(offsetStr) : 0;
-            sortField = request.getParameter("sortField");
-            sortOrder = request.getParameter("sortOrder");
-            sortSecondary = request.getParameter("sortSecondary");
+            sortPrimaryField = request.getParameter("sortPrimaryField");
+            sortPrimaryOrder = request.getParameter("sortPrimaryOrder");
+            sortSecondaryField = request.getParameter("sortSecondaryField");
             sortSecondaryOrder = request.getParameter("sortSecondaryOrder");
-
-            //  defaults if any sorts are missing
-            if (sortField == null || sortField.isEmpty()) sortField = "rating";
-            if (sortOrder == null || sortOrder.isEmpty()) sortOrder = "desc";
-            if (sortSecondary == null || sortSecondary.isEmpty()) sortSecondary = "title";
-            if (sortSecondaryOrder == null || sortSecondaryOrder.isEmpty()) sortSecondaryOrder = "asc";
-
             String pageStr = request.getParameter("currentPage");
             currentPage = (pageStr != null) ? Integer.parseInt(pageStr) : 1;
             prefix = request.getParameter("prefix");
@@ -152,19 +145,12 @@ public class MovieListServlet extends HttpServlet {
             pageSizeAttr.set(session, pageSize);
             offsetAttr.set(session, offset);
             currPageAttr.set(session, currentPage);
-            sortFieldAttr.set(session, sortField);
-            sortOrderAttr.set(session, sortOrder);
-            sortSecondaryAttr.set(session, sortSecondary);
+            sortPrimaryFieldAttr.set(session, sortPrimaryField);
+            sortPrimaryOrderAttr.set(session, sortPrimaryOrder);
+            sortSecondaryFieldAttr.set(session, sortSecondaryField);
             sortSecondaryOrderAttr.set(session, sortSecondaryOrder);
             prefixAttr.set(session, prefix);
         }
-
-        // ---- defaults (apply to both normal and restore=true paths) ----
-        if (sortField == null || sortField.isEmpty()) sortField = "rating";
-        if (sortOrder == null || sortOrder.isEmpty()) sortOrder = "desc";
-        if (sortSecondary == null || sortSecondary.isEmpty()) sortSecondary = "title";
-        if (sortSecondaryOrder == null || sortSecondaryOrder.isEmpty()) sortSecondaryOrder = "asc";
-
 
         // Output stream to STDOUT
         PrintWriter out = response.getWriter();
@@ -212,16 +198,17 @@ public class MovieListServlet extends HttpServlet {
             );
             if (prefix != null && !prefix.isEmpty()) topMoviesQuery.append("AND m.title LIKE ? ");
             // ---- build a safe ORDER BY from whitelisted values ----
-            String primaryCol   = "title".equalsIgnoreCase(sortField) ? "m.title" : "r.rating";
-            String primaryDir   = "asc".equalsIgnoreCase(sortOrder) ? "ASC" : "DESC";
-            String secondaryCol = "title".equalsIgnoreCase(sortSecondary) ? "m.title" : "r.rating";
-            String secondaryDir = "asc".equalsIgnoreCase(sortSecondaryOrder) ? "ASC" : "DESC";
+            String primaryCol   = "title".equals(sortPrimaryField) ? "m.title" : "r.rating";
+            String primaryDir   = "asc".equals(sortPrimaryOrder) ? "ASC" : "DESC";
+            String secondaryCol = "title".equals(sortSecondaryField) ? "m.title" : "r.rating";
+            String secondaryDir = "asc".equals(sortSecondaryOrder) ? "ASC" : "DESC";
 
             topMoviesQuery.append("ORDER BY ")
                     .append(primaryCol).append(" ").append(primaryDir)
                     .append(", ")
                     .append(secondaryCol).append(" ").append(secondaryDir)
-                    .append(" ");            topMoviesQuery.append(" LIMIT ? OFFSET ?");
+                    .append(" ")
+                    .append("LIMIT ? OFFSET ?");
 
             PreparedStatement statement = conn.prepareStatement(topMoviesQuery.toString());
             int index = 1;
@@ -270,9 +257,9 @@ public class MovieListServlet extends HttpServlet {
             jsonObject.addProperty("totalCount", totalCount);
             jsonObject.addProperty("currentPage", currentPage);
             jsonObject.addProperty("pageSize", pageSize);
-            jsonObject.addProperty("sortField", sortField);
-            jsonObject.addProperty("sortOrder", sortOrder);
-            jsonObject.addProperty("sortSecondary", sortSecondary);
+            jsonObject.addProperty("sortPrimaryField", sortPrimaryField);
+            jsonObject.addProperty("sortPrimaryOrder", sortPrimaryOrder);
+            jsonObject.addProperty("sortSecondaryField", sortSecondaryField);
             jsonObject.addProperty("sortSecondaryOrder", sortSecondaryOrder);
             jsonObject.addProperty("prefix", prefix);
             JsonArray moviesArray = new JsonArray();

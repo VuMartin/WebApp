@@ -27,78 +27,78 @@
     <link rel="manifest" href="site.webmanifest">
 </head>
 
-<body class="no-back-link">
-<div id="header-placeholder"></div>
-<div class="main-content">
-    <div class="container">
-        <div class="header-row">
-            <h3 id="h3-title" class="h3-title">Top Rated Movies</h3>
+    <body class="no-back-link">
+        <div id="header-placeholder"></div>
+        <div class="main-content">
+            <div class="container">
+                <div class="header-row">
+                    <h3 id="h3-title" class="h3-title">Top Rated Movies</h3>
 
-            <div class="sort-container">
-                <div class="sort-group">
-                    <span class="sort-label">Sorted By:</span>
-                    <span class="sort-option selected" data-field="rating">Rating</span>
-                    <span class="sort-option" data-field="title">Title</span>
+                    <div class="sort-container">
+                        <div class="sort-group">
+                            <span class="sort-label">Sorted By:</span>
+                            <span class="sort-option selected" data-field="rating">Rating</span>
+                            <span class="sort-option" data-field="title">Title</span>
+                        </div>
+                        <div class="sort-group">
+                            <span class="sort-label">Rating:</span>
+                            <span class="sort-option" data-field="rating" data-order="asc">Ascending ↑</span>
+                            <span class="sort-option selected" data-field="rating" data-order="desc">Descending ↓</span>
+                        </div>
+                        <div class="sort-group">
+                            <span class="sort-label">Title:</span>
+                            <span class="sort-option selected" data-field="title" data-order="asc">Ascending ↑</span>
+                            <span class="sort-option" data-field="title" data-order="desc">Descending ↓</span>
+                        </div>
+                        <div class="sort-group">
+                            <span class="sort-label">Movies per page:</span>
+                            <select id="page-size">
+                                <option value="10">10</option>
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
-                <div class="sort-group">
-                    <span class="sort-label">Rating:</span>
-                    <span class="sort-option" data-field="rating" data-order="asc">Ascending ↑</span>
-                    <span class="sort-option selected" data-field="rating" data-order="desc">Descending ↓</span>
-                </div>
-                <div class="sort-group">
-                    <span class="sort-label">Title:</span>
-                    <span class="sort-option selected" data-field="title" data-order="asc">Ascending ↑</span>
-                    <span class="sort-option" data-field="title" data-order="desc">Descending ↓</span>
-                </div>
-                <div class="sort-group">
-                    <span class="sort-label">Movies per page:</span>
-                    <select id="page-size">
-                        <option value="10">10</option>
-                        <option value="25">25</option>
-                        <option value="50">50</option>
-                        <option value="100">100</option>
-                    </select>
-                </div>
+
+                <table class="table table-striped">
+                    <thead>
+                    <tr>
+                        <th></th>
+                        <th>Movie Title</th>
+                        <th>Release Year</th>
+                        <th>Director</th>
+                        <th>Genres</th>
+                        <th>Stars</th>
+                        <th class="ratings-col">Rating</th>
+                    </tr>
+                    </thead>
+                    <tbody id="movie-table-body"></tbody>
+                </table>
+            </div>
+            <div class="pagination">
+                <!--            <button id="first-page">«</button>-->
+                <button id="prev-page">‹</button>
+                <span id="page-numbers">Page 1 of 1 </span>
+                <button id="next-page">›</button>
+                <!--            <button id="last-page">»</button>-->
             </div>
         </div>
+        <div id="browse-placeholder"></div>
 
-        <table class="table table-striped">
-            <thead>
-            <tr>
-                <th></th>
-                <th>Movie Title</th>
-                <th>Release Year</th>
-                <th>Director</th>
-                <th>Genres</th>
-                <th>Stars</th>
-                <th class="ratings-col">Rating</th>
-            </tr>
-            </thead>
-            <tbody id="movie-table-body"></tbody>
-        </table>
-    </div>
-    <div class="pagination">
-        <!--            <button id="first-page">«</button>-->
-        <button id="prev-page">‹</button>
-        <span id="page-numbers">Page 1 of 1 </span>
-        <button id="next-page">›</button>
-        <!--            <button id="last-page">»</button>-->
-    </div>
-</div>
-<div id="browse-placeholder"></div>
+        <!-- Load jQuery and Bootstrap JS -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <!--        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>-->
+        <!--        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>-->
 
-<!-- Load jQuery and Bootstrap JS -->
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-<!--        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>-->
-<!--        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>-->
-
-<!-- Load our own JS file -->
-<!-- The path is relative to movie.html, since these two files are in the same directory -->
-<!-- Note the url does not contain a "/" in the beginning, which means the url is relative to current path
-     otherwise the url is relative to the root path-->
-<script src="js/header.js"></script>
-<script src="js/movies.js"></script>
-<script src="js/addtoCart.js"></script>
-<script src="js/browse.js"></script>
-</body>
+        <!-- Load our own JS file -->
+        <!-- The path is relative to movie.html, since these two files are in the same directory -->
+        <!-- Note the url does not contain a "/" in the beginning, which means the url is relative to current path
+             otherwise the url is relative to the root path-->
+        <script src="js/header.js"></script>
+        <script src="js/movies.js"></script>
+        <script src="js/addtoCart.js"></script>
+        <script src="js/browse.js"></script>
+    </body>
 </html>

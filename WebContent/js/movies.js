@@ -30,6 +30,13 @@ function getParameterByName(target) {
     return decodeURIComponent(results[2].replace(/\+/g, " "));
 }
 
+let currentPage = 1;
+let pageSize = 10;
+let totalPages = 1;
+
+const pageNumber = document.getElementById("page-numbers");
+const pageSizeSelect = document.getElementById("page-size");
+
 document.querySelectorAll(".sort-group").forEach(group => {
     const options = group.querySelectorAll(".sort-option");
     options.forEach(option => {
@@ -40,37 +47,149 @@ document.querySelectorAll(".sort-group").forEach(group => {
         });
     });
 });
-
-let currentPage = 1;
-let pageSize = 10;
-let totalPages = 1;
-
-const pageNumber = document.getElementById("page-numbers");
-const pageSizeSelect = document.getElementById("page-size");
-
-function renderPageNumbers() {
-    pageNumber.textContent = `Page ${currentPage} of ${totalPages}`;
-}
-
 document.getElementById("prev-page").addEventListener("click", () => {
     if (currentPage > 1) {
         currentPage--;
         fetchMovies();
     }
 });
-
 document.getElementById("next-page").addEventListener("click", () => {
     if (currentPage < totalPages) {
         currentPage++;
         fetchMovies();
     }
 });
-
 pageSizeSelect.addEventListener("change", () => {
     pageSize = parseInt(pageSizeSelect.value);
     currentPage = 1;
     fetchMovies();
 });
+
+function getQueryParams() {
+    return {
+        title: getParameterByName("title"),
+        year: getParameterByName("year"),
+        director: getParameterByName("director"),
+        star: getParameterByName("star"),
+        genre: getParameterByName("genre"),
+        prefix: getParameterByName("prefix")
+    };
+}
+
+function setPageHeading(params) {
+    const heading = $("#h3-title");
+    if (params.genre) {
+        heading.text(`${params.genre} Movies`);
+        document.title = `${params.genre} Movies - Fabflix`;
+    } else if (params.prefix) {
+        heading.text(`Titles starting with "${params.prefix.toUpperCase()}"`);
+        document.title = `Titles starting with ${params.prefix.toUpperCase()} - Fabflix`;
+    } else {
+        heading.text("Top Rated Movies");
+        document.title = "Top Rated Movies - Fabflix";
+    }
+}
+
+function getSorting() {
+    const groups = document.querySelectorAll(".sort-group");
+    const primarySelected = groups[0].querySelector(".sort-option.selected");
+    const ratingSelected  = groups[1].querySelector(".sort-option.selected");
+    const titleSelected   = groups[2].querySelector(".sort-option.selected");
+
+    const primaryField = primarySelected.dataset.field;
+    const ratingOrder = ratingSelected.dataset.order;
+    const titleOrder  = titleSelected.dataset.order;
+
+    let sortPrimaryField, sortPrimaryOrder, sortSecondaryField, sortSecondaryOrder;
+    if (primaryField === "rating") {
+        sortPrimaryField = "rating"; sortPrimaryOrder = ratingOrder;
+        sortSecondaryField = "title"; sortSecondaryOrder = titleOrder;
+    } else {
+        sortPrimaryField = "title"; sortPrimaryOrder = titleOrder;
+        sortSecondaryField = "rating"; sortSecondaryOrder = ratingOrder;
+    }
+
+    return { sortPrimaryField, sortPrimaryOrder, sortSecondaryField, sortSecondaryOrder };
+}
+
+function buildApiUrl(params, sort, back) {
+    const offset = (currentPage - 1) * pageSize;
+    const baseParams = new URLSearchParams({
+        pageSize,
+        offset,
+        sortPrimaryField: sort.sortPrimaryField,
+        sortPrimaryOrder: sort.sortPrimaryOrder,
+        sortSecondaryField: sort.sortSecondaryField,
+        sortSecondaryOrder: sort.sortSecondaryOrder,
+        currentPage
+    }).toString();
+
+    if (back === "true") return `api/topmovies?restore=true`;
+
+    const q = new URLSearchParams();
+    if (params.title) q.append("title", params.title);
+    if (params.year) q.append("year", params.year);
+    if (params.director) q.append("director", params.director);
+    if (params.genre) q.append("genre", params.genre);
+    if (params.star) q.append("star", params.star);
+    if (params.prefix) q.append("prefix", params.prefix);
+
+    const queryString = q.toString();
+    return queryString ? `api/topmovies?${queryString}&${baseParams}` : `api/topmovies?${baseParams}`;
+}
+
+function restoreSortOptions(data) {
+    const groups = document.querySelectorAll(".sort-group");
+    const primaryGroup = groups[0];
+    const ratingGroup  = groups[1];
+    const titleGroup   = groups[2];
+
+    const restoredPrimaryField = data.sortPrimaryField;
+    const restoredPrimaryOrder = data.sortPrimaryOrder;
+    const restoredSec   = data.sortSecondaryField;
+    const restoredSecOrder= data.sortSecondaryOrder;
+
+    // Clear all selections
+    document.querySelectorAll(".sort-option").forEach(o => o.classList.remove("selected"));
+
+    // Primary field
+    primaryGroup.querySelectorAll(".sort-option").forEach(o => {
+        if (o.dataset.field === restoredPrimaryField) o.classList.add("selected");
+    });
+
+    // Rating order
+    ratingGroup.querySelectorAll(".sort-option").forEach(o => {
+        const order = restoredPrimaryField === "rating" ? restoredPrimaryOrder : restoredSecOrder;
+        if (o.dataset.order === order) o.classList.add("selected");
+    });
+
+    // Title order
+    titleGroup.querySelectorAll(".sort-option").forEach(o => {
+        const order = restoredPrimaryField === "title" ? restoredPrimaryOrder : restoredSecOrder;
+        if (o.dataset.order === order) o.classList.add("selected");
+    });
+}
+
+function updatePagination(data) {
+    const serverTotal = Number(data.totalCount);
+    totalPages = Math.max(1, Math.ceil(serverTotal / pageSize));
+
+    const currOffset = (currentPage - 1) * pageSize;
+    if (currOffset > Math.max(0, serverTotal - 1) && totalPages > 0) {
+        currentPage = totalPages;
+        fetchMovies(); // retry with valid page
+    }
+}
+
+function updateCartCountFromServer() {
+    $.getJSON("api/cart", (cartData) => {
+        updateCartCount(cartData);
+    });
+}
+
+function renderPageNumbers() {
+    pageNumber.textContent = `Page ${currentPage} of ${totalPages}`;
+}
 
 function handleResult(resultData) {
     // Find the empty table body by id "movie_table_body"
@@ -125,84 +244,12 @@ function handleResult(resultData) {
     }
 }
 
-/**
- * Once this .js is loaded, following scripts will be executed by the browser\
- */
-
-// Makes the HTTP GET request and registers on success callback function handleResult
-
 function fetchMovies() {
-    let title = getParameterByName("title");
-    let year = getParameterByName("year");
-    let director = getParameterByName("director");
-    let star = getParameterByName("star");
-    let genre = getParameterByName("genre");
+    const params = getQueryParams();
     let back = getParameterByName("restore");
-    let prefix = getParameterByName("prefix");
-
-    // Page heading & tab title for alphanumeric browsing
-    const heading = $("#h3-title");
-    if (genre && genre.trim() !== "") {
-        heading.text(`${genre} Movies`);
-        document.title = `${genre} Movies - Fabflix`;
-    } else if (prefix && prefix.trim() !== "") {
-        heading.text(`Titles starting with “${prefix.toUpperCase()}”`);
-        document.title = `Titles starting with ${prefix.toUpperCase()} - Fabflix`;
-    } else {
-        heading.text("Top Rated Movies");
-        document.title = "Top Rated Movies - Fabflix";
-    }
-
-    // --- figure out sorting from the 3 groups ---
-    const groups = document.querySelectorAll(".sort-group");
-    const primaryGroup = groups[0];
-    const ratingGroup  = groups[1];
-    const titleGroup   = groups[2];
-
-    const primarySelected = primaryGroup.querySelector(".sort-option.selected");            // data-field = "rating" | "title"
-    const ratingSelected  = ratingGroup.querySelector(".sort-option.selected");             // data-order = "asc" | "desc"
-    const titleSelected   = titleGroup.querySelector(".sort-option.selected");              // data-order = "asc" | "desc"
-
-    const primaryField = (primarySelected && primarySelected.dataset.field) || "rating";
-    const ratingOrder  = (ratingSelected  && ratingSelected.dataset.order)  || "desc";
-    const titleOrder   = (titleSelected   && titleSelected.dataset.order)   || "asc";
-
-    // Build primary/secondary from the above
-    let sortField, sortOrder, sortSecondary, sortSecondaryOrder;
-    if (primaryField === "rating") {
-        sortField = "rating";             sortOrder = ratingOrder;
-        sortSecondary = "title";          sortSecondaryOrder = titleOrder;
-    } else {
-        sortField = "title";              sortOrder = titleOrder;
-        sortSecondary = "rating";         sortSecondaryOrder = ratingOrder;
-    }
-
-    const offset = (currentPage - 1) * pageSize;
-
-    // --- construct URL with ALL sort params ---
-    let url;
-    const baseParams =
-        `pageSize=${pageSize}&offset=${offset}` +
-        `&sortField=${encodeURIComponent(sortField)}` +
-        `&sortOrder=${encodeURIComponent(sortOrder)}` +
-        `&sortSecondary=${encodeURIComponent(sortSecondary)}` +
-        `&sortSecondaryOrder=${encodeURIComponent(sortSecondaryOrder)}` +
-        `&currentPage=${currentPage}`;
-
-    if (back === "true") {
-        url = `api/topmovies?restore=true`;
-    } else if (!title && !year && !director && !star && !genre && !prefix) {
-        url = `api/topmovies?${baseParams}`;
-    } else {
-        const q = new URLSearchParams();
-        if (title)    q.append("title",    title);
-        if (year)     q.append("year",     year);
-        if (director) q.append("director", director);
-        if (genre)    q.append("genre",    genre);
-        if (star)     q.append("star",     star);
-        if (prefix)   q.append("prefix",   prefix);
-        url = `api/topmovies?${q.toString()}&${baseParams}`;
-    }
+    setPageHeading(params);
+    const sort = getSorting();
+    const url = buildApiUrl(params, sort, back);
 
     jQuery.ajax({
         url: url,
@@ -213,45 +260,12 @@ function fetchMovies() {
             pageSize = resultData.pageSize;
             pageSizeSelect.value = pageSize;
 
-            const restoredField = resultData.sortField;
-            const restoredOrder = resultData.sortOrder;
-            const restoredSec    = resultData.sortSecondary;
-            const restoredSecOrd = resultData.sortSecondaryOrder;
+            restoreSortOptions(resultData);
+            updatePagination(resultData);
+            handleResult(resultData);
+            updateCartCountFromServer();
+            renderPageNumbers();
 
-            // First clear all selections
-            document.querySelectorAll(".sort-option").forEach(o => o.classList.remove("selected"));
-
-            // Re-select primary field
-            primaryGroup.querySelectorAll(".sort-option").forEach(o => {
-                if (o.dataset.field === (restoredField || sortField)) o.classList.add("selected");
-            });
-            // Re-select rating order
-            ratingGroup.querySelectorAll(".sort-option").forEach(o => {
-                if (o.dataset.order === ((restoredField === "rating" ? restoredOrder : restoredSecOrd) || ratingOrder)) {
-                    o.classList.add("selected");
-                }
-            });
-            // Re-select title order
-            titleGroup.querySelectorAll(".sort-option").forEach(o => {
-                if (o.dataset.order === ((restoredField === "title" ? restoredOrder : restoredSecOrd) || titleOrder)) {
-                    o.classList.add("selected");
-                }
-            });
-            // total pages + render
-            const serverTotal = Number(resultData.totalCount) || 0;
-            totalPages = Math.max(1, Math.ceil(serverTotal / pageSize));
-            const currOffset = (currentPage - 1) * pageSize;
-            if (currOffset > Math.max(0, serverTotal - 1) && totalPages > 0) {
-                currentPage = totalPages;
-                return fetchMovies();
-            }
-            $.getJSON("api/cart", (cartData) => {
-                handleResult(resultData);
-                updateCartCount(cartData);
-                renderPageNumbers();
-            });
-
-            // keep the URL nice when using restore=true
             if (back === "true") {
                 const newUrl = `?${baseParams}`;
                 history.replaceState(null, "", newUrl);
