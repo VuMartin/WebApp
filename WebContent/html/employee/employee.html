@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta content="width=device-width, initial-scale=1, shrink-to-fit=no"
+              name="viewport">
+
+        <!-- Bootstrap CSS -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+              integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+        <link rel="stylesheet" href="../../css/styles.css">
+
+        <title>Fabflix</title>
+
+        <!-- favicon links -->
+        <link rel="apple-touch-icon" sizes="180x180" href="../../apple-touch-icon.png">
+        <link rel="icon" type="image/png" sizes="32x32" href="../../favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="../../favicon-16x16.png">
+        <link rel="manifest" href="../../site.webmanifest">
+
+    </head>
+
+    <body>
+        <header class="bg-dark text-white p-3 mb-4">
+            <h1>FABFLIX Dashboard</h1>
+            <p>Logged in as: <span id="employeeName"></span></p>
+        </header>
+
+        <div class="container mt-4">
+
+            <!-- Top row: Add Star + Add Movie side by side -->
+            <div class="d-flex justify-content-between gap-3 mb-4">
+                <!-- Add Star -->
+                <div class="card flex-fill">
+                    <div class="card-header">Add New Star</div>
+                    <div class="card-body">
+                        <form id="add-star-form">
+                            <input type="text" id="star-name" class="form-control mb-2" placeholder="Star Name" required>
+                            <input type="number" id="star-birth" class="form-control mb-2" placeholder="Birth Year (optional)">
+                            <button type="submit" class="btn btn-primary w-100">Add Star</button>
+                        </form>
+                        <div id="star-msg" class="mt-2 text-danger"></div>
+                    </div>
+                </div>
+
+                <!-- Add Movie -->
+                <div class="card flex-fill">
+                    <div class="card-header">Add New Movie</div>
+                    <div class="card-body">
+                        <form id="add-movie-form">
+                            <input type="text" id="movie-title" class="form-control mb-2" placeholder="Title" required>
+                            <input type="number" id="movie-year" class="form-control mb-2" placeholder="Year" required>
+                            <input type="text" id="movie-director" class="form-control mb-2" placeholder="Director" required>
+                            <input type="text" id="movie-star" class="form-control mb-2" placeholder="Star" required>
+                            <input type="text" id="movie-genre" class="form-control mb-2" placeholder="Genre" required>
+                            <button type="submit" class="btn btn-primary w-100">Add Movie</button>
+                        </form>
+                        <div id="movie-msg" class="mt-2 text-danger"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Metadata section: full width -->
+            <div class="card">
+                <div class="card-header">Database Metadata</div>
+                <div class="card-body">
+                    <button id="view-metadata" class="btn btn-secondary mb-3">Load Metadata</button>
+                    <div id="metadata-table"></div>
+                </div>
+            </div>
+
+        </div>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <!-- Load jQuery and Bootstrap JS -->
+        <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script> -->
+        <!--        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>-->
+        <!--        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>-->
+
+        <script src="../../js/header.js"></script>
+<!--        <script src="../../js/customer/main.js"></script>-->
+    </body>
+
+</html>

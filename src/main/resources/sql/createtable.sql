@@ -65,3 +65,9 @@ CREATE TABLE ratings (
     vote_count INT NOT NULL,
     FOREIGN KEY (movie_id) REFERENCES movies(id)
 );
+
+CREATE TABLE employees (
+    email VARCHAR(50) PRIMARY KEY,
+    password VARCHAR(128) NOT NULL,
+    fullname VARCHAR(100)
+);

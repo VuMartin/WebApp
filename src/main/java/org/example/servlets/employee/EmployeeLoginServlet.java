@@ -1,4 +1,4 @@
-package main.java.org.example.servlets;
+package main.java.org.example.servlets.employee;
 
 import com.google.gson.JsonObject;
 import jakarta.servlet.ServletConfig;
@@ -21,8 +21,8 @@ import org.jasypt.util.password.StrongPasswordEncryptor;
 // http://localhost:8080/2025_fall_cs_122b_marjoe_war/api/login
 // http://localhost:8080/2025_fall_cs_122b_marjoe_war/login.html
 // Declaring a WebServlet called LoginServlet, which maps to url "/api/login"
-@WebServlet(name = "LoginServlet", urlPatterns = "/api/login")
-public class LoginServlet extends HttpServlet {
+@WebServlet(name = "_dashboard", urlPatterns = "/api/_dashboard")
+public class EmployeeLoginServlet extends HttpServlet {
 
     // Create a dataSource which registered in web.xml
     private DataSource dataSource;
@@ -62,9 +62,9 @@ public class LoginServlet extends HttpServlet {
             return;
         }
 
-        final String query = "SELECT id, first_name, credit_card_id, password " +
-                             "FROM customers " +
-                             "WHERE email = ? LIMIT 1";
+        final String query = "SELECT * " +
+                "FROM employees " +
+                "WHERE email = ? LIMIT 1";
 
         try (Connection dbCon = dataSource.getConnection();
              PreparedStatement stmt = dbCon.prepareStatement(query)) {
@@ -83,11 +83,9 @@ public class LoginServlet extends HttpServlet {
                 // Login successful → create session
                 HttpSession session = request.getSession();
                 session.setAttribute("email", email);
-                session.setAttribute("customerID", rs.getInt("id"));
-                session.setAttribute("creditCardID", rs.getString("credit_card_id"));
-                session.setAttribute("firstName", rs.getString("first_name"));
+                session.setAttribute("fullname", rs.getString("fullname"));
                 jsonObject.addProperty("status", "success");
-                jsonObject.addProperty("username", rs.getString("first_name"));
+                jsonObject.addProperty("username", rs.getString("fullname"));
                 writeResponse(out, response, jsonObject);
             }
         } catch (SQLException e) {

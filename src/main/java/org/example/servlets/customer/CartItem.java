@@ -1,4 +1,4 @@
-package main.java.org.example.servlets;
+package main.java.org.example.servlets.customer;
 
 public class CartItem {
     private final String movieID;
