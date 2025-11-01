@@ -501,3 +501,39 @@ body {
 #expiration {
     max-width: 120px;
 }
+
+/* employee page */
+
+#employeeHeader-placeholder {
+    margin-bottom: -50px;
+}
+
+#employee-header {
+    background-color: #212529; /* dark background */
+    color: white;              /* white text */
+    padding: 1rem;             /* spacing inside */
+    margin-bottom: 1.5rem;     /* space below header */
+    text-align: center;        /* center text */
+    font-size: 1.2rem;
+    font-weight: 500;
+}
+
+.employee-add-section {
+    display: flex;
+    margin-bottom: 40px;
+    margin-top: 30px;
+}
+
+.employee-add-section .card {
+    flex: 0 0 45%; /* each takes up about half the width */
+}
+
+.add-title {
+    font-weight: 300;
+    font-size: 25px;
+    text-align: center;
+}
+
+.metadata-card {
+    margin-bottom: 30px;
+}

@@ -20,7 +20,7 @@ function handleResult(resultData) {
  */
 
 // Capture the login form submission
-jQuery("#login-form").submit(function(event) {
+jQuery("#employee-login-form").submit(function(event) {
     event.preventDefault(); // prevent normal form submit
 
     let email = jQuery("#email").val();

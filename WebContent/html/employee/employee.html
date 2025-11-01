@@ -23,18 +23,11 @@
     </head>
 
     <body>
-        <header class="bg-dark text-white p-3 mb-4">
-            <h1>FABFLIX Dashboard</h1>
-            <p>Logged in as: <span id="employeeName"></span></p>
-        </header>
-
+        <div id="employeeHeader-placeholder"></div>
         <div class="container mt-4">
-
-            <!-- Top row: Add Star + Add Movie side by side -->
-            <div class="d-flex justify-content-between gap-3 mb-4">
-                <!-- Add Star -->
+            <div class="employee-add-section">
                 <div class="card flex-fill">
-                    <div class="card-header">Add New Star</div>
+                    <p class="add-title">Add New Star</p>
                     <div class="card-body">
                         <form id="add-star-form">
                             <input type="text" id="star-name" class="form-control mb-2" placeholder="Star Name" required>
@@ -44,10 +37,8 @@
                         <div id="star-msg" class="mt-2 text-danger"></div>
                     </div>
                 </div>
-
-                <!-- Add Movie -->
                 <div class="card flex-fill">
-                    <div class="card-header">Add New Movie</div>
+                    <p class="add-title">Add New Movie</p>
                     <div class="card-body">
                         <form id="add-movie-form">
                             <input type="text" id="movie-title" class="form-control mb-2" placeholder="Title" required>
@@ -63,10 +54,10 @@
             </div>
 
             <!-- Metadata section: full width -->
-            <div class="card">
-                <div class="card-header">Database Metadata</div>
+            <div class="card metadata-card">
+                <p class="add-title">Database Metadata</p>
                 <div class="card-body">
-                    <button id="view-metadata" class="btn btn-secondary mb-3">Load Metadata</button>
+                    Load Metadata
                     <div id="metadata-table"></div>
                 </div>
             </div>
@@ -78,8 +69,8 @@
         <!--        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>-->
         <!--        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>-->
 
-        <script src="../../js/header.js"></script>
-<!--        <script src="../../js/customer/main.js"></script>-->
+        <script src="../../html/employee/employeeHeader.html"></script>
+        <script src="../../js/employee/employeeHeader.js"></script>
     </body>
 
 </html>
