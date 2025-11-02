@@ -29,7 +29,7 @@ $("#cart-items").on("change", ".shop-quantity-input", function() {
     let movieID = row.data("movie-id");
     let newQty = parseInt($(this).val());
 
-    $.ajax("api/cart", {
+    $.ajax("/2025_fall_cs_122b_marjoe_war/api/cart", {
         method: "POST",
         data: { movieID, quantity: newQty, action: "update" },
         success: (resultData) => {
@@ -43,7 +43,7 @@ $("#cart-items").on("click", ".remove-btn", function() {
     let row = $(this).closest("tr");
     let movieID = row.data("movie-id");
 
-    $.ajax("api/cart", {
+    $.ajax("/2025_fall_cs_122b_marjoe_war/api/cart", {
         method: "POST",
         data: { movieID, action: "remove" },
         success: (resultData) => {
@@ -54,7 +54,7 @@ $("#cart-items").on("click", ".remove-btn", function() {
 });
 
 function loadCart() {
-    $.ajax("api/cart", {
+    $.ajax("/2025_fall_cs_122b_marjoe_war/api/cart", {
         method: "GET",
         success: (resultData) => {
             updateCartCount(resultData);

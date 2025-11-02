@@ -1,4 +1,4 @@
-package main.java.org.example.servlets;
+package main.java.org.example.servlets.customer;
 
 import com.google.gson.JsonObject;
 import jakarta.servlet.ServletConfig;

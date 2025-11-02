@@ -1,14 +1,14 @@
 function emptyCart() {
     $.ajax({
         type: "POST",
-        url: "api/cart",
+        url: "/2025_fall_cs_122b_marjoe_war/api/cart",
         data: { action: "empty" }
     });
 }
 
 $.ajax({
     type: "GET",
-    url: "api/cart",
+    url: "/2025_fall_cs_122b_marjoe_war/api/cart",
     dataType: "json",
     success: function(resultData) {
         // Render the confirmation

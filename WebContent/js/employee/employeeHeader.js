@@ -1,10 +1,10 @@
-fetch("employeeHeader.html")
+fetch("/2025_fall_cs_122b_marjoe_war/html/employee/employeeHeader.html")
     .then(res => res.text())
     .then(data => {
         document.getElementById("employeeHeader-placeholder").innerHTML = data;
 
         // 🔹 Hide dropdown on employee login page
-        if (window.location.pathname.includes("employeeLogin.html")) {
+        if (window.location.pathname.includes("/2025_fall_cs_122b_marjoe_war/html/employee/employeeLogin.html")) {
             document.getElementById("user-dropdown").style.display = "none";
             return; // stop running the rest (no username or logout needed)
         }
@@ -25,7 +25,7 @@ fetch("employeeHeader.html")
                 method: "POST",
                 url: "api/logout",
                 success: () => {
-                    window.location.href = "employeeLogin.html";
+                    window.location.href = "/2025_fall_cs_122b_marjoe_war/html/employee/employeeLogin.html";
                 },
                 error: () => {
                     alert("Logout failed. Try again.");

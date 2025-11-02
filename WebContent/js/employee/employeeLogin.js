@@ -8,7 +8,7 @@ function handleResult(resultData) {
         // Store first name in sessionStorage
         sessionStorage.setItem("fullname", resultData.username);
         // Redirect to main page
-        window.location.href = "employee.html";
+        window.location.href = "/2025_fall_cs_122b_marjoe_war/html/employee/employee.html";
     } else {
         // Login failed → show error on the same page
         jQuery("#error-msg").text(resultData.message);
@@ -34,7 +34,7 @@ jQuery("#employee-login-form").submit(function(event) {
     jQuery.ajax({
         dataType: "json",
         method: "POST",
-        url: "api/_dashboard",
+        url: "/2025_fall_cs_122b_marjoe_war/api/_dashboard",
         data: { email: email, password: password, "g-recaptcha-response": gRecaptchaResponse },
         success: (resultData) => {
             grecaptcha.reset();

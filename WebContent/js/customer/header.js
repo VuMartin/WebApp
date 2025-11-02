@@ -2,7 +2,7 @@ function updateCartCount(cartData) {
     document.getElementById("cart-count").textContent = cartData.totalCount || 0;
 }
 
-fetch("header.html")
+fetch("/2025_fall_cs_122b_marjoe_war/html/customer/header.html")
     .then(res => res.text())
     .then(data => {
         document.getElementById("header-placeholder").innerHTML = data
@@ -19,9 +19,9 @@ fetch("header.html")
         logoutButton.addEventListener('click', () => {
             $.ajax({
                 method: "POST",
-                url: "api/logout",
+                url: "/2025_fall_cs_122b_marjoe_war/api/logout",
                 success: () => {
-                    window.location.href = "login.html"; // redirect after logout
+                    window.location.href = "/2025_fall_cs_122b_marjoe_war/html/customer/login.html"; // redirect after logout
                 },
                 error: () => {
                     alert("Logout failed. Try again.");
@@ -44,7 +44,7 @@ fetch("header.html")
             let director = jQuery("#search-director").val();
             let star = jQuery("#search-star").val();
 
-            let url = "movies.html?";
+            let url = "/2025_fall_cs_122b_marjoe_war/html/customer/movies.html?";
             if (title) url += "title=" + encodeURIComponent(title) + "&";
             if (year) url += "year=" + encodeURIComponent(year) + "&";
             if (director) url += "director=" + encodeURIComponent(director) + "&";

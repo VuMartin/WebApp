@@ -124,7 +124,7 @@ function buildApiUrl(params, sort, back) {
         currentPage
     }).toString();
 
-    if (back === "true") return `api/topmovies?restore=true`;
+    if (back === "true") return `/2025_fall_cs_122b_marjoe_war/api/topmovies?restore=true`;
 
     const q = new URLSearchParams();
     if (params.title) q.append("title", params.title);
@@ -135,7 +135,7 @@ function buildApiUrl(params, sort, back) {
     if (params.prefix) q.append("prefix", params.prefix);
 
     const queryString = q.toString();
-    return queryString ? `api/topmovies?${queryString}&${baseParams}` : `api/topmovies?${baseParams}`;
+    return queryString ? `/2025_fall_cs_122b_marjoe_war/api/topmovies?${queryString}&${baseParams}` : `/2025_fall_cs_122b_marjoe_war/api/topmovies?${baseParams}`;
 }
 
 function restoreSortOptions(data) {
@@ -182,7 +182,7 @@ function updatePagination(data) {
 }
 
 function updateCartCountFromServer() {
-    $.getJSON("api/cart", (cartData) => {
+    $.getJSON("/2025_fall_cs_122b_marjoe_war/api/cart", (cartData) => {
         updateCartCount(cartData);
     });
 }
@@ -210,7 +210,7 @@ function handleResult(resultData) {
                     <div class="cart-message" id="message-${movie.movieID}"></div>
                 </td>`;
         const startIndex = (currentPage - 1) * pageSize;
-        rowHTML += "<td>" + (startIndex + i + 1) + ". <a href='movie.html?id=" +
+        rowHTML += "<td>" + (startIndex + i + 1) + ". <a href='/2025_fall_cs_122b_marjoe_war/html/customer/movie.html?id=" +
             encodeURIComponent(movie["movieID"]) + "'>" +
             movie["movieTitle"] + "</a></td>";
         rowHTML += "<td>" + movie["movieYear"] + "</td>";
@@ -220,7 +220,7 @@ function handleResult(resultData) {
         let genreLinks = "";
         for (let j = 0; j < genresData.length; j++) {
             let genre = genresData[j];
-            genreLinks += "<a href='movies.html?genre=" + encodeURIComponent(genre) + "'>" + genre + "</a>";
+            genreLinks += "<a href='/2025_fall_cs_122b_marjoe_war/html/customer/movies.html?genre=" + encodeURIComponent(genre) + "'>" + genre + "</a>";
             if (j + 1 < genresData.length) genreLinks += ", ";
         }
         rowHTML += "<td>" + genreLinks + "</td>";
@@ -231,7 +231,7 @@ function handleResult(resultData) {
         for (let j = 0; j < starsData.length; j += 2) {
             let name = starsData[j];
             let id = starsData[j + 1];
-            starLinks += "<a href='star.html?id=" + encodeURIComponent(id) + "'>" + name + "</a>";
+            starLinks += "<a href='/2025_fall_cs_122b_marjoe_war/html/customer/star.html?id=" + encodeURIComponent(id) + "'>" + name + "</a>";
             if (j + 2 < starsData.length) starLinks += ", ";
         }
         rowHTML += "<td>" + starLinks + "</td>";

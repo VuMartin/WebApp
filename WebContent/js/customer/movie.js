@@ -50,7 +50,7 @@ function handleResult(resultData) {
     const genresEl = $("#movieGenres").empty();
     (resultData.movieGenres || []).forEach((g, i) => {
         $("<a>").text(g.name)
-            .attr("href", "movies.html?genre=" + encodeURIComponent(g.name))
+            .attr("href", "/2025_fall_cs_122b_marjoe_war/html/customer/movies.html?genre=" + encodeURIComponent(g.name))
             .appendTo(genresEl);
         if (i < resultData.movieGenres.length - 1) genresEl.append(", ");
     });
@@ -59,7 +59,7 @@ function handleResult(resultData) {
     const starsEl = $("#movieStars").empty();
     (resultData.movieStars || []).forEach((s, i) => {
         $("<a>").text(s.name)
-            .attr("href", "star.html?id=" + encodeURIComponent(s.id))
+            .attr("href", "/2025_fall_cs_122b_marjoe_war/html/customer/star.html?id=" + encodeURIComponent(s.id))
             .appendTo(starsEl);
         if (i < resultData.movieStars.length - 1) starsEl.append(", ");
     });
@@ -91,9 +91,9 @@ let movieID = getParameterByName('id');
 jQuery.ajax({
     dataType: "json",  // Setting return data type
     method: "GET",// Setting request method
-    url: "api/movie?id=" + movieID, // Setting request url, which is mapped by StarsServlet in Stars.java
+    url: "/2025_fall_cs_122b_marjoe_war/api/movie?id=" + movieID, // Setting request url, which is mapped by StarsServlet in Stars.java
     success: (resultData) => {
-        $.getJSON("api/cart", (cartData) => {
+        $.getJSON("/2025_fall_cs_122b_marjoe_war/api/cart", (cartData) => {
             handleResult(resultData);
             updateCartCount(cartData);
         });

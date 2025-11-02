@@ -54,7 +54,7 @@ function handleResult(resultData) {
     movies.forEach((m, i) => {
         $("<a>")
             .text(m.title)
-            .attr("href", "movie.html?id=" + encodeURIComponent(m.id))
+            .attr("href", "/2025_fall_cs_122b_marjoe_war/html/customer/movie.html?id=" + encodeURIComponent(m.id))
             .appendTo(moviesContainer);
         if (i < movies.length - 1) moviesContainer.append(", ");
     });
@@ -71,10 +71,10 @@ let starID = getParameterByName('id');
 jQuery.ajax({
     dataType: "json",
     method: "GET",
-    url: "api/single-star?id=" + starID,
+    url: "/2025_fall_cs_122b_marjoe_war/api/single-star?id=" + starID,
     success: (resultData) => {
         handleResult(resultData);
-        $.getJSON("api/cart", (cartData) => {
+        $.getJSON("/2025_fall_cs_122b_marjoe_war/api/cart", (cartData) => {
             updateCartCount(cartData);
         });
     }
