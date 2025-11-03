@@ -8,7 +8,7 @@ function handleResult(resultData) {
         // Store first name in sessionStorage
         sessionStorage.setItem("fullname", resultData.username);
         // Redirect to main page
-        window.location.href = "/2025_fall_cs_122b_marjoe_war/html/employee/employee.html";
+        window.location.href = "/2025_fall_cs_122b_marjoe_war/html/employee/dashboard.html";
     } else {
         // Login failed → show error on the same page
         jQuery("#error-msg").text(resultData.message);

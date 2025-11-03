@@ -62,11 +62,10 @@ public class AddMovieServlet extends HttpServlet {
                             jsonResponse.addProperty("message", message);
                             if (message.contains("already exists")) {
                                 jsonResponse.addProperty("status", "error");
-                                response.setStatus(400);
                             } else {
                                 jsonResponse.addProperty("status", "success");
-                                response.setStatus(200);
                             }
+                            response.setStatus(200);
                         }
                     }
                 }

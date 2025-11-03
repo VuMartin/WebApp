@@ -16,10 +16,10 @@ jQuery("#add-movie-form").submit(function(event) {
         success: (resultData) => {
             jQuery("#movie-msg").text(resultData.message);
             if (resultData.status === "success") {
-                jQuery("#movie-msg").css("color", "green");
+                jQuery("#movie-msg").removeClass("text-danger").addClass("text-success");
                 jQuery("#add-movie-form")[0].reset();
             } else {
-                jQuery("#movie-msg").css("color", "red");
+                jQuery("#movie-msg").removeClass("text-success").addClass("text-danger");
             }
         },
         error: () => {
