@@ -537,3 +537,26 @@ body {
 .metadata-card {
     margin-bottom: 30px;
 }
+
+/* Grid layout for employee dashbaord database metadata */
+.meta-grid{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+    align-items: start;
+}
+
+/* Make cards fit their grid cell */
+.meta-grid .card{
+    display: block;
+    margin: 0 !important;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    position: static;
+}
+
+.metadata-card { max-width: none; }
+
+#metadata-table { width: 100%; }

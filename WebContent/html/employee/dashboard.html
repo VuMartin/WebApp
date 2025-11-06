@@ -31,8 +31,14 @@
                     <p class="add-title">Add New Star</p>
                     <div class="card-body">
                         <form id="add-star-form">
-                            <input type="text" id="star-name" class="form-control mb-2" placeholder="Star Name" required>
-                            <input type="number" id="star-birth" class="form-control mb-2" placeholder="Birth Year (optional)">
+                            <label for="star-name" class="sr-only">Star Name</label>
+                            <input type="text" id="star-name" class="form-control mb-2"
+                                   placeholder="Star Name" required aria-label="Star Name">
+
+                            <label for="star-birth" class="sr-only">Birth Year</label>
+                            <input type="number" id="star-birth" class="form-control mb-2"
+                                   placeholder="Birth Year (optional)" aria-label="Birth Year">
+
                             <button type="submit" class="btn btn-primary w-100">Add Star</button>
                         </form>
                         <div id="star-msg" class="mt-2 text-danger"></div>
@@ -42,11 +48,26 @@
                     <p class="add-title">Add New Movie</p>
                     <div class="card-body">
                         <form id="add-movie-form">
-                            <input type="text" id="movie-title" class="form-control mb-2" placeholder="Title" required>
-                            <input type="number" id="movie-year" class="form-control mb-2" placeholder="Year" required>
-                            <input type="text" id="movie-director" class="form-control mb-2" placeholder="Director" required>
-                            <input type="text" id="movie-star" class="form-control mb-2" placeholder="Star" required>
-                            <input type="text" id="movie-genre" class="form-control mb-2" placeholder="Genre" required>
+                            <label for="movie-title" class="sr-only">Title</label>
+                            <input type="text" id="movie-title" class="form-control mb-2"
+                                   placeholder="Title" required aria-label="Title">
+
+                            <label for="movie-year" class="sr-only">Year</label>
+                            <input type="number" id="movie-year" class="form-control mb-2"
+                                   placeholder="Year" required aria-label="Year">
+
+                            <label for="movie-director" class="sr-only">Director</label>
+                            <input type="text" id="movie-director" class="form-control mb-2"
+                                   placeholder="Director" required aria-label="Director">
+
+                            <label for="movie-star" class="sr-only">Star</label>
+                            <input type="text" id="movie-star" class="form-control mb-2"
+                                   placeholder="Star" required aria-label="Star">
+
+                            <label for="movie-genre" class="sr-only">Genre</label>
+                            <input type="text" id="movie-genre" class="form-control mb-2"
+                                   placeholder="Genre" required aria-label="Genre">
+
                             <button type="submit" class="btn btn-primary w-100">Add Movie</button>
                         </form>
                         <div id="movie-msg" class="mt-2 text-danger"></div>
@@ -54,21 +75,18 @@
                 </div>
             </div>
 
-            <!-- Metadata section: full width -->
-            <div class="card metadata-card">
-                <p class="add-title">Database Metadata</p>
-                <div class="card-body">
-                    Load Metadata
-                    <div id="metadata-table"></div>
+            <div class="container-fluid px-3">
+                <div class="card metadata-card w-100">
+                    <p class="add-title">Database Metadata</p>
+                    <div class="card-body">
+                        <div id="metadata-table"></div>
+                    </div>
                 </div>
             </div>
 
         </div>
+
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-        <!-- Load jQuery and Bootstrap JS -->
-        <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script> -->
-        <!--        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>-->
-        <!--        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>-->
 
         <script src="js/employee/employeeHeader.js"></script>
         <script src="js/employee/addMovie.js"></script>
