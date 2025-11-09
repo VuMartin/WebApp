@@ -14,7 +14,7 @@ import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.*;
-import main.java.org.example.utils.RecaptchaVerify;
+import main.java.org.example.utils.recaptcha.RecaptchaVerify;
 import org.jasypt.util.password.StrongPasswordEncryptor;
 
 

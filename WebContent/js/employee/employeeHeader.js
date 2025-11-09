@@ -23,7 +23,7 @@ fetch("/2025_fall_cs_122b_marjoe_war/html/employee/employeeHeader.html")
         logoutButton.addEventListener('click', () => {
             $.ajax({
                 method: "POST",
-                url: "api/logout",
+                url: "/2025_fall_cs_122b_marjoe_war/api/logout",
                 success: () => {
                     window.location.href = "/2025_fall_cs_122b_marjoe_war/html/employee/employeeLogin.html";
                 },

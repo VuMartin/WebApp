@@ -21,7 +21,7 @@
     <!-- Route for employee dashboard -->
     <servlet>
         <servlet-name>DashboardRedirect</servlet-name>
-        <jsp-file>/html/employee/dashboard.html</jsp-file>
+        <jsp-file>/html/employee/employeeLogin.html</jsp-file>
     </servlet>
 
     <servlet-mapping>
