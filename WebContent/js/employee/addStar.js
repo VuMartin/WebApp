@@ -10,12 +10,17 @@ jQuery("#add-star-form").submit(function (e) {
 
         data: { name, birthYear },
         success: (res) => {
-            jQuery("#star-msg").text(res.message);
             if (res.status === "success") {
-                jQuery("#star-msg").removeClass("text-danger").addClass("text-success");
+                jQuery("#star-msg")
+                    .text(name + " added successfully. ID: " + res.id)
+                    .removeClass("text-danger")
+                    .addClass("text-success");
                 this.reset();
             } else {
-                jQuery("#star-msg").removeClass("text-success").addClass("text-danger");
+                jQuery("#star-msg")
+                    .text(res.message)
+                    .removeClass("text-success")
+                    .addClass("text-danger");
             }
         },
         error: () => jQuery("#star-msg").text("Server error. Try again later."),

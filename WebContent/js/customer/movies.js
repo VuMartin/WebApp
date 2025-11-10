@@ -235,7 +235,7 @@ function handleResult(resultData) {
             if (j + 2 < starsData.length) starLinks += ", ";
         }
         rowHTML += "<td>" + starLinks + "</td>";
-        rowHTML += "<td>" + "⭐️ " + movie["movieRating"] + "</td>";
+        rowHTML += "<td>⭐️ " + (movie["movieRating"] !== "N/A" ? movie["movieRating"] + "/10" : "N/A") + "</td>";
         rowHTML += "</tr>";
 
         // Append the row created to the table body, which will refresh the page
@@ -267,7 +267,17 @@ function fetchMovies() {
             renderPageNumbers();
 
             if (back === "true") {
-                const newUrl = `?${baseParams}`;
+                const paramsFromResponse = new URLSearchParams({
+                    pageSize: resultData.pageSize,
+                    offset: resultData.offset,
+                    sortPrimaryField: resultData.sortPrimaryField,
+                    sortPrimaryOrder: resultData.sortPrimaryOrder,
+                    sortSecondaryField: resultData.sortSecondaryField,
+                    sortSecondaryOrder: resultData.sortSecondaryOrder,
+                    currentPage: resultData.currentPage
+                }).toString();
+
+                const newUrl = `?${paramsFromResponse}`;
                 history.replaceState(null, "", newUrl);
             }
         },

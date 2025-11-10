@@ -4,7 +4,7 @@ fetch("/2025_fall_cs_122b_marjoe_war/html/employee/employeeHeader.html")
         document.getElementById("employeeHeader-placeholder").innerHTML = data;
 
         // 🔹 Hide dropdown on employee login page
-        if (window.location.pathname.includes("/2025_fall_cs_122b_marjoe_war/html/employee/employeeLogin.html")) {
+        if (window.location.pathname.includes("/2025_fall_cs_122b_marjoe_war/_dashboard")) {
             document.getElementById("user-dropdown").style.display = "none";
             return; // stop running the rest (no username or logout needed)
         }

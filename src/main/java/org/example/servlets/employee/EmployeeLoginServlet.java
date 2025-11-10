@@ -2,6 +2,7 @@ package main.java.org.example.servlets.employee;
 
 import com.google.gson.JsonObject;
 import jakarta.servlet.ServletConfig;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -45,13 +46,6 @@ public class EmployeeLoginServlet extends HttpServlet {
         response.setContentType("application/json");
         PrintWriter out = response.getWriter();
         JsonObject jsonObject = new JsonObject();
-        String gRecaptchaResponse = request.getParameter("g-recaptcha-response");
-        if (!RecaptchaVerify.verify(gRecaptchaResponse)) {
-            jsonObject.addProperty("status", "error");
-            jsonObject.addProperty("message", "reCAPTCHA verification failed.");
-            writeResponse(out, response, jsonObject);
-            return;
-        }
         String email = request.getParameter("email");
         String password = request.getParameter("password");
 
@@ -97,5 +91,10 @@ public class EmployeeLoginServlet extends HttpServlet {
             out.println("<p>Unexpected error: " + e.getMessage() + "</p>");
             response.setStatus(500);
         }
+    }
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws IOException, ServletException {
+        // Forward to login HTML page
+        request.getRequestDispatcher("/html/employee/employeeLogin.html").forward(request, response);
     }
 }

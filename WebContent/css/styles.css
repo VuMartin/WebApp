@@ -538,7 +538,7 @@ body {
     margin-bottom: 30px;
 }
 
-/* Grid layout for employee dashbaord database metadata */
+/* Grid layout for employee dashboard database metadata */
 .meta-grid{
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));

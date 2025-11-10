@@ -179,7 +179,7 @@ public class MovieListServlet extends HttpServlet {
                             "       LIMIT 3) AS stars_sub) AS stars, " +  // stars is the column name
                             "r.rating " +
                             "FROM movies m " +
-                            "JOIN ratings r ON m.id = r.movie_id " +
+                            "LEFT JOIN ratings r ON m.id = r.movie_id " +
                             "WHERE 1=1 "
             );
 
@@ -274,6 +274,7 @@ public class MovieListServlet extends HttpServlet {
                 String movieGenres = rs.getString("genres");
                 String movieStars = rs.getString("stars");
                 String rating = rs.getString("rating");
+                if (rating == null) rating = "N/A";
 
                 // Create a JsonObject based on the data we retrieve from rs
                 JsonObject movieObject = new JsonObject();

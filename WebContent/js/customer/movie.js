@@ -43,7 +43,8 @@ function handleResult(resultData) {
     jQuery("#pageTitle").text(
         resultData["movieTitle"] + " (" + resultData["movieYear"] + ") - Fabflix");
     jQuery("#name").text(resultData["movieTitle"] + " (" + resultData["movieYear"] + ")");
-    jQuery("#movieRating").text(resultData["movieRating"] + "/10");
+    const rating = resultData["movieRating"];
+    jQuery("#movieRating").text(rating !== "N/A" ? rating + "/10" : "N/A");
     jQuery("#movieDirector").text(resultData["movieDirector"]);
 
     // Genres (link to browse-by-genre on movies.html later)
