@@ -216,23 +216,31 @@ function handleResult(resultData) {
         rowHTML += "<td>" + movie["movieYear"] + "</td>";
         rowHTML += "<td>" + movie["movieDirector"] + "</td>";
 
-        let genresData = movie["movieGenres"].split(", ");
         let genreLinks = "";
-        for (let j = 0; j < genresData.length; j++) {
-            let genre = genresData[j];
-            genreLinks += "<a href='/2025_fall_cs_122b_marjoe_war/html/customer/movies.html?genre=" + encodeURIComponent(genre) + "'>" + genre + "</a>";
-            if (j + 1 < genresData.length) genreLinks += ", ";
+        if (movie["movieGenres"]) {
+            let genresData = movie["movieGenres"].split(", ");
+            for (let j = 0; j < genresData.length; j++) {
+                let genre = genresData[j];
+                genreLinks += "<a href='/2025_fall_cs_122b_marjoe_war/html/customer/movies.html?genre=" + encodeURIComponent(genre) + "'>" + genre + "</a>";
+                if (j + 1 < genresData.length) genreLinks += ", ";
+            }
+        } else {
+            genreLinks = "N/A";
         }
         rowHTML += "<td>" + genreLinks + "</td>";
 
-        let starsData = movie["movieStars"].split(", ");  // ["Fred Astaire", "nm0000001", "Ginger Rogers", "nm0000002"]
         let starLinks = "";
-        console.log(starsData);
-        for (let j = 0; j < starsData.length; j += 2) {
-            let name = starsData[j];
-            let id = starsData[j + 1];
-            starLinks += "<a href='/2025_fall_cs_122b_marjoe_war/html/customer/star.html?id=" + encodeURIComponent(id) + "'>" + name + "</a>";
-            if (j + 2 < starsData.length) starLinks += ", ";
+        if (movie["movieStars"]) {
+            let starsData = movie["movieStars"].split(", ");  // ["Fred Astaire", "nm0000001", "Ginger Rogers", "nm0000002"]
+            console.log(starsData);
+            for (let j = 0; j < starsData.length; j += 2) {
+                let name = starsData[j];
+                let id = starsData[j + 1];
+                starLinks += "<a href='/2025_fall_cs_122b_marjoe_war/html/customer/star.html?id=" + encodeURIComponent(id) + "'>" + name + "</a>";
+                if (j + 2 < starsData.length) starLinks += ", ";
+            }
+        } else {
+            starLinks = "N/A";
         }
         rowHTML += "<td>" + starLinks + "</td>";
         rowHTML += "<td>⭐️ " + (movie["movieRating"] !== "N/A" ? movie["movieRating"] + "/10" : "N/A") + "</td>";

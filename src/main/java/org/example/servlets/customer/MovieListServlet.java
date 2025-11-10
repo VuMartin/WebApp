@@ -198,9 +198,9 @@ public class MovieListServlet extends HttpServlet {
             );
             if (prefix != null && !prefix.isEmpty()) topMoviesQuery.append("AND m.title LIKE ? ");
             // ---- build a safe ORDER BY from whitelisted values ----
-            String primaryCol   = "title".equals(sortPrimaryField) ? "m.title" : "r.rating";
+            String primaryCol   = "title".equals(sortPrimaryField) ? "m.title" : "COALESCE(r.rating, -1)";
             String primaryDir   = "asc".equals(sortPrimaryOrder) ? "ASC" : "DESC";
-            String secondaryCol = "title".equals(sortSecondaryField) ? "m.title" : "r.rating";
+            String secondaryCol = "title".equals(sortSecondaryField) ? "m.title" : "COALESCE(r.rating, -1)";
             String secondaryDir = "asc".equals(sortSecondaryOrder) ? "ASC" : "DESC";
 
             topMoviesQuery.append("ORDER BY ")
