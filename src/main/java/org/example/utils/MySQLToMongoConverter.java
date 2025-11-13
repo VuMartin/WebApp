@@ -20,18 +20,33 @@ public class MySQLToMongoConverter {
             "SELECT m.id AS movie_id, m.title, m.year, m.director, " +
                     "s.id AS star_id, s.name AS star_name, s.birth_year AS star_birth, " +
                     "g.name AS genre_name, " +
-                    "r.rating " +
-            "FROM movies m " +
-            "LEFT JOIN stars_in_movies sim ON m.id = sim.movie_id " +
-            "LEFT JOIN stars s ON sim.star_id = s.id " +
-            "LEFT JOIN genres_in_movies gim ON m.id = gim.movie_id " +
-            "LEFT JOIN genres g ON gim.genre_id = g.id " +
-            "LEFT JOIN ratings r ON m.id = r.movie_id " +
-            "ORDER BY m.id";
+                    "r.rating, " +
+                    "cnt.movie_count AS movie_count " +
+                    "FROM movies m " +
+                    "LEFT JOIN stars_in_movies sim ON m.id = sim.movie_id " +
+                    "LEFT JOIN stars s ON sim.star_id = s.id " +
+                    "LEFT JOIN genres_in_movies gim ON m.id = gim.movie_id " +
+                    "LEFT JOIN genres g ON gim.genre_id = g.id " +
+                    "LEFT JOIN ratings r ON m.id = r.movie_id " +
+                    "LEFT JOIN ( " +
+                    "    SELECT star_id, COUNT(*) AS movie_count " +
+                    "    FROM stars_in_movies " +
+                    "    GROUP BY star_id " +
+                    ") AS cnt ON cnt.star_id = s.id " +
+                    "ORDER BY m.id";
 
     public static void main(String[] args) throws SQLException {
         List<Document> moviesDocument = readMoviesFromMySQL();
         writeMoviesToMongo(moviesDocument);
+
+//        List<Document> customersDocument = readCustomersFromMySQL();
+//        writeMoviesToMongo(customersDocument);
+//
+//        List<Document> employeesDocument = readEmployeesFromMySQL();
+//        writeMoviesToMongo(employeesDocument);
+//
+//        List<Document> salesDocument = readSalesFromMySQL();
+//        writeMoviesToMongo(salesDocument);
     }
 
     private static void writeMoviesToMongo(List<Document> movieDocument) {
@@ -74,7 +89,8 @@ public class MySQLToMongoConverter {
                 if (starId != null) {
                     stars.add(new Document("star_id", starId)
                             .append("name", resultSet.getString("star_name"))
-                            .append("birth_year", resultSet.getObject("star_birth", Integer.class)));
+                            .append("birth_year", resultSet.getObject("star_birth", Integer.class))
+                            .append("movie_count", resultSet.getObject("movie_count", Integer.class)));
                 }
                 String genreName = resultSet.getString("genre_name");
                 if (genreName != null && !genres.contains(genreName)) {
