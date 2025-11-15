@@ -13,7 +13,7 @@ $("#payment-form").submit(function(event) {
         data: { firstName, lastName, cardNumber, expiration },
         success: (resultData) => {
             if (resultData.status === "success") {
-                window.location.href = "/2025_fall_cs_122b_marjoe_war/html/customer/onfirmation.html";
+                window.location.href = "/2025_fall_cs_122b_marjoe_war/html/customer/confirmation.html";
             } else {
                 $("#error-message").text(resultData.message).show();
             }

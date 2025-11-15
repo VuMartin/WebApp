@@ -1,23 +1,28 @@
 package main.java.org.example.servlets.customer;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
+import com.mongodb.client.*;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Sorts;
 import jakarta.servlet.ServletConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import org.bson.Document;
+import org.bson.conversions.Bson;
 
-import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 // http://localhost:8080/2025_fall_cs_122b_marjoe_war/api/topmovies
 // http://localhost:8080/2025_fall_cs_122b_marjoe_war/html/customer/movies.html
@@ -26,8 +31,6 @@ import java.sql.ResultSet;
 public class MovieListServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
 
-    // Create a dataSource which registered in web.
-    private DataSource dataSource;
     private SessionAttribute<String> nameAttribute;
     private SessionAttribute<String> titleAttr;
     private SessionAttribute<String> yearAttr;
@@ -43,10 +46,16 @@ public class MovieListServlet extends HttpServlet {
     private SessionAttribute<Integer> offsetAttr;
     private SessionAttribute<Integer> currPageAttr;
 
+    private MongoClient mongoClient;
+    private MongoDatabase database;
+    private MongoCollection<Document> moviesCollection;
+
     public void init(ServletConfig config) {
         try {
-            dataSource = (DataSource) new InitialContext().lookup("java:comp/env/jdbc/moviedb");
-        } catch (NamingException e) {
+            mongoClient = MongoClients.create("mongodb://mytestuser:My6$Password@localhost:27017/moviedb?authSource=moviedb");
+            database = mongoClient.getDatabase("moviedb");
+            moviesCollection = database.getCollection("movies");
+        } catch (Exception e) {
             e.printStackTrace();
         }
         this.nameAttribute = new SessionAttribute<>(String.class, "name");
@@ -154,105 +163,55 @@ public class MovieListServlet extends HttpServlet {
 
         // Output stream to STDOUT
         PrintWriter out = response.getWriter();
+        try {
+            List<Bson> filters = new ArrayList<>();
 
-        // Get a connection from dataSource and let resource manager close the connection after usage.
-        try (Connection conn = dataSource.getConnection()) {
+            if (title != null && !title.isEmpty())
+                filters.add(Filters.regex("title", ".*" + Pattern.quote(title) + ".*", "i"));
+            if (year != null && !year.isEmpty())
+                filters.add(Filters.eq("year", Integer.parseInt(year)));
+            if (director != null && !director.isEmpty())
+                filters.add(Filters.regex("director", ".*" + Pattern.quote(director) + ".*", "i"));
+            if (genre != null && !genre.isEmpty())
+                filters.add(Filters.in("genres", genre));
+            if (star != null && !star.isEmpty())
+                filters.add(Filters.elemMatch("stars",
+                        Filters.regex("name", ".*" + Pattern.quote(star) + ".*", "i")));
+            if (prefix != null && !prefix.isEmpty())
+                filters.add(Filters.regex("title", "^" + Pattern.quote(prefix), "i"));
 
-            StringBuilder topMoviesQuery = new StringBuilder(
-                    "SELECT m.id, m.title, m.year, m.director, " +
-                            "(SELECT GROUP_CONCAT(genre_sub.name SEPARATOR ', ') " +  // takes multiple rows of a column into one
-                            " FROM (SELECT g.name " +  // nested select to get limit 3 since it does not work directly with group concat
-                            "       FROM genres g " +
-                            "       JOIN genres_in_movies gm ON g.id = gm.genre_id " +  // gets genres for specific movie
-                            "       WHERE gm.movie_id = m.id " +  // only genres for current movie
-                            "       ORDER BY g.name " +
-                            "       LIMIT 3) AS genre_sub) AS genres, " +  // genres is the column name, genre_sub is name of temp table
-                            "(SELECT GROUP_CONCAT(CONCAT(stars_sub.name, ', ', stars_sub.id) SEPARATOR ', ') " +
-                            " FROM (SELECT s.name, s.id " +
-                            "       FROM stars s " +
-                            "       JOIN stars_in_movies sm ON s.id = sm.star_id " +
-                            "       JOIN (SELECT star_id, COUNT(*) as movie_count " +
-                            "             FROM stars_in_movies " +
-                            "             GROUP BY star_id) AS star_counts ON s.id = star_counts.star_id " +
-                            "       WHERE sm.movie_id = m.id " +
-                            "       ORDER BY star_counts.movie_count DESC, s.name ASC " +
-                            "       LIMIT 3) AS stars_sub) AS stars, " +  // stars is the column name
-                            "r.rating " +
-                            "FROM movies m " +
-                            "LEFT JOIN ratings r ON m.id = r.movie_id " +
-                            "WHERE 1=1 "
-            );
-
-            if (title != null && !title.isEmpty()) topMoviesQuery.append("AND m.title LIKE ? ");
-            if (year != null && !year.isEmpty()) topMoviesQuery.append("AND m.year = ? ");
-            if (director != null && !director.isEmpty()) topMoviesQuery.append("AND m.director LIKE ? ");
-            if (genre != null && !genre.isEmpty()) topMoviesQuery.append(
-                    "AND m.id IN (SELECT movie_id " +
-                            "FROM genres_in_movies gm JOIN genres g ON g.id = gm.genre_id " +
-                            "WHERE g.name = ?) "
-            );
-            if (star != null && !star.isEmpty()) topMoviesQuery.append(
-                    "AND m.id IN (SELECT movie_id " +
-                            "FROM stars_in_movies sm JOIN stars s ON s.id = sm.star_id " +
-                            "WHERE s.name LIKE ?) "
-            );
-            if (prefix != null && !prefix.isEmpty()) topMoviesQuery.append("AND m.title LIKE ? ");
-            // ---- build a safe ORDER BY from whitelisted values ----
-            String primaryCol   = "title".equals(sortPrimaryField) ? "m.title" : "COALESCE(r.rating, -1)";
+            Bson moviesFilter = filters.isEmpty() ? new Document() : Filters.and(filters);
+            String primaryCol   = "title".equals(sortPrimaryField) ? "title" : "rating";
             String primaryDir   = "asc".equals(sortPrimaryOrder) ? "ASC" : "DESC";
-            String secondaryCol = "title".equals(sortSecondaryField) ? "m.title" : "COALESCE(r.rating, -1)";
-            String secondaryDir = "asc".equals(sortSecondaryOrder) ? "ASC" : "DESC";
+            String secondaryCol = "title".equals(sortSecondaryField) ? "title" : "rating";
+            String secondaryDir = "desc".equals(sortSecondaryOrder) ? "DESC" : "ASC";
 
-            topMoviesQuery.append("ORDER BY ")
-                    .append(primaryCol).append(" ").append(primaryDir)
-                    .append(", ")
-                    .append(secondaryCol).append(" ").append(secondaryDir)
-                    .append(" ")
-                    .append("LIMIT ? OFFSET ?");
+            FindIterable<Document> movieResults = moviesCollection.find(moviesFilter)
+                    .sort(Sorts.orderBy(
+                            primaryDir.equals("ASC") ? Sorts.ascending(primaryCol) : Sorts.descending(primaryCol),
+                            secondaryDir.equals("ASC") ? Sorts.ascending(secondaryCol) : Sorts.descending(secondaryCol)
+                    ))
+                    .skip(offset)
+                    .limit(pageSize);
 
-            PreparedStatement statement = conn.prepareStatement(topMoviesQuery.toString());
-            int index = 1;
-            if (title != null && !title.isEmpty()) statement.setString(index++, "%" + title + "%");
-            if (year != null && !year.isEmpty()) statement.setString(index++, year);
-            if (director != null && !director.isEmpty()) statement.setString(index++, "%" + director + "%");
-            if (genre != null && !genre.isEmpty()) statement.setString(index++, genre);
-            if (star != null && !star.isEmpty()) statement.setString(index++, "%" + star + "%");
-            if (prefix != null && !prefix.isEmpty()) statement.setString(index++,prefix + "%");
-            statement.setInt(index++, pageSize);
-            statement.setInt(index, offset);
+            filters = new ArrayList<>();
+            if (title != null && !title.isEmpty())
+                filters.add(Filters.regex("title", ".*" + Pattern.quote(title) + ".*", "i"));
+            if (year != null && !year.isEmpty())
+                filters.add(Filters.eq("year", Integer.parseInt(year)));
+            if (director != null && !director.isEmpty())
+                filters.add(Filters.regex("director", ".*" + Pattern.quote(director) + ".*", "i"));
+            if (genre != null && !genre.isEmpty())
+                filters.add(Filters.in("genres", genre));
+            if (star != null && !star.isEmpty())
+                filters.add(Filters.elemMatch("stars",
+                        Filters.regex("name", ".*" + Pattern.quote(star) + ".*", "i")));
+            if (prefix != null && !prefix.isEmpty())
+                filters.add(Filters.regex("title", "^" + Pattern.quote(prefix), "i"));
 
-            ResultSet rs = statement.executeQuery();
+            Bson countFilter = filters.isEmpty() ? new Document() : Filters.and(filters);
 
-            String countQuery =
-                    "SELECT COUNT(DISTINCT m.id) AS total " +
-                            "FROM movies m " +
-                            "LEFT JOIN ratings r ON m.id = r.movie_id " +
-                            "LEFT JOIN genres_in_movies gm ON m.id = gm.movie_id " +
-                            "LEFT JOIN genres g ON gm.genre_id = g.id " +
-                            "LEFT JOIN stars_in_movies sm ON m.id = sm.movie_id " +
-                            "LEFT JOIN stars s ON sm.star_id = s.id " +
-                            "WHERE 1=1 " +
-                            (title != null && !title.isEmpty() ? "AND m.title LIKE ? " : "") +
-                            (year != null && !year.isEmpty() ? "AND m.year = ? " : "") +
-                            (director != null && !director.isEmpty() ? "AND m.director LIKE ? " : "") +
-                            (genre != null && !genre.isEmpty() ? "AND g.name = ? " : "") +
-                            (star != null && !star.isEmpty() ? "AND s.name LIKE ? " : "") +
-                            (prefix != null && !prefix.isEmpty() ? "AND m.title LIKE ? " : "");
-
-            PreparedStatement countStmt = conn.prepareStatement(countQuery);
-            index = 1;
-            if (title != null && !title.isEmpty()) countStmt.setString(index++, "%" + title + "%");
-            if (year != null && !year.isEmpty()) countStmt.setString(index++, year);
-            if (director != null && !director.isEmpty()) countStmt.setString(index++, "%" + director + "%");
-            if (genre != null && !genre.isEmpty()) countStmt.setString(index++, genre);
-            if (star != null && !star.isEmpty()) countStmt.setString(index++, "%" + star + "%");
-            if (prefix != null && !prefix.isEmpty()) countStmt.setString(index, prefix + "%");
-
-            ResultSet countRs = countStmt.executeQuery();
-            int totalCount = 0;
-            if (countRs.next()) {
-                totalCount = countRs.getInt("total");
-            }
+            long totalCount = moviesCollection.countDocuments(countFilter);
             JsonObject jsonObject = new JsonObject();
             jsonObject.addProperty("totalCount", totalCount);
             jsonObject.addProperty("currentPage", currentPage);
@@ -264,33 +223,35 @@ public class MovieListServlet extends HttpServlet {
             jsonObject.addProperty("prefix", prefix);
             JsonArray moviesArray = new JsonArray();
             jsonObject.add("movies", moviesArray);
-            // Iterate through each row of rs
-            while (rs.next()) {
-                // get a movie from result set
-                String movieID = rs.getString("id");  // db column name from query
-                String movieTitle = rs.getString("title");
-                String movieYear = rs.getString("year");
-                String movieDirector = rs.getString("director");
-                String movieGenres = rs.getString("genres");
-                String movieStars = rs.getString("stars");
-                String rating = rs.getString("rating");
-                if (rating == null) rating = "N/A";
 
-                // Create a JsonObject based on the data we retrieve from rs
+            for (Document doc : movieResults) {
                 JsonObject movieObject = new JsonObject();
-                movieObject.addProperty("movieID", movieID);
-                movieObject.addProperty("movieTitle", movieTitle);
-                movieObject.addProperty("movieYear", movieYear);
-                movieObject.addProperty("movieDirector", movieDirector);
-                movieObject.addProperty("movieGenres", movieGenres);
-                movieObject.addProperty("movieStars", movieStars);
-                movieObject.addProperty("movieRating", rating);
+
+                movieObject.addProperty("movieID", doc.getString("movie_id"));
+                movieObject.addProperty("movieTitle", doc.getString("title"));
+                movieObject.addProperty("movieYear", doc.getInteger("year"));
+                movieObject.addProperty("movieDirector", doc.getString("director"));
+                Double rating = doc.getDouble("rating"); // use Double object to allow null
+                if (rating != null) {
+                    double roundedRating = Math.round(rating * 100.0) / 100.0;
+                    movieObject.addProperty("movieRating", roundedRating);
+                } else movieObject.addProperty("movieRating", "N/A");
+                List<String> genres = doc.getList("genres", String.class);
+                List<String> topGenres = genres.stream()
+                        .sorted()
+                        .limit(3)
+                        .collect(Collectors.toList());
+                movieObject.add("movieGenres", new Gson().toJsonTree(topGenres));
+                List<Document> stars = (List<Document>) doc.get("stars");
+                List<Document> topStars = stars.stream()
+                        .sorted(Comparator
+                                .comparingInt((Document s) -> s.getInteger("movie_count")).reversed()
+                                .thenComparing(s -> s.getString("name")))
+                        .limit(3)
+                        .collect(Collectors.toList());
+                movieObject.add("movieStars", new Gson().toJsonTree(topStars));
                 moviesArray.add(movieObject);
             }
-            countRs.close();
-            countStmt.close();
-            rs.close();
-            statement.close();
 
             // Log to localhost log
             request.getServletContext().log("getting " + moviesArray.size() + " results");
@@ -312,8 +273,11 @@ public class MovieListServlet extends HttpServlet {
         } finally {
             out.close();
         }
-
-        // Always remember to close db connection after usage. Here it's done by try-with-resources
-
+    }
+    @Override
+    public void destroy() {
+        if (mongoClient != null) {
+            mongoClient.close();
+        }
     }
 }

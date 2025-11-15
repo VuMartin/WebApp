@@ -218,12 +218,10 @@ function handleResult(resultData) {
 
         let genreLinks = "";
         if (movie["movieGenres"]) {
-            let genresData = movie["movieGenres"].split(", ");
-            for (let j = 0; j < genresData.length; j++) {
-                let genre = genresData[j];
-                genreLinks += "<a href='/2025_fall_cs_122b_marjoe_war/html/customer/movies.html?genre=" + encodeURIComponent(genre) + "'>" + genre + "</a>";
-                if (j + 1 < genresData.length) genreLinks += ", ";
-            }
+            movie["movieGenres"].forEach((genre, i) => {
+                genreLinks += `<a href='/2025_fall_cs_122b_marjoe_war/html/customer/movies.html?genre=${encodeURIComponent(genre)}'>${genre}</a>`;
+                if (i < movie["movieGenres"].length - 1) genreLinks += ", ";
+            });
         } else {
             genreLinks = "N/A";
         }
@@ -231,14 +229,12 @@ function handleResult(resultData) {
 
         let starLinks = "";
         if (movie["movieStars"]) {
-            let starsData = movie["movieStars"].split(", ");  // ["Fred Astaire", "nm0000001", "Ginger Rogers", "nm0000002"]
-            console.log(starsData);
-            for (let j = 0; j < starsData.length; j += 2) {
-                let name = starsData[j];
-                let id = starsData[j + 1];
-                starLinks += "<a href='/2025_fall_cs_122b_marjoe_war/html/customer/star.html?id=" + encodeURIComponent(id) + "'>" + name + "</a>";
-                if (j + 2 < starsData.length) starLinks += ", ";
-            }
+            movie["movieStars"].forEach((star, i) => {
+                let name = star.name;
+                let id = star.star_id;
+                starLinks += `<a href='/2025_fall_cs_122b_marjoe_war/html/customer/star.html?id=${encodeURIComponent(id)}'>${name}</a>`;
+                if (i < movie["movieStars"].length - 1) starLinks += ", ";
+            });
         } else {
             starLinks = "N/A";
         }
@@ -258,6 +254,7 @@ function fetchMovies() {
     setPageHeading(params);
     const sort = getSorting();
     const url = buildApiUrl(params, sort, back);
+    console.log(url);
 
     jQuery.ajax({
         url: url,

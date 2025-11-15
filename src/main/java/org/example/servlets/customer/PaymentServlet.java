@@ -1,33 +1,45 @@
 package main.java.org.example.servlets.customer;
 
 import com.google.gson.JsonObject;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.FindOneAndUpdateOptions;
+import com.mongodb.client.model.ReturnDocument;
+import com.mongodb.client.model.Updates;
 import jakarta.servlet.ServletConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import org.bson.Document;
 
 import java.time.LocalDate;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
-import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @WebServlet(name = "PaymentServlet", urlPatterns = "/api/payment")
 public class PaymentServlet extends HttpServlet {
-    private DataSource dataSource;
+    private MongoClient mongoClient;
+    private MongoDatabase database;
+    private MongoCollection<Document> creditCardsCollection;
+    private MongoCollection<Document> salesCollection;
+    private MongoCollection<Document> counterCollection;
 
     public void init(ServletConfig config) {
         try {
-            dataSource = (DataSource) new InitialContext().lookup("java:comp/env/jdbc/moviedb");
-        } catch (
-        NamingException e) {
+            mongoClient = MongoClients.create("mongodb://mytestuser:My6$Password@localhost:27017/moviedb?authSource=moviedb");
+            database = mongoClient.getDatabase("moviedb");
+            creditCardsCollection = database.getCollection("credit_cards");
+            salesCollection = database.getCollection("sales");
+            counterCollection = database.getCollection("counter");
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -49,56 +61,40 @@ public class PaymentServlet extends HttpServlet {
         }
 
         Integer customerID = (Integer) session.getAttribute("customerID");
-//        Integer customerID = 490001;
         if (customerID == null) {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Please log in first.");
             return;
         }
-
-        try (Connection conn = dataSource.getConnection()) {
+        JsonObject responseJson = new JsonObject();
+        try {
             // 1. Verify credit card exists
-            String verifyCardQuery = "SELECT id " +
-                                     "FROM credit_cards " +
-                                     "WHERE first_name = ? AND last_name = ? AND id = ? AND expiration = ?";
-            PreparedStatement verifyStmt = conn.prepareStatement(verifyCardQuery);
-            verifyStmt.setString(1, firstName);
-            verifyStmt.setString(2, lastName);
-            verifyStmt.setString(3, cardNumber);
-            verifyStmt.setString(4, expiration); // convert yyyy-MM → yyyy-MM-01
-            ResultSet rs = verifyStmt.executeQuery();
-
-            JsonObject responseJson = new JsonObject();
-
-            if (rs.next()) {
-                String insertSaleQuery = "INSERT INTO sales (customer_id, movie_id, sale_date) VALUES (?, ?, ?)";
-                PreparedStatement insertStmt = conn.prepareStatement(insertSaleQuery);
-                java.sql.Date today = java.sql.Date.valueOf(LocalDate.now());
+            Document card = creditCardsCollection.find(Filters.and(
+                    Filters.eq("first_name", firstName),
+                    Filters.eq("last_name", lastName),
+                    Filters.eq("id", cardNumber),
+                    Filters.eq("expiration", expiration)
+            )).first();
+            if (card != null) {
                 Map<String, CartItem> cart = (Map<String, CartItem>) session.getAttribute("cart");
-                for (CartItem item : cart.values()) {
-                    for (int i = 0; i < item.getQuantity(); i++) {
-                        insertStmt.setInt(1, customerID);
-                        insertStmt.setString(2, item.getMovieID());
-                        insertStmt.setDate(3, today);
-                        insertStmt.executeUpdate();
+                    List<Document> items = new ArrayList<>();
+                    for (CartItem item : cart.values()) {
+                        items.add(new Document("movie_id", item.getMovieID())
+                                .append("quantity", item.getQuantity()));
                     }
-                }
+                    Document order = new Document("order_id", getNextOrderID())
+                            .append("customer_id", customerID)
+                            .append("sale_date", LocalDate.now().toString())
+                            .append("items", items);
 
-                insertStmt.close();
-
-// Add everything to the response JSON
+                    salesCollection.insertOne(order);
                 responseJson.addProperty("status", "success");
                 responseJson.addProperty("message", "Payment processed successfully!");
             } else {
                 responseJson.addProperty("status", "fail");
                 responseJson.addProperty("message", "Invalid payment information. Please try again.");
             }
-
-            rs.close();
-            verifyStmt.close();
-
             out.write(responseJson.toString());
             response.setStatus(200);
-
         } catch (Exception e) {
             JsonObject jsonObject = new JsonObject();
             jsonObject.addProperty("errorMessage", e.getMessage());
@@ -106,6 +102,25 @@ public class PaymentServlet extends HttpServlet {
             response.setStatus(500);
         } finally {
             out.close();
+        }
+    }
+
+    private int getNextOrderID() {
+        Document doc = counterCollection.find().first();
+        int current = doc.getInteger("order_id");
+        int next = current + 1;
+        counterCollection.updateOne(
+                new Document("_id", doc.getObjectId("_id")),
+                new Document("$set", new Document("order_id", next))
+        );
+
+        return next;
+    }
+
+    @Override
+    public void destroy() {
+        if (mongoClient != null) {
+            mongoClient.close();
         }
     }
 }
