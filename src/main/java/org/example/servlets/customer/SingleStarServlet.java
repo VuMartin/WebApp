@@ -31,12 +31,14 @@ public class SingleStarServlet extends HttpServlet {
     private MongoClient mongoClient;
     private MongoDatabase database;
     private MongoCollection<Document> moviesCollection;
+    private MongoCollection<Document> starsCollection;
 
     public void init(ServletConfig config) {
         try {
             mongoClient = MongoClients.create("mongodb://mytestuser:My6$Password@localhost:27017/moviedb?authSource=moviedb");
             database = mongoClient.getDatabase("moviedb");
             moviesCollection = database.getCollection("movies");
+            starsCollection = database.getCollection("stars");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -60,39 +62,32 @@ public class SingleStarServlet extends HttpServlet {
         PrintWriter out = response.getWriter();
 
         try {
-            List<Document> starMovies = moviesCollection.find(Filters.elemMatch("stars", Filters.eq("star_id", id)))
-                    .sort(Sorts.orderBy(Sorts.descending("year"), Sorts.ascending("title")))
-                    .into(new java.util.ArrayList<>());
-            if (starMovies.isEmpty()) {
+            Document starDoc = starsCollection.find(Filters.eq("_id", id)).first();
+            if (starDoc == null) {
                 response.setStatus(404);
                 JsonObject err = new JsonObject();
                 err.addProperty("errorMessage", "Star not found");
                 out.write(err.toString());
                 return;
             }
+            String starName = starDoc.getString("name");
+            Integer birthYear = starDoc.getInteger("birth_year");
+            String birthYearOut = birthYear != null ? String.valueOf(birthYear) : "N/A";
+
+            List<Document> starMovies = moviesCollection.find(Filters.elemMatch("stars", Filters.eq("star_id", id)))
+                    .sort(Sorts.orderBy(Sorts.descending("year"), Sorts.ascending("title")))
+                    .into(new java.util.ArrayList<>());
             JsonObject jsonObject = new JsonObject();
             JsonArray movies = new JsonArray();
-            String starName = null;
-            String birthYearOut = "N/A";
 
             for (Document movie : starMovies) {
-                List<Document> stars = (List<Document>) movie.get("stars");
-                for (Document star : stars) {
-                    if (star.getString("star_id").equals(id)) {
-                        starName = star.getString("name");
-                        Integer dob = star.getInteger("birth_year");
-                        if (dob != null) birthYearOut = String.valueOf(dob);
-                        break;
-                    }
-                }
                 JsonObject m = new JsonObject();
                 m.addProperty("id", movie.getString("movie_id"));
                 m.addProperty("title", movie.getString("title"));
                 movies.add(m);
             }
 
-            // Keep your existing response-writing style:
-            jsonObject.addProperty("id", id);              // reuse request param
+            jsonObject.addProperty("id", id);
             jsonObject.addProperty("name", starName);
             jsonObject.addProperty("birthYear", birthYearOut);
             jsonObject.add("movies", movies);

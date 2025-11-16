@@ -39,9 +39,16 @@ public class MySQLToMongoConverter {
             "GROUP BY customer_id, sale_date, movie_id " +
             "ORDER BY customer_id, sale_date";
 
+    private static final String STARS_QUERY =
+            "SELECT * " +
+            "FROM stars ";
+
     public static void main(String[] args) throws SQLException {
-        List<Document> moviesDocument = readMoviesFromMySQL();
-        writeMoviesToMongo(moviesDocument);
+        Map<String, Object> starsDocuments = readStarsFromMySQL();
+        writeStarsToMongo(starsDocuments);
+
+//        Map<String, Object> moviesDocuments = readMoviesFromMySQL();
+//        writeMoviesToMongo(moviesDocuments);
 
 //        List<Document> customersDocument = readCustomersFromMySQL();
 //        writeMoviesToMongo(customersDocument);
@@ -56,13 +63,35 @@ public class MySQLToMongoConverter {
 //        writeSalesToMongo(salesDocuments);
     }
 
-    private static void writeMoviesToMongo(List<Document> movieDocument) {
+    private static void writeMoviesToMongo(Map<String, Object> movieDocuments) {
         try (MongoClient mongoClient = MongoClients.create(MONGO_URI)) {
             // This reuses the myNewDB database from the Mongo tutorial. You may want to create a better named database
             MongoDatabase myNewDB = mongoClient.getDatabase("moviedb");
             MongoCollection<Document> moviesCollection = myNewDB.getCollection("movies");
-            moviesCollection.insertMany(movieDocument);
+            List<Document> moviedocs = (List<Document>) movieDocuments.get("movies");
+            moviesCollection.insertMany(moviedocs);
             System.out.println("Inserted all movies in bulk");
+
+            MongoCollection<Document> countersCollection = myNewDB.getCollection("counters");
+            Document movieCounter = (Document) movieDocuments.get("movie_counter");
+            countersCollection.insertOne(movieCounter);
+            System.out.println("Inserted movie ID into counters collection");
+        }
+    }
+
+    private static void writeStarsToMongo(Map<String, Object> starDocuments) {
+        try (MongoClient mongoClient = MongoClients.create(MONGO_URI)) {
+            // This reuses the myNewDB database from the Mongo tutorial. You may want to create a better named database
+            MongoDatabase myNewDB = mongoClient.getDatabase("moviedb");
+            MongoCollection<Document> starsCollection = myNewDB.getCollection("stars");
+            List<Document> starsdocs = (List<Document>) starDocuments.get("stars");
+            starsCollection.insertMany(starsdocs);
+            System.out.println("Inserted all stars in bulk");
+
+            MongoCollection<Document> countersCollection = myNewDB.getCollection("counters");
+            Document starCounter = (Document) starDocuments.get("star_counter");
+            countersCollection.insertOne(starCounter);
+            System.out.println("Inserted star ID into counters collection");
         }
     }
 
@@ -75,17 +104,18 @@ public class MySQLToMongoConverter {
             salesCollection.insertMany(salesList);
             System.out.println("Inserted all sales in bulk");
 
-            MongoCollection<Document> counterCollection = myNewDB.getCollection("counter");
+            MongoCollection<Document> counterCollection = myNewDB.getCollection("counters");
             Document counterDoc = (Document) salesDocuments.get("orderID");
             counterCollection.insertOne(counterDoc);
 
-            System.out.println("Inserted order ID into counter collection");
+            System.out.println("Inserted order ID into counters collection");
         }
     }
 
-    private static List<Document> readMoviesFromMySQL() throws SQLException {
+    private static Map<String, Object> readMoviesFromMySQL() throws SQLException {
         List<Document> moviesList = new ArrayList<>();
         Set<String> seenStars = new HashSet<>();
+        Set<String> movieCount = new HashSet<>();
         try (Connection connection = DriverManager.getConnection(MYSQL_URL, MYSQL_USER, MYSQL_PASS);
              Statement statement = connection.createStatement();
              ResultSet resultSet = statement.executeQuery(QUERY)) {
@@ -95,6 +125,7 @@ public class MySQLToMongoConverter {
             List<String> genres = new ArrayList<>();
             while (resultSet.next()) {
                 String movieId = resultSet.getString("movie_id");
+                if (movieId != null) movieCount.add(movieId);
                 if (!movieId.equals(lastMovieId)) {
                     if (movieDoc != null) {
                         movieDoc.append("stars", stars)
@@ -117,7 +148,6 @@ public class MySQLToMongoConverter {
                 if (starId != null && !seenStars.contains(starId)) {
                     stars.add(new Document("star_id", starId)
                             .append("name", resultSet.getString("star_name"))
-                            .append("birth_year", resultSet.getObject("star_birth", Integer.class))
                             .append("movie_count", resultSet.getObject("movie_count", Integer.class)));
                     seenStars.add(starId);
                 }
@@ -132,7 +162,12 @@ public class MySQLToMongoConverter {
                 moviesList.add(movieDoc);
             }
             System.out.println("looked through all movie rows");
-            return moviesList;
+            Document movieCounterDoc = new Document("_id", "movie_id")
+                    .append("movie_id", movieCount.size());
+            Map<String, Object> result = new HashMap<>();
+            result.put("movies", moviesList);
+            result.put("movie_counter", movieCounterDoc);
+            return result;
         }
     }
 
@@ -179,6 +214,35 @@ public class MySQLToMongoConverter {
         Map<String, Object> result = new HashMap<>();
         result.put("sales", salesList);
         result.put("orderID", counterDoc);
+        return result;
+    }
+
+    private static Map<String, Object> readStarsFromMySQL() throws SQLException {
+        List<Document> starsList = new ArrayList<>();
+        Set<String> starCount = new HashSet<>();
+
+        try (Connection connection = DriverManager.getConnection(MYSQL_URL, MYSQL_USER, MYSQL_PASS);
+             Statement statement = connection.createStatement();
+             ResultSet rs = statement.executeQuery(STARS_QUERY)) {
+
+            while (rs.next()) {
+                String starId = rs.getString("id");
+                String name = rs.getString("name");
+                Integer birthYear = rs.getObject("birth_year", Integer.class);
+                starsList.add(new Document("_id", starId)
+                        .append("name", name)
+                        .append("birth_year", birthYear));
+                starCount.add(starId);
+            }
+        }
+
+        Document starCounterDoc = new Document("_id", "star_id")
+                .append("star_id", starCount.size());
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("stars", starsList);
+        result.put("star_counter", starCounterDoc);
+
         return result;
     }
 }
