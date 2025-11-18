@@ -47,8 +47,8 @@ public class MySQLToMongoConverter {
 //        Map<String, Object> starsDocuments = readStarsFromMySQL();
 //        writeStarsToMongo(starsDocuments);
 
-        Map<String, Object> moviesDocuments = readMoviesFromMySQL();
-        writeMoviesToMongo(moviesDocuments);
+//        Map<String, Object> moviesDocuments = readMoviesFromMySQL();
+//        writeMoviesToMongo(moviesDocuments);
 
 //        List<Document> customersDocument = readCustomersFromMySQL();
 //        writeMoviesToMongo(customersDocument);
@@ -59,8 +59,8 @@ public class MySQLToMongoConverter {
 //        List<Document> employeesDocument = readEmployeesFromMySQL();
 //        writeEmployeesToMongo(employeesDocument);
 //
-//        Map<String, Object> salesDocuments = readSalesFromMySQL();
-//        writeSalesToMongo(salesDocuments);
+        Map<String, Object> salesDocuments = readSalesFromMySQL();
+        writeSalesToMongo(salesDocuments);
     }
 
     private static void writeMoviesToMongo(Map<String, Object> movieDocuments) {
@@ -175,7 +175,7 @@ public class MySQLToMongoConverter {
 
     private static Map<String, Object> readSalesFromMySQL() throws SQLException {
         List<Document> salesList = new ArrayList<>();
-        int orderID = 1;
+        int orderID = 0;
 
         try (Connection connection = DriverManager.getConnection(MYSQL_URL, MYSQL_USER, MYSQL_PASS);
              Statement statement = connection.createStatement();
@@ -195,7 +195,7 @@ public class MySQLToMongoConverter {
                     }
                     currentItems = new ArrayList<>();
                     currentOrder = new Document()
-                            .append("order_id", orderID++)
+                            .append("_id", ++orderID)
                             .append("customer_id", customerId)
                             .append("sale_date", saleDate);
                 }

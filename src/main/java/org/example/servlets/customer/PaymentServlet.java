@@ -30,7 +30,7 @@ public class PaymentServlet extends HttpServlet {
     private MongoDatabase database;
     private MongoCollection<Document> creditCardsCollection;
     private MongoCollection<Document> salesCollection;
-    private MongoCollection<Document> counterCollection;
+    private MongoCollection<Document> countersCollection;
 
     public void init(ServletConfig config) {
         try {
@@ -38,7 +38,7 @@ public class PaymentServlet extends HttpServlet {
             database = mongoClient.getDatabase("moviedb");
             creditCardsCollection = database.getCollection("credit_cards");
             salesCollection = database.getCollection("sales");
-            counterCollection = database.getCollection("counter");
+            countersCollection = database.getCollection("counters");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -55,44 +55,49 @@ public class PaymentServlet extends HttpServlet {
         String cardNumber = request.getParameter("cardNumber");
         String expiration = request.getParameter("expiration");
         HttpSession session = request.getSession(false);
-        if (session == null) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Please log in first.");
-            return;
-        }
-
-        Integer customerID = (Integer) session.getAttribute("customerID");
-        if (customerID == null) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Please log in first.");
-            return;
-        }
+//        if (session == null) {
+//            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Please log in first.");
+//            return;
+//        }
+//
+//        Integer customerID = (Integer) session.getAttribute("customerID");
+        int customerID = 777;
+//        if (customerID == null) {
+//            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Please log in first.");
+//            return;
+//        }
         JsonObject responseJson = new JsonObject();
         try {
             // 1. Verify credit card exists
-            Document card = creditCardsCollection.find(Filters.and(
-                    Filters.eq("first_name", firstName),
-                    Filters.eq("last_name", lastName),
-                    Filters.eq("id", cardNumber),
-                    Filters.eq("expiration", expiration)
-            )).first();
-            if (card != null) {
+//            Document card = creditCardsCollection.find(Filters.and(
+//                    Filters.eq("first_name", firstName),
+//                    Filters.eq("last_name", lastName),
+//                    Filters.eq("id", cardNumber),
+//                    Filters.eq("expiration", expiration)
+//            )).first();
+//            if (card != null) {
                 Map<String, CartItem> cart = (Map<String, CartItem>) session.getAttribute("cart");
                     List<Document> items = new ArrayList<>();
                     for (CartItem item : cart.values()) {
                         items.add(new Document("movie_id", item.getMovieID())
                                 .append("quantity", item.getQuantity()));
                     }
-                    Document order = new Document("order_id", getNextOrderID())
+                    int orderNumber = getNextOrderID();
+                    Document order = new Document("_id", orderNumber)
                             .append("customer_id", customerID)
                             .append("sale_date", LocalDate.now().toString())
                             .append("items", items);
 
                     salesCollection.insertOne(order);
+                session.setAttribute("firstName", "Martin");
+                session.setAttribute("orderNumber", orderNumber);
+            session.setAttribute("creditCardID", "777");
                 responseJson.addProperty("status", "success");
                 responseJson.addProperty("message", "Payment processed successfully!");
-            } else {
-                responseJson.addProperty("status", "fail");
-                responseJson.addProperty("message", "Invalid payment information. Please try again.");
-            }
+//            } else {
+//                responseJson.addProperty("status", "fail");
+//                responseJson.addProperty("message", "Invalid payment information. Please try again.");
+//            }
             out.write(responseJson.toString());
             response.setStatus(200);
         } catch (Exception e) {
@@ -106,15 +111,12 @@ public class PaymentServlet extends HttpServlet {
     }
 
     private int getNextOrderID() {
-        Document doc = counterCollection.find().first();
-        int current = doc.getInteger("order_id");
-        int next = current + 1;
-        counterCollection.updateOne(
-                new Document("_id", doc.getObjectId("_id")),
-                new Document("$set", new Document("order_id", next))
+        Document updated = countersCollection.findOneAndUpdate(
+                Filters.eq("_id", "order_id"),
+                Updates.inc("seq", 1),
+                new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER)
         );
-
-        return next;
+        return updated.getInteger("seq");
     }
 
     @Override

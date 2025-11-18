@@ -13,6 +13,7 @@ $.ajax({
     success: function(resultData) {
         // Render the confirmation
         $("#customerName").text(resultData.firstName);
+        $("#orderNumber").text(resultData.orderNumber);
         $("#totalPrice").text(resultData.total.toFixed(2));
         $("#cardLast2").text(resultData.cardNumber.slice(-2));
 

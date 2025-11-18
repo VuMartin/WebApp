@@ -110,6 +110,7 @@ public class ShoppingCartServlet extends HttpServlet {
 
         JsonObject responseJson = new JsonObject();
         responseJson.addProperty("firstName", (String) session.getAttribute("firstName"));
+        responseJson.addProperty("orderNumber", (Integer) session.getAttribute("orderNumber"));
         responseJson.addProperty("cardNumber", (String) session.getAttribute("creditCardID"));
         responseJson.add("items", cartJson);
         responseJson.addProperty("total", total);

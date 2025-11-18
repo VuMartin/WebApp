@@ -227,7 +227,7 @@ public class MovieListServlet extends HttpServlet {
             for (Document doc : movieResults) {
                 JsonObject movieObject = new JsonObject();
 
-                movieObject.addProperty("movieID", doc.getString("movie_id"));
+                movieObject.addProperty("movieID", doc.getString("_id"));
                 movieObject.addProperty("movieTitle", doc.getString("title"));
                 movieObject.addProperty("movieYear", doc.getInteger("year"));
                 movieObject.addProperty("movieDirector", doc.getString("director"));

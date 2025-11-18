@@ -14,6 +14,16 @@ fetch("/2025_fall_cs_122b_marjoe_war/html/customer/header.html")
             dropdownMenu.classList.toggle('visible');
         });
 
+        const pathname = window.location.pathname;
+        const backLink = document.querySelector(".back-link");
+        const arrow = document.querySelector("#movie-page-header .arrow");
+
+        if ((pathname.endsWith("/movies.html") || (pathname.endsWith("/main.html")))
+            && !window.location.href.includes("genre")) {
+            if (backLink) backLink.style.display = "none";
+            if (arrow) arrow.style.display = "none";
+        }
+
         const logoutButton = document.getElementById('logout-button');
 
         logoutButton.addEventListener('click', () => {

@@ -223,13 +223,6 @@
 
 /* movies list page */
 
-.no-back-link .back-link,
-.no-back-link .arrow,
-#login-header .back-link,
-#login-header .arrow {
-    display: none;
-}
-
 .container {
     padding: 15px 30px;
     border-radius: 8px;
