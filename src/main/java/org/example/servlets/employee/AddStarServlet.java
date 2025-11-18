@@ -2,8 +2,19 @@ package main.java.org.example.servlets.employee;
 
 
 import com.google.gson.JsonObject;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.FindOneAndUpdateOptions;
+import com.mongodb.client.model.ReturnDocument;
+import com.mongodb.client.model.Updates;
+import jakarta.servlet.ServletConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
+import org.bson.Document;
+
 import javax.naming.*;
 import javax.sql.DataSource;
 import java.io.IOException;
@@ -12,13 +23,20 @@ import java.sql.*;
 
 @WebServlet(name="AddStarServlet", urlPatterns="/api/add_star")
 public class AddStarServlet extends HttpServlet {
-    private DataSource ds;
-    @Override public void init() {
+    private MongoClient mongoClient;
+    private MongoDatabase database;
+    private MongoCollection<Document> countersCollection;
+    private MongoCollection<Document> starsCollection;
+
+    public void init(ServletConfig config) {
         try {
-            InitialContext ic = new InitialContext();
-            Context env = (Context) ic.lookup("java:comp/env");
-            ds = (DataSource) env.lookup("jdbc/moviedb"); // adjust if your JNDI name differs
-        } catch (NamingException e) { throw new RuntimeException(e); }
+            mongoClient = MongoClients.create("mongodb://mytestuser:My6$Password@localhost:27017/moviedb?authSource=moviedb");
+            database = mongoClient.getDatabase("moviedb");
+            countersCollection = database.getCollection("counters");
+            starsCollection = database.getCollection("stars");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -28,54 +46,49 @@ public class AddStarServlet extends HttpServlet {
         JsonObject json = new JsonObject();
 
         String name = req.getParameter("name");
-        String birth = req.getParameter("birthYear"); // optional
-
-        if (name == null || name.trim().isEmpty()) {
-            json.addProperty("status","error");
-            json.addProperty("message","Star name is required.");
-            out.write(json.toString()); return;
-        }
+        String birth = req.getParameter("birthYear");
 
         Integer birthYear = null;
         if (birth != null && !birth.trim().isEmpty()) {
-            try { birthYear = Integer.valueOf(birth.trim()); }
-            catch (NumberFormatException e) {
-                json.addProperty("status","error");
-                json.addProperty("message","Birth year must be an integer.");
-                out.write(json.toString()); return;
+            try {
+                birthYear = Integer.parseInt(birth.trim());
+            } catch (NumberFormatException ignored) {
             }
         }
-
-        try (Connection conn = ds.getConnection()) {
-            // Transactionally generate next id: 'nm' + 7 digits
-            boolean old = conn.getAutoCommit(); conn.setAutoCommit(false);
-            String nextNum;
-            try (PreparedStatement ps = conn.prepareStatement(
-                    "SELECT LPAD(COALESCE(MAX(CAST(SUBSTRING(id,3) AS UNSIGNED)) + 1, 1), 7, '0') AS next_num " +
-                            "FROM stars WHERE id LIKE 'nm%' FOR UPDATE");
-                 ResultSet rs = ps.executeQuery()) {
-                rs.next(); nextNum = rs.getString("next_num"); // e.g. "0000124"
+        try {
+            Document existingStar = starsCollection.find(Filters.eq("name", name.trim())).first();
+            if (existingStar != null) {
+                json.addProperty("status", "error");
+                json.addProperty("message", "Star " + name + " already exists with ID: " + existingStar.getString("_id"));
+                out.write(json.toString());
+                return;
             }
-            String newId = "nm" + nextNum;
+            Document starCounter = countersCollection.findOneAndUpdate(
+                    Filters.eq("_id", "star_id"),
+                    Updates.inc("seq", 1),
+                    new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER)
+            );
+            String newId = "nm" + String.format("%07d", starCounter.getInteger("seq"));
 
-            try (PreparedStatement ins = conn.prepareStatement(
-                    "INSERT INTO stars (id, name, birth_year) VALUES (?, ?, ?)")) {
-                ins.setString(1, newId);
-                ins.setString(2, name.trim());
-                if (birthYear == null) ins.setNull(3, Types.INTEGER); else ins.setInt(3, birthYear);
-                ins.executeUpdate();
-            }
-            conn.commit(); conn.setAutoCommit(old);
-
+            Document newStar = new Document("_id", newId)
+                    .append("name", name.trim())
+                    .append("birth_year", birthYear);
+            starsCollection.insertOne(newStar);
             json.addProperty("status","success");
             json.addProperty("message","Star added successfully.");
             json.addProperty("id", newId);
             out.write(json.toString());
-        } catch (SQLException e) {
+        } catch (Exception e) {
             JsonObject err = new JsonObject();
             err.addProperty("status","error");
             err.addProperty("message","DB error: " + e.getMessage());
             out.write(err.toString());
+        }
+    }
+    @Override
+    public void destroy() {
+        if (mongoClient != null) {
+            mongoClient.close();
         }
     }
 }
