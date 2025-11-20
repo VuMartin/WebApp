@@ -47,8 +47,8 @@ public class MySQLToMongoConverter {
 //        Map<String, Object> starsDocuments = readStarsFromMySQL();
 //        writeStarsToMongo(starsDocuments);
 
-//        Map<String, Object> moviesDocuments = readMoviesFromMySQL();
-//        writeMoviesToMongo(moviesDocuments);
+//        List<Document> moviesDocument = readMoviesFromMySQL();
+//        writeMoviesToMongo(moviesDocument);
 
 //        List<Document> customersDocument = readCustomersFromMySQL();
 //        writeMoviesToMongo(customersDocument);
@@ -63,19 +63,13 @@ public class MySQLToMongoConverter {
         writeSalesToMongo(salesDocuments);
     }
 
-    private static void writeMoviesToMongo(Map<String, Object> movieDocuments) {
+    private static void writeMoviesToMongo(List<Document> movieDocument) {
         try (MongoClient mongoClient = MongoClients.create(MONGO_URI)) {
             // This reuses the myNewDB database from the Mongo tutorial. You may want to create a better named database
             MongoDatabase myNewDB = mongoClient.getDatabase("moviedb");
             MongoCollection<Document> moviesCollection = myNewDB.getCollection("movies");
-            List<Document> moviedocs = (List<Document>) movieDocuments.get("movies");
-            moviesCollection.insertMany(moviedocs);
+            moviesCollection.insertMany(movieDocument);
             System.out.println("Inserted all movies in bulk");
-
-//            MongoCollection<Document> countersCollection = myNewDB.getCollection("counters");
-//            Document movieCounter = (Document) movieDocuments.get("movie_counter");
-//            countersCollection.insertOne(movieCounter);
-//            System.out.println("Inserted movie ID into counters collection");
         }
     }
 
@@ -112,10 +106,9 @@ public class MySQLToMongoConverter {
         }
     }
 
-    private static Map<String, Object> readMoviesFromMySQL() throws SQLException {
+    private static List<Document> readMoviesFromMySQL() throws SQLException {
         List<Document> moviesList = new ArrayList<>();
         Set<String> seenStars = new HashSet<>();
-        int maxMovieCount = 0;
         try (Connection connection = DriverManager.getConnection(MYSQL_URL, MYSQL_USER, MYSQL_PASS);
              Statement statement = connection.createStatement();
              ResultSet resultSet = statement.executeQuery(QUERY)) {
@@ -125,9 +118,6 @@ public class MySQLToMongoConverter {
             List<String> genres = new ArrayList<>();
             while (resultSet.next()) {
                 String movieId = resultSet.getString("movie_id");
-                String numericPart = movieId.substring(2);
-                int num = Integer.parseInt(numericPart);
-                if (num > maxMovieCount) maxMovieCount = num;
                 if (!movieId.equals(lastMovieId)) {
                     if (movieDoc != null) {
                         movieDoc.append("stars", stars)
@@ -150,6 +140,7 @@ public class MySQLToMongoConverter {
                 if (starId != null && !seenStars.contains(starId)) {
                     stars.add(new Document("star_id", starId)
                             .append("name", resultSet.getString("star_name"))
+                            .append("birth_year", resultSet.getObject("star_birth", Integer.class))
                             .append("movie_count", resultSet.getObject("movie_count", Integer.class)));
                     seenStars.add(starId);
                 }
@@ -164,12 +155,7 @@ public class MySQLToMongoConverter {
                 moviesList.add(movieDoc);
             }
             System.out.println("looked through all movie rows");
-            Document movieCounterDoc = new Document("_id", "movie_id")
-                    .append("seq", maxMovieCount);
-            Map<String, Object> result = new HashMap<>();
-            result.put("movies", moviesList);
-            result.put("movie_counter", movieCounterDoc);
-            return result;
+            return moviesList;
         }
     }
 

@@ -66,7 +66,7 @@ public class SingleMovieServlet extends HttpServlet {
 
         // Get a connection from dataSource and let resource manager close the connection after usage.
         try {
-            Document movie = moviesCollection.find(Filters.eq("movie_id", id)).first();
+            Document movie = moviesCollection.find(Filters.eq("_id", id)).first();
             if (movie == null) {
                 response.setStatus(404);
                 JsonObject err = new JsonObject();
@@ -76,7 +76,7 @@ public class SingleMovieServlet extends HttpServlet {
             }
             JsonObject jsonObject = new JsonObject();
 
-                String movieID = movie.getString("movie_id");  // db column name
+                String movieID = movie.getString("_id");  // db column name
                 String movieTitle = movie.getString("title");
                 int movieYear = movie.getInteger("year");
                 String movieDirector = movie.getString("director");
