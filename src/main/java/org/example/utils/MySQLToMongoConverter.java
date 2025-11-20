@@ -43,6 +43,18 @@ public class MySQLToMongoConverter {
             "SELECT * " +
             "FROM stars ";
 
+    private static final String CUSTOMERS_QUERY =
+            "SELECT id, first_name, last_name, credit_card_id, address, email, password " +
+                    "FROM customers";
+
+    private static final String CREDITCARDS_QUERY =
+            "SELECT id, first_name, last_name, expiration " +
+                    "FROM credit_cards";
+
+    private static final String EMPLOYEES_QUERY =
+            "SELECT email, password, fullname " +
+                    "FROM employees";
+
     public static void main(String[] args) throws SQLException {
 //        Map<String, Object> starsDocuments = readStarsFromMySQL();
 //        writeStarsToMongo(starsDocuments);
@@ -50,17 +62,17 @@ public class MySQLToMongoConverter {
 //        List<Document> moviesDocument = readMoviesFromMySQL();
 //        writeMoviesToMongo(moviesDocument);
 
-//        List<Document> customersDocument = readCustomersFromMySQL();
-//        writeMoviesToMongo(customersDocument);
-
-//        List<Document> creditCardsDocument = readCreditCardsFromMySQL();
-//        writeCreditCardsToMongo(creditCardsDocument);
+//        Map<String, Object> customersDocuments = readCustomersFromMySQL();
+//        writeCustomersToMongo(customersDocuments);
 //
-//        List<Document> employeesDocument = readEmployeesFromMySQL();
-//        writeEmployeesToMongo(employeesDocument);
+//        Map<String, Object> creditCardsDocuments = readCreditCardsFromMySQL();
+//        writeCreditCardsToMongo(creditCardsDocuments);
 //
-        Map<String, Object> salesDocuments = readSalesFromMySQL();
-        writeSalesToMongo(salesDocuments);
+//        Map<String, Object> employeesDocuments = readEmployeesFromMySQL();
+//        writeEmployeesToMongo(employeesDocuments);
+//
+//        Map<String, Object> salesDocuments = readSalesFromMySQL();
+//        writeSalesToMongo(salesDocuments);
     }
 
     private static void writeMoviesToMongo(List<Document> movieDocument) {
@@ -103,6 +115,39 @@ public class MySQLToMongoConverter {
             counterCollection.insertOne(counterDoc);
 
             System.out.println("Inserted order ID into counters collection");
+        }
+    }
+
+    private static void writeCustomersToMongo(Map<String, Object> customersDocuments) {
+        try (MongoClient mongoClient = MongoClients.create(MONGO_URI)) {
+            MongoDatabase myNewDB = mongoClient.getDatabase("moviedb");
+            MongoCollection<Document> customersCollection = myNewDB.getCollection("customers");
+
+            List<Document> customers = (List<Document>) customersDocuments.get("customers");
+            customersCollection.insertMany(customers);
+            System.out.println("Inserted " + customers.size() + " customers");
+        }
+    }
+
+    private static void writeCreditCardsToMongo(Map<String, Object> creditCardDocuments) {
+        try (MongoClient mongoClient = MongoClients.create(MONGO_URI)) {
+            MongoDatabase myNewDB = mongoClient.getDatabase("moviedb");
+            MongoCollection<Document> creditCardsCollection = myNewDB.getCollection("credit_cards");
+
+            List<Document> creditCards = (List<Document>) creditCardDocuments.get("credit_cards");
+            creditCardsCollection.insertMany(creditCards);
+            System.out.println("Inserted " + creditCards.size() + " credit cards");
+        }
+    }
+
+    private static void writeEmployeesToMongo(Map<String, Object> employeeDocuments) {
+        try (MongoClient mongoClient = MongoClients.create(MONGO_URI)) {
+            MongoDatabase myNewDB = mongoClient.getDatabase("moviedb");
+            MongoCollection<Document> employeesCollection = myNewDB.getCollection("employees");
+
+            List<Document> employees = (List<Document>) employeeDocuments.get("employees");
+            employeesCollection.insertMany(employees);
+            System.out.println("Inserted " + employees.size() + " employees");
         }
     }
 
@@ -236,4 +281,78 @@ public class MySQLToMongoConverter {
 
         return result;
     }
+
+    private static Map<String, Object> readCustomersFromMySQL() throws SQLException {
+        List<Document> customersList = new ArrayList<>();
+
+        try (Connection connection = DriverManager.getConnection(MYSQL_URL, MYSQL_USER, MYSQL_PASS);
+             Statement statement = connection.createStatement();
+             ResultSet rs = statement.executeQuery(CUSTOMERS_QUERY)) {
+
+            while (rs.next()) {
+                Document customerDoc = new Document("_id", rs.getInt("id"))
+                        .append("first_name", rs.getString("first_name"))
+                        .append("last_name", rs.getString("last_name"))
+                        .append("credit_card_id", rs.getString("credit_card_id"))
+                        .append("address", rs.getString("address"))
+                        .append("email", rs.getString("email"))
+                        .append("password", rs.getString("password"));
+                customersList.add(customerDoc);
+            }
+        }
+
+        System.out.println("Read " + customersList.size() + " customers from MySQL");
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("customers", customersList);
+        return result;
+    }
+
+    private static Map<String, Object> readCreditCardsFromMySQL() throws SQLException {
+        List<Document> creditCardsList = new ArrayList<>();
+
+        try (Connection connection = DriverManager.getConnection(MYSQL_URL, MYSQL_USER, MYSQL_PASS);
+             Statement statement = connection.createStatement();
+             ResultSet rs = statement.executeQuery(CREDITCARDS_QUERY)) {
+
+            while (rs.next()) {
+                Document ccDoc = new Document("_id", rs.getString("id"))
+                        .append("first_name", rs.getString("first_name"))
+                        .append("last_name", rs.getString("last_name"))
+                        .append("expiration", rs.getDate("expiration"));
+                creditCardsList.add(ccDoc);
+            }
+        }
+
+        System.out.println("Read " + creditCardsList.size() + " credit cards from MySQL");
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("credit_cards", creditCardsList);
+        return result;
+    }
+
+    private static Map<String, Object> readEmployeesFromMySQL() throws SQLException {
+        List<Document> employeesList = new ArrayList<>();
+
+        try (Connection connection = DriverManager.getConnection(MYSQL_URL, MYSQL_USER, MYSQL_PASS);
+             Statement statement = connection.createStatement();
+             ResultSet rs = statement.executeQuery(EMPLOYEES_QUERY)) {
+
+            while (rs.next()) {
+                Document employeeDoc = new Document("_id", rs.getString("email"))
+                        .append("email", rs.getString("email"))
+                        .append("password", rs.getString("password"))
+                        .append("fullname", rs.getString("fullname"));
+                employeesList.add(employeeDoc);
+            }
+        }
+
+        System.out.println("Read " + employeesList.size() + " employees from MySQL");
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("employees", employeesList);
+        return result;
+    }
+
+
 }
