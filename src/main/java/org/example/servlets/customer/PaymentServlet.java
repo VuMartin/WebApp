@@ -17,9 +17,11 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.bson.Document;
 
+import java.sql.Date;
 import java.time.LocalDate;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -53,51 +55,49 @@ public class PaymentServlet extends HttpServlet {
         String firstName = request.getParameter("firstName");
         String lastName = request.getParameter("lastName");
         String cardNumber = request.getParameter("cardNumber");
-        String expiration = request.getParameter("expiration");
+        String expStr = request.getParameter("expiration"); // "2005-11-01"
+        java.sql.Date expiration = java.sql.Date.valueOf(expStr);
         HttpSession session = request.getSession(false);
-//        if (session == null) {
-//            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Please log in first.");
-//            return;
-//        }
-//
-//        Integer customerID = (Integer) session.getAttribute("customerID");
-        int customerID = 777;
-//        if (customerID == null) {
-//            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Please log in first.");
-//            return;
-//        }
+        if (session == null) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Please log in first.");
+            return;
+        }
+
+        Integer customerID = (Integer) session.getAttribute("customerID");
+        if (customerID == null) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Please log in first.");
+            return;
+        }
         JsonObject responseJson = new JsonObject();
         try {
             // 1. Verify credit card exists
-//            Document card = creditCardsCollection.find(Filters.and(
-//                    Filters.eq("first_name", firstName),
-//                    Filters.eq("last_name", lastName),
-//                    Filters.eq("id", cardNumber),
-//                    Filters.eq("expiration", expiration)
-//            )).first();
-//            if (card != null) {
+            Document card = creditCardsCollection.find(Filters.and(
+                    Filters.eq("first_name", firstName),
+                    Filters.eq("last_name", lastName),
+                    Filters.eq("_id", cardNumber),
+                    Filters.eq("expiration", expiration)
+            )).first();
+            if (card != null) {
                 Map<String, CartItem> cart = (Map<String, CartItem>) session.getAttribute("cart");
-                    List<Document> items = new ArrayList<>();
-                    for (CartItem item : cart.values()) {
-                        items.add(new Document("movie_id", item.getMovieID())
-                                .append("quantity", item.getQuantity()));
-                    }
-                    int orderNumber = getNextOrderID();
-                    Document order = new Document("_id", orderNumber)
-                            .append("customer_id", customerID)
-                            .append("sale_date", LocalDate.now().toString())
-                            .append("items", items);
+                List<Document> items = new ArrayList<>();
+                for (CartItem item : cart.values()) {
+                    items.add(new Document("movie_id", item.getMovieID())
+                            .append("quantity", item.getQuantity()));
+                }
+                int orderNumber = getNextOrderID();
+                Document order = new Document("_id", orderNumber)
+                        .append("customer_id", customerID)
+                        .append("sale_date", LocalDate.now().toString())
+                        .append("items", items);
 
-                    salesCollection.insertOne(order);
-                session.setAttribute("firstName", "Martin");
+                salesCollection.insertOne(order);
                 session.setAttribute("orderNumber", orderNumber);
-            session.setAttribute("creditCardID", "777");
                 responseJson.addProperty("status", "success");
                 responseJson.addProperty("message", "Payment processed successfully!");
-//            } else {
-//                responseJson.addProperty("status", "fail");
-//                responseJson.addProperty("message", "Invalid payment information. Please try again.");
-//            }
+            } else {
+                responseJson.addProperty("status", "fail");
+                responseJson.addProperty("message", "Invalid payment information. Please try again.");
+            }
             out.write(responseJson.toString());
             response.setStatus(200);
         } catch (Exception e) {

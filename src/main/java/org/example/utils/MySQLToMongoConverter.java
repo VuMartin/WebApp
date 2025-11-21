@@ -62,11 +62,11 @@ public class MySQLToMongoConverter {
 //        List<Document> moviesDocument = readMoviesFromMySQL();
 //        writeMoviesToMongo(moviesDocument);
 
-//        Map<String, Object> customersDocuments = readCustomersFromMySQL();
+//        List<Document> customersDocuments = readCustomersFromMySQL();
 //        writeCustomersToMongo(customersDocuments);
 //
-//        Map<String, Object> creditCardsDocuments = readCreditCardsFromMySQL();
-//        writeCreditCardsToMongo(creditCardsDocuments);
+        List<Document> creditCardsDocuments = readCreditCardsFromMySQL();
+        writeCreditCardsToMongo(creditCardsDocuments);
 //
 //        Map<String, Object> employeesDocuments = readEmployeesFromMySQL();
 //        writeEmployeesToMongo(employeesDocuments);
@@ -118,25 +118,22 @@ public class MySQLToMongoConverter {
         }
     }
 
-    private static void writeCustomersToMongo(Map<String, Object> customersDocuments) {
+    private static void writeCustomersToMongo(List<Document> customersDocuments) {
         try (MongoClient mongoClient = MongoClients.create(MONGO_URI)) {
             MongoDatabase myNewDB = mongoClient.getDatabase("moviedb");
             MongoCollection<Document> customersCollection = myNewDB.getCollection("customers");
-
-            List<Document> customers = (List<Document>) customersDocuments.get("customers");
-            customersCollection.insertMany(customers);
-            System.out.println("Inserted " + customers.size() + " customers");
+            customersCollection.insertMany(customersDocuments);
+            System.out.println("Inserted " + customersDocuments.size() + " customers");
         }
     }
 
-    private static void writeCreditCardsToMongo(Map<String, Object> creditCardDocuments) {
+    private static void writeCreditCardsToMongo(List<Document> creditCardDocuments) {
         try (MongoClient mongoClient = MongoClients.create(MONGO_URI)) {
             MongoDatabase myNewDB = mongoClient.getDatabase("moviedb");
             MongoCollection<Document> creditCardsCollection = myNewDB.getCollection("credit_cards");
 
-            List<Document> creditCards = (List<Document>) creditCardDocuments.get("credit_cards");
-            creditCardsCollection.insertMany(creditCards);
-            System.out.println("Inserted " + creditCards.size() + " credit cards");
+            creditCardsCollection.insertMany(creditCardDocuments);
+            System.out.println("Inserted " + creditCardDocuments.size() + " credit cards");
         }
     }
 
@@ -282,7 +279,7 @@ public class MySQLToMongoConverter {
         return result;
     }
 
-    private static Map<String, Object> readCustomersFromMySQL() throws SQLException {
+    private static List<Document> readCustomersFromMySQL() throws SQLException {
         List<Document> customersList = new ArrayList<>();
 
         try (Connection connection = DriverManager.getConnection(MYSQL_URL, MYSQL_USER, MYSQL_PASS);
@@ -300,15 +297,10 @@ public class MySQLToMongoConverter {
                 customersList.add(customerDoc);
             }
         }
-
-        System.out.println("Read " + customersList.size() + " customers from MySQL");
-
-        Map<String, Object> result = new HashMap<>();
-        result.put("customers", customersList);
-        return result;
+        return customersList;
     }
 
-    private static Map<String, Object> readCreditCardsFromMySQL() throws SQLException {
+    private static List<Document> readCreditCardsFromMySQL() throws SQLException {
         List<Document> creditCardsList = new ArrayList<>();
 
         try (Connection connection = DriverManager.getConnection(MYSQL_URL, MYSQL_USER, MYSQL_PASS);
@@ -323,12 +315,7 @@ public class MySQLToMongoConverter {
                 creditCardsList.add(ccDoc);
             }
         }
-
-        System.out.println("Read " + creditCardsList.size() + " credit cards from MySQL");
-
-        Map<String, Object> result = new HashMap<>();
-        result.put("credit_cards", creditCardsList);
-        return result;
+        return creditCardsList;
     }
 
     private static Map<String, Object> readEmployeesFromMySQL() throws SQLException {
