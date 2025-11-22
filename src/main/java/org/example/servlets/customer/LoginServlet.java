@@ -15,10 +15,8 @@ import jakarta.servlet.http.HttpSession;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
-import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.sql.*;
 import main.java.org.example.utils.recaptcha.RecaptchaVerify;
 import org.bson.Document;
 import org.jasypt.util.password.StrongPasswordEncryptor;

@@ -17,7 +17,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.bson.Document;
 
-import java.sql.Date;
 import java.time.LocalDate;
 import java.io.IOException;
 import java.io.PrintWriter;

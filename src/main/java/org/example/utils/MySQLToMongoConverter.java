@@ -56,23 +56,17 @@ public class MySQLToMongoConverter {
                     "FROM employees";
 
     public static void main(String[] args) throws SQLException {
-//        Map<String, Object> starsDocuments = readStarsFromMySQL();
-//        writeStarsToMongo(starsDocuments);
+        List<Document> moviesDocument = readMoviesFromMySQL();
+        writeMoviesToMongo(moviesDocument);
 
-//        List<Document> moviesDocument = readMoviesFromMySQL();
-//        writeMoviesToMongo(moviesDocument);
+        List<Document> customersDocuments = readCustomersFromMySQL();
+        writeCustomersToMongo(customersDocuments);
 
-//        List<Document> customersDocuments = readCustomersFromMySQL();
-//        writeCustomersToMongo(customersDocuments);
-//
         List<Document> creditCardsDocuments = readCreditCardsFromMySQL();
         writeCreditCardsToMongo(creditCardsDocuments);
-//
-//        Map<String, Object> employeesDocuments = readEmployeesFromMySQL();
-//        writeEmployeesToMongo(employeesDocuments);
-//
-//        Map<String, Object> salesDocuments = readSalesFromMySQL();
-//        writeSalesToMongo(salesDocuments);
+
+        Map<String, Object> salesDocuments = readSalesFromMySQL();
+        writeSalesToMongo(salesDocuments);
     }
 
     private static void writeMoviesToMongo(List<Document> movieDocument) {
