@@ -56,7 +56,8 @@ public class PaymentServlet extends HttpServlet {
         String lastName = request.getParameter("lastName");
         String cardNumber = request.getParameter("cardNumber");
         String expStr = request.getParameter("expiration"); // "2005-11-01"
-        java.sql.Date expiration = java.sql.Date.valueOf(expStr);
+        LocalDate localDate = LocalDate.parse(expStr);
+        java.util.Date expiration = java.util.Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
         HttpSession session = request.getSession(false);
         if (session == null) {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Please log in first.");
