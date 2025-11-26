@@ -19,12 +19,11 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
-
 // http://localhost:8080/2025_fall_cs_122b_marjoe_war/api/topmovies
 // http://localhost:8080/2025_fall_cs_122b_marjoe_war/html/customer/movies.html
 // This annotation maps this Java Servlet Class to a URL
-@WebServlet(name = "MovieListServlet", urlPatterns = "/api/topmovies")
-public class MovieListServlet extends HttpServlet {
+@WebServlet(name = "KeywordSearchServlet", urlPatterns = "/api/keywordsearch")
+public class KeywordSearchServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
 
     // Create a dataSource which registered in web.
@@ -82,22 +81,6 @@ public class MovieListServlet extends HttpServlet {
         void set(HttpSession session, T value) {
             session.setAttribute(name, value);
         }
-    }
-
-    private String convertToBooleanMode(String query) {
-        if (query == null || query.trim().isEmpty()) {
-            return "";
-        }
-
-        String[] tokens = query.trim().split("\\s+");
-        StringBuilder booleanQuery = new StringBuilder();
-
-        for (String token : tokens) {
-            if (!token.isEmpty()) {
-                booleanQuery.append("+").append(token).append("* ");
-            }
-        }
-        return booleanQuery.toString().trim();
     }
 
     /**
@@ -200,7 +183,7 @@ public class MovieListServlet extends HttpServlet {
                             "WHERE 1=1 "
             );
 
-            if (title != null && !title.isEmpty()) topMoviesQuery.append("AND MATCH(m.title) AGAINST(? IN BOOLEAN MODE) ");
+            if (title != null && !title.isEmpty()) topMoviesQuery.append("AND m.title LIKE ? ");
             if (year != null && !year.isEmpty()) topMoviesQuery.append("AND m.year = ? ");
             if (director != null && !director.isEmpty()) topMoviesQuery.append("AND m.director LIKE ? ");
             if (genre != null && !genre.isEmpty()) topMoviesQuery.append(
@@ -229,10 +212,7 @@ public class MovieListServlet extends HttpServlet {
 
             PreparedStatement statement = conn.prepareStatement(topMoviesQuery.toString());
             int index = 1;
-            if (title != null && !title.isEmpty()) {
-                String booleanQuery = convertToBooleanMode(title);
-                statement.setString(index++, booleanQuery);
-            }
+            if (title != null && !title.isEmpty()) statement.setString(index++, "%" + title + "%");
             if (year != null && !year.isEmpty()) statement.setString(index++, year);
             if (director != null && !director.isEmpty()) statement.setString(index++, "%" + director + "%");
             if (genre != null && !genre.isEmpty()) statement.setString(index++, genre);
@@ -252,7 +232,7 @@ public class MovieListServlet extends HttpServlet {
                             "LEFT JOIN stars_in_movies sm ON m.id = sm.movie_id " +
                             "LEFT JOIN stars s ON sm.star_id = s.id " +
                             "WHERE 1=1 " +
-                            (title != null && !title.isEmpty() ? "AND MATCH(m.title) AGAINST(? IN BOOLEAN MODE) " : "") +
+                            (title != null && !title.isEmpty() ? "AND m.title LIKE ? " : "") +
                             (year != null && !year.isEmpty() ? "AND m.year = ? " : "") +
                             (director != null && !director.isEmpty() ? "AND m.director LIKE ? " : "") +
                             (genre != null && !genre.isEmpty() ? "AND g.name = ? " : "") +
@@ -261,10 +241,7 @@ public class MovieListServlet extends HttpServlet {
 
             PreparedStatement countStmt = conn.prepareStatement(countQuery);
             index = 1;
-            if (title != null && !title.isEmpty()) {
-                String booleanQuery = convertToBooleanMode(title);
-                countStmt.setString(index++, booleanQuery);
-            }
+            if (title != null && !title.isEmpty()) countStmt.setString(index++, "%" + title + "%");
             if (year != null && !year.isEmpty()) countStmt.setString(index++, year);
             if (director != null && !director.isEmpty()) countStmt.setString(index++, "%" + director + "%");
             if (genre != null && !genre.isEmpty()) countStmt.setString(index++, genre);
