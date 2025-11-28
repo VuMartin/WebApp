@@ -84,22 +84,6 @@ public class MovieListServlet extends HttpServlet {
         }
     }
 
-    private String convertToBooleanMode(String query) {
-        if (query == null || query.trim().isEmpty()) {
-            return "";
-        }
-
-        String[] tokens = query.trim().split("\\s+");
-        StringBuilder booleanQuery = new StringBuilder();
-
-        for (String token : tokens) {
-            if (!token.isEmpty()) {
-                booleanQuery.append("+").append(token).append("* ");
-            }
-        }
-        return booleanQuery.toString().trim();
-    }
-
     /**
      * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
      */
@@ -128,13 +112,13 @@ public class MovieListServlet extends HttpServlet {
             director = directorAttr.get(session);
             genre = genreAttr.get(session);
             star = starAttr.get(session);
-            pageSize = pageSizeAttr.get(session);
-            offset = offsetAttr.get(session);
-            sortPrimaryField = sortPrimaryFieldAttr.get(session);
-            sortPrimaryOrder = sortPrimaryOrderAttr.get(session);
-            sortSecondaryField = sortSecondaryFieldAttr.get(session);
-            sortSecondaryOrder = sortSecondaryOrderAttr.get(session);
-            currentPage = currPageAttr.get(session);
+            pageSize = (pageSizeAttr.get(session) != null) ? pageSizeAttr.get(session) : 10;
+            offset = (offsetAttr.get(session) != null) ? offsetAttr.get(session) : 0;
+            currentPage = (currPageAttr.get(session) != null) ? currPageAttr.get(session) : 1;
+            sortPrimaryField  = (sortPrimaryFieldAttr.get(session) != null) ? sortPrimaryFieldAttr.get(session) : "rating";
+            sortPrimaryOrder  = (sortPrimaryOrderAttr.get(session) != null) ? sortPrimaryOrderAttr.get(session) : "desc";
+            sortSecondaryField = (sortSecondaryFieldAttr.get(session) != null) ? sortSecondaryFieldAttr.get(session) : "title";
+            sortSecondaryOrder = (sortSecondaryOrderAttr.get(session) != null) ? sortSecondaryOrderAttr.get(session) : "asc";
             prefix = prefixAttr.get(session);
         } else {
             title = request.getParameter("title");
@@ -230,7 +214,7 @@ public class MovieListServlet extends HttpServlet {
             PreparedStatement statement = conn.prepareStatement(topMoviesQuery.toString());
             int index = 1;
             if (title != null && !title.isEmpty()) {
-                String booleanQuery = convertToBooleanMode(title);
+                String booleanQuery = SearchUtils.convertToBooleanMode(title);
                 statement.setString(index++, booleanQuery);
             }
             if (year != null && !year.isEmpty()) statement.setString(index++, year);
@@ -262,7 +246,7 @@ public class MovieListServlet extends HttpServlet {
             PreparedStatement countStmt = conn.prepareStatement(countQuery);
             index = 1;
             if (title != null && !title.isEmpty()) {
-                String booleanQuery = convertToBooleanMode(title);
+                String booleanQuery = SearchUtils.convertToBooleanMode(title);
                 countStmt.setString(index++, booleanQuery);
             }
             if (year != null && !year.isEmpty()) countStmt.setString(index++, year);

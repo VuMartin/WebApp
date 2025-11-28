@@ -39,6 +39,40 @@
     font-size: 16px;
 }
 
+.autocomplete-suggestions {
+    margin-top: 7px;
+    margin-left: -3px;
+    border: 1px solid #ccc;
+    background: white;
+    cursor: pointer;
+    overflow: auto;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    min-width: 218px;
+    max-height: 150px;
+    z-index: 1000;
+}
+
+.autocomplete-suggestion {
+    padding: 12px 16px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-bottom: 1px solid #eee;
+    font-size: 14px;
+    color: #333;
+    transition: background-color 0.2s;
+}
+
+.autocomplete-suggestion:hover {
+    background-color: #007bff;
+    color: white;
+}
+
+.autocomplete-selected {
+    background-color: #007bff;
+    color: white;
+}
+
 #search-options {
     /*position: absolute;*/
     top: 100%; /* directly below the button */
