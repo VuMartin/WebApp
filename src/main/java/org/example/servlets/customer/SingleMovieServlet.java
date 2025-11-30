@@ -47,7 +47,8 @@ public class SingleMovieServlet extends HttpServlet {
      * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
      */
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-
+        long startTime = System.nanoTime();
+        long totalDbTime = 0;
         response.setContentType("application/json"); // Response mime type
 
         // Retrieve parameter id from url request.
@@ -62,7 +63,10 @@ public class SingleMovieServlet extends HttpServlet {
 
         // Get a connection from dataSource and let resource manager close the connection after usage.
         try {
+            long dbStart1 = System.nanoTime();
             Document movie = moviesCollection.find(Filters.eq("_id", id)).first();
+            long dbEnd1 = System.nanoTime();
+            totalDbTime += (dbEnd1 - dbStart1);
             if (movie == null) {
                 response.setStatus(404);
                 JsonObject err = new JsonObject();
@@ -135,6 +139,9 @@ public class SingleMovieServlet extends HttpServlet {
             // Set response status to 500 (Internal Server Error)
             response.setStatus(500);
         } finally {
+            long endTime = System.nanoTime();
+            long totalTime = endTime - startTime;
+            Utils.writeTimingToFile(totalTime, totalDbTime, "SingleMovieServlet-Mongo", id);
             out.close();
         }
     }

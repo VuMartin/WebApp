@@ -97,7 +97,8 @@ public class MovieListServlet extends HttpServlet {
      * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
      */
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-
+        long startTime = System.nanoTime();
+        long totalDbTime = 0;
         response.setContentType("application/json"); // Response mime type
         HttpSession session = request.getSession();
         String title;
@@ -186,7 +187,7 @@ public class MovieListServlet extends HttpServlet {
             String primaryDir   = "asc".equals(sortPrimaryOrder) ? "ASC" : "DESC";
             String secondaryCol = "title".equals(sortSecondaryField) ? "title" : "rating";
             String secondaryDir = "desc".equals(sortSecondaryOrder) ? "DESC" : "ASC";
-
+            long dbStart1 = System.nanoTime();
             FindIterable<Document> movieResults = moviesCollection.find(moviesFilter)
                     .sort(Sorts.orderBy(
                             primaryDir.equals("ASC") ? Sorts.ascending(primaryCol) : Sorts.descending(primaryCol),
@@ -194,6 +195,8 @@ public class MovieListServlet extends HttpServlet {
                     ))
                     .skip(offset)
                     .limit(pageSize);
+            long dbEnd1 = System.nanoTime();
+            totalDbTime += (dbEnd1 - dbStart1);
 
             filters = new ArrayList<>();
             if (title != null && !title.isEmpty())
@@ -272,6 +275,9 @@ public class MovieListServlet extends HttpServlet {
             // Set response status to 500 (Internal Server Error)
             response.setStatus(500);
         } finally {
+            long endTime = System.nanoTime();
+            long totalTime = endTime - startTime;
+            Utils.writeTimingToFile(totalTime, totalDbTime, "SingleMovieServlet-Mongo", title);
             out.close();
         }
     }
