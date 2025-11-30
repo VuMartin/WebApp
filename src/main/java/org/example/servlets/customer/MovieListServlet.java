@@ -88,7 +88,8 @@ public class MovieListServlet extends HttpServlet {
      * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
      */
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-
+        long startTime = System.nanoTime();
+        long totalDbTime = 0;
         response.setContentType("application/json"); // Response mime type
         HttpSession session = request.getSession();
         String title;
@@ -157,7 +158,10 @@ public class MovieListServlet extends HttpServlet {
         PrintWriter out = response.getWriter();
 
         // Get a connection from dataSource and let resource manager close the connection after usage.
+        long dbStartConn = System.nanoTime();
         try (Connection conn = dataSource.getConnection()) {
+            long dbEndConn = System.nanoTime();
+            totalDbTime += (dbEndConn - dbStartConn);
 
             StringBuilder topMoviesQuery = new StringBuilder(
                     "SELECT m.id, m.title, m.year, m.director, " +
@@ -211,10 +215,11 @@ public class MovieListServlet extends HttpServlet {
                     .append(" ")
                     .append("LIMIT ? OFFSET ?");
 
+            long dbStart1 = System.nanoTime();
             PreparedStatement statement = conn.prepareStatement(topMoviesQuery.toString());
             int index = 1;
             if (title != null && !title.isEmpty()) {
-                String booleanQuery = SearchUtils.convertToBooleanMode(title);
+                String booleanQuery = Utils.convertToBooleanMode(title);
                 statement.setString(index++, booleanQuery);
             }
             if (year != null && !year.isEmpty()) statement.setString(index++, year);
@@ -226,6 +231,8 @@ public class MovieListServlet extends HttpServlet {
             statement.setInt(index, offset);
 
             ResultSet rs = statement.executeQuery();
+            long dbEnd1 = System.nanoTime();
+            totalDbTime += (dbEnd1 - dbStart1);
 
             String countQuery =
                     "SELECT COUNT(DISTINCT m.id) AS total " +
@@ -243,10 +250,11 @@ public class MovieListServlet extends HttpServlet {
                             (star != null && !star.isEmpty() ? "AND s.name LIKE ? " : "") +
                             (prefix != null && !prefix.isEmpty() ? "AND m.title LIKE ? " : "");
 
+            long dbStart2 = System.nanoTime();
             PreparedStatement countStmt = conn.prepareStatement(countQuery);
             index = 1;
             if (title != null && !title.isEmpty()) {
-                String booleanQuery = SearchUtils.convertToBooleanMode(title);
+                String booleanQuery = Utils.convertToBooleanMode(title);
                 countStmt.setString(index++, booleanQuery);
             }
             if (year != null && !year.isEmpty()) countStmt.setString(index++, year);
@@ -256,6 +264,8 @@ public class MovieListServlet extends HttpServlet {
             if (prefix != null && !prefix.isEmpty()) countStmt.setString(index, prefix + "%");
 
             ResultSet countRs = countStmt.executeQuery();
+            long dbEnd2 = System.nanoTime();
+            totalDbTime += (dbEnd2 - dbStart2);
             int totalCount = 0;
             if (countRs.next()) {
                 totalCount = countRs.getInt("total");
@@ -317,6 +327,10 @@ public class MovieListServlet extends HttpServlet {
             // Set response status to 500 (Internal Server Error)
             response.setStatus(500);
         } finally {
+            long endTime = System.nanoTime();
+            long totalTime = endTime - startTime;
+            long dbTime = totalDbTime;
+            Utils.writeTimingToFile(totalTime, dbTime, "MovieListServlet", title);
             out.close();
         }
 

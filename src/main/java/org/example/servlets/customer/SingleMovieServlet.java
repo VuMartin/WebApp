@@ -4,45 +4,33 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonArray;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
-
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoClients;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.Filters;
 import jakarta.servlet.ServletConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.bson.Document;
-
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.util.List;
 
 // http://localhost:8080/2025_fall_cs_122b_marjoe_war/api/movie
 // http://localhost:8080/2025_fall_cs_122b_marjoe_war/api/movie?id=tt0112912
-// http://localhost:8080/2025_fall_cs_122b_marjoe_war/html/customer/movie.html?id=tt0112912
+// http://localhost:8080/2025_fall_cs_122b_marjoe_war/movie.html
 // This annotation maps this Java Servlet Class to a URL
 @WebServlet(name = "SingleMovieServlet", urlPatterns = "/api/movie")
 public class SingleMovieServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
 
-    private MongoClient mongoClient;
-    private MongoDatabase database;
-    private MongoCollection<Document> moviesCollection;
+    // Create a dataSource which registered in web.
+    private DataSource dataSource;
 
     public void init(ServletConfig config) {
         try {
-            mongoClient = MongoClients.create("mongodb://mytestuser:My6$Password@localhost:27017/moviedb?authSource=moviedb");
-            database = mongoClient.getDatabase("moviedb");
-            moviesCollection = database.getCollection("movies");
-        } catch (Exception e) {
+            dataSource = (DataSource) new InitialContext().lookup("java:comp/env/jdbc/moviedb");
+        } catch (NamingException e) {
             e.printStackTrace();
         }
     }
@@ -51,7 +39,8 @@ public class SingleMovieServlet extends HttpServlet {
      * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
      */
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-
+        long startTime = System.nanoTime();
+        long totalDbTime = 0;
         response.setContentType("application/json"); // Response mime type
 
         // Retrieve parameter id from url request.
@@ -65,23 +54,39 @@ public class SingleMovieServlet extends HttpServlet {
         PrintWriter out = response.getWriter();
 
         // Get a connection from dataSource and let resource manager close the connection after usage.
-        try {
-            Document movie = moviesCollection.find(Filters.eq("_id", id)).first();
-            if (movie == null) {
-                response.setStatus(404);
-                JsonObject err = new JsonObject();
-                err.addProperty("errorMessage", "Movie not found");
-                out.write(err.toString());
-                return;
-            }
+        long dbStartConn = System.nanoTime();
+        try (Connection conn = dataSource.getConnection()) {
+            long dbEndConn = System.nanoTime();
+            totalDbTime += (dbEndConn - dbStartConn);
+            String movieQuery =
+                    "SELECT m.id, m.title, m.year, m.director, MAX(r.rating) AS rating " +
+                            "FROM movies m " +
+                            "LEFT JOIN ratings r ON m.id = r.movie_id " +
+                            "WHERE m.id = ? " +
+                            "GROUP BY m.id";
+
+            long dbStart1 = System.nanoTime();
+            // Declare our statement
+            PreparedStatement statement = conn.prepareStatement(movieQuery);
+            // Set the parameter represented by "?" in the query to the id we get from url,
+            // num 1 indicates the first "?" in the query
+            statement.setString(1, id);
+
+            // Perform the query
+            ResultSet rs = statement.executeQuery();
+            long dbEnd1 = System.nanoTime();
+            totalDbTime += (dbEnd1 - dbStart1);
+
             JsonObject jsonObject = new JsonObject();
 
-                String movieID = movie.getString("_id");  // db column name
-                String movieTitle = movie.getString("title");
-                int movieYear = movie.getInteger("year");
-                String movieDirector = movie.getString("director");
-                Double ratingNum = movie.getDouble("rating");
-                String rating = ratingNum != null ? String.format("%.2f", ratingNum) : "N/A";
+            if (rs.next()) {
+                // get a movie from result set
+                String movieID = rs.getString("id");  // db column name
+                String movieTitle = rs.getString("title");
+                String movieYear = rs.getString("year");
+                String movieDirector = rs.getString("director");
+                String rating = rs.getString("rating");
+                if (rating == null) rating = "N/A";
 
                 // Create a JsonObject based on the data we retrieve from rs
                 jsonObject.addProperty("movieID", movieID);
@@ -89,35 +94,66 @@ public class SingleMovieServlet extends HttpServlet {
                 jsonObject.addProperty("movieYear", movieYear);
                 jsonObject.addProperty("movieDirector", movieDirector);
                 jsonObject.addProperty("movieRating", rating);
+            }
+            rs.close();
+            statement.close();
 
             JsonArray genreArr = new JsonArray();
-            List<String> genres = (List<String>) movie.get("genres");
-            if (genres != null) {
-                genres.sort(String::compareTo); // ascending by name
-                for (String g : genres) {
-                    JsonObject gObj = new JsonObject();
-                    gObj.addProperty("name", g);
-                    genreArr.add(gObj);
-                }
+
+            String sqlGenres =
+                    "SELECT g.id, g.name " +
+                            "FROM genres g " +
+                            "JOIN genres_in_movies gim ON gim.genre_id = g.id " +
+                            "WHERE gim.movie_id = ? " +
+                            "ORDER BY g.name ASC";
+            long dbStart2 = System.nanoTime();
+            PreparedStatement psGenres = conn.prepareStatement(sqlGenres);
+            psGenres.setString(1, id);
+
+            ResultSet rs2 = psGenres.executeQuery();
+            long dbEnd2 = System.nanoTime();
+            totalDbTime += (dbEnd2 - dbStart2);
+            while (rs2.next()) {
+                JsonObject g = new JsonObject();
+                g.addProperty("id", rs2.getInt("id"));
+                g.addProperty("name", rs2.getString("name"));
+                genreArr.add(g);
             }
+            rs2.close();
+            psGenres.close();
+
             jsonObject.add("movieGenres", genreArr);
 
+// --- STARS (by movie_count DESC, then name ASC) ---
             JsonArray starArr = new JsonArray();
-            List<Document> stars = (List<Document>) movie.get("stars");
-            if (stars != null) {
-                // Sort by movie_count DESC, then name ASC
-                stars.sort((a, b) -> {
-                    int cmp = Integer.compare(b.getInteger("movie_count", 0), a.getInteger("movie_count", 0));
-                    return cmp!= 0 ? cmp : a.getString("name").compareTo(b.getString("name"));
-                });
 
-                for (Document s : stars) {
-                    JsonObject sObj = new JsonObject();
-                    sObj.addProperty("id", s.getString("star_id"));
-                    sObj.addProperty("name", s.getString("name"));
-                    starArr.add(sObj);
-                }
+            String sqlStars =
+                    "SELECT s.id, s.name, cnt.movie_count " +
+                            "FROM stars s " +
+                            "JOIN stars_in_movies sim ON sim.star_id = s.id " +
+                            "JOIN ( " +
+                            "  SELECT star_id, COUNT(*) AS movie_count " +
+                            "  FROM stars_in_movies " +
+                            "  GROUP BY star_id " +
+                            ") AS cnt ON cnt.star_id = s.id " +
+                            "WHERE sim.movie_id = ? " +
+                            "ORDER BY cnt.movie_count DESC, s.name ASC";
+            long dbStart3 = System.nanoTime();
+            PreparedStatement psStars = conn.prepareStatement(sqlStars);
+            psStars.setString(1, id);
+
+            ResultSet rs3 = psStars.executeQuery();
+            long dbEnd3 = System.nanoTime();
+            totalDbTime += (dbEnd3 - dbStart3);
+            while (rs3.next()) {
+                JsonObject s = new JsonObject();
+                s.addProperty("id", rs3.getString("id"));
+                s.addProperty("name", rs3.getString("name"));
+                s.addProperty("movieCount", rs3.getInt("movie_count"));
+                starArr.add(s);
             }
+            rs3.close();
+            psStars.close();
 
             jsonObject.add("movieStars", starArr);
 
@@ -139,13 +175,14 @@ public class SingleMovieServlet extends HttpServlet {
             // Set response status to 500 (Internal Server Error)
             response.setStatus(500);
         } finally {
+            long endTime = System.nanoTime();
+            long totalTime = endTime - startTime;
+            long dbTime = totalDbTime;
+            Utils.writeTimingToFile(totalTime, dbTime, "SingleMovieServlet", id);
             out.close();
         }
-    }
-    @Override
-    public void destroy() {
-        if (mongoClient != null) {
-            mongoClient.close();
-        }
+
+        // Always remember to close db connection after usage. Here it's done by try-with-resources
+
     }
 }

@@ -51,7 +51,7 @@ public class AutoCompleteServlet extends HttpServlet {
                     "LIMIT 10";
 
             PreparedStatement statement = conn.prepareStatement(sql);
-            String booleanQuery = SearchUtils.convertToBooleanMode(query);
+            String booleanQuery = Utils.convertToBooleanMode(query);
             statement.setString(1, booleanQuery);
 
             ResultSet rs = statement.executeQuery();
