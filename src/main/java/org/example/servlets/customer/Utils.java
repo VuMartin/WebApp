@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 public class Utils {
 
@@ -15,10 +18,17 @@ public class Utils {
         String[] tokens = query.trim().split("\\s+");
         StringBuilder booleanQuery = new StringBuilder();
 
+        Set<String> stopWords = new HashSet<>(Arrays.asList(
+                "a", "an", "the", "la", "le", "el", "del", "de", "y", "and", "of", "-", "+"
+        ));
+
         for (String token : tokens) {
-            if (!token.isEmpty()) {
-                booleanQuery.append("+").append(token).append("* ");
+            token = token.toLowerCase();
+            if (token.isEmpty() || stopWords.contains(token)) {
+                continue;
             }
+
+            booleanQuery.append("+").append(token).append("* ");
         }
 
         return booleanQuery.toString().trim();
@@ -33,7 +43,7 @@ public class Utils {
             String logLine = String.format("%s,%s,%d,%d,%d%n",
                     servletName, safeIdentifier, System.currentTimeMillis(), totalTime, dbTime);
 
-            Files.write(Paths.get("/tmp/timing.log"),
+            Files.write(Paths.get("/tmp/MySQLtiming.log"),
                     logLine.getBytes(),
                     StandardOpenOption.CREATE,
                     StandardOpenOption.APPEND);
