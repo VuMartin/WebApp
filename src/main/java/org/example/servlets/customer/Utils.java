@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,13 +15,24 @@ public class Utils {
     public static Document convertToMongoText(String query) {
         if (query == null || query.isEmpty()) return null;
 
-        String[] tokens = query.trim().split("\\s+");
+        String cleanedQuery = query.replace("-", " ");
+
+        String[] tokens = cleanedQuery.trim().split("\\s+");
         List<Document> mustList = new ArrayList<>();
 
         for (String token : tokens) {
-            mustList.add(new Document("autocomplete",
-                    new Document("query", token)
-                            .append("path", "title")));
+            if (!token.isEmpty()) {
+                token = token.toLowerCase();
+                token = Normalizer.normalize(token, Normalizer.Form.NFD)
+                        .replaceAll("\\p{M}", "");
+
+                token = token.replaceAll("[^a-zA-Z0-9.]", "");
+                if (!token.isEmpty()) {
+                    mustList.add(new Document("autocomplete",
+                            new Document("query", token)
+                                    .append("path", "title")));
+                }
+            }
         }
 
         // Build the $search stage
