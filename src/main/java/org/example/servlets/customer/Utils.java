@@ -18,17 +18,20 @@ public class Utils {
         String[] tokens = query.trim().split("\\s+");
         StringBuilder booleanQuery = new StringBuilder();
 
-        Set<String> stopWords = new HashSet<>(Arrays.asList(
-                "a", "an", "the", "la", "le", "el", "del", "de", "y", "and", "of", "-", "+"
-        ));
-
         for (String token : tokens) {
             token = token.toLowerCase();
-            if (token.isEmpty() || stopWords.contains(token)) {
-                continue;
-            }
 
-            booleanQuery.append("+").append(token).append("* ");
+            token = java.text.Normalizer.normalize(token, java.text.Normalizer.Form.NFD)
+                    .replaceAll("\\p{M}", "");
+
+            token = token.replace("-", " ");
+            token = token.replaceAll("^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$", "");
+
+            if (!token.isEmpty()) {
+                for (String t : token.split("\\s+")) {
+                    booleanQuery.append("+").append(t).append("* ");
+                }
+            }
         }
 
         return booleanQuery.toString().trim();
