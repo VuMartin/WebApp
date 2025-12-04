@@ -53,10 +53,16 @@ public class MovieListServlet extends HttpServlet {
 
     public void init(ServletConfig config) {
         try {
-            mongoClient = MongoClients.create("mongodb://mytestuser:My6$Password@localhost:27017/moviedb?authSource=moviedb");
+            mongoClient = MongoClients.create(
+                    "mongodb+srv://vum4_db_user:qnF25ATNIHOrgRSh@cluster0.n8qtory.mongodb.net/moviedb?retryWrites=true&w=majority"
+            );
+            //       mongodb+srv://vum4_db_user:qnF25ATNIHOrgRSh@cluster0.n8qtory.mongodb.net/?appName=Cluster0
             database = mongoClient.getDatabase("moviedb");
             moviesCollection = database.getCollection("movies");
         } catch (Exception e) {
+            mongoClient = MongoClients.create("mongodb://mytestuser:My6$Password@localhost:27017/moviedb?authSource=moviedb");
+            database = mongoClient.getDatabase("moviedb");
+            moviesCollection = database.getCollection("movies");
             e.printStackTrace();
         }
         this.nameAttribute = new SessionAttribute<>(String.class, "name");
@@ -167,9 +173,12 @@ public class MovieListServlet extends HttpServlet {
         PrintWriter out = response.getWriter();
         try {
             List<Bson> filters = new ArrayList<>();
+            List<Document> pipeline = new ArrayList<>();
 
-            if (title != null && !title.isEmpty())
-                filters.add(Filters.regex("title", ".*" + Pattern.quote(title) + ".*", "i"));
+            if (title != null && !title.isEmpty()) {
+                Document searchStage = Utils.convertToMongoText(title);
+                pipeline.add(searchStage);
+            }
             if (year != null && !year.isEmpty())
                 filters.add(Filters.eq("year", Integer.parseInt(year)));
             if (director != null && !director.isEmpty())
@@ -182,25 +191,31 @@ public class MovieListServlet extends HttpServlet {
             if (prefix != null && !prefix.isEmpty())
                 filters.add(Filters.regex("title", "^" + Pattern.quote(prefix), "i"));
 
-            Bson moviesFilter = filters.isEmpty() ? new Document() : Filters.and(filters);
-            String primaryCol   = "title".equals(sortPrimaryField) ? "title" : "rating";
-            String primaryDir   = "asc".equals(sortPrimaryOrder) ? "ASC" : "DESC";
+            if (!filters.isEmpty()) pipeline.add(new Document("$match", Filters.and(filters)));
+
+            String primaryCol = "title".equals(sortPrimaryField) ? "title" : "rating";
+            String primaryDir = "asc".equals(sortPrimaryOrder) ? "ASC" : "DESC";
             String secondaryCol = "title".equals(sortSecondaryField) ? "title" : "rating";
-            String secondaryDir = "desc".equals(sortSecondaryOrder) ? "DESC" : "ASC";
+            String secondaryDir = "desc".equals(sortSecondaryOrder) ? "DESC" : "ASC"; // corrected
+
+            Document sortStage = new Document("$sort",
+                    new Document(primaryCol, primaryDir.equals("ASC") ? 1 : -1)
+                            .append(secondaryCol, secondaryDir.equals("ASC") ? 1 : -1));
+            pipeline.add(sortStage);
+            pipeline.add(new Document("$skip", offset));
+            pipeline.add(new Document("$limit", pageSize));
             long dbStart1 = System.nanoTime();
-            FindIterable<Document> movieResults = moviesCollection.find(moviesFilter)
-                    .sort(Sorts.orderBy(
-                            primaryDir.equals("ASC") ? Sorts.ascending(primaryCol) : Sorts.descending(primaryCol),
-                            secondaryDir.equals("ASC") ? Sorts.ascending(secondaryCol) : Sorts.descending(secondaryCol)
-                    ))
-                    .skip(offset)
-                    .limit(pageSize);
+            AggregateIterable<Document> movieResults = moviesCollection.aggregate(pipeline);
             long dbEnd1 = System.nanoTime();
             totalDbTime += (dbEnd1 - dbStart1);
 
+            pipeline = new ArrayList<>();
+
+            if (title != null && !title.isEmpty()) {
+                Document searchStage = Utils.convertToMongoText(title);
+                pipeline.add(searchStage);
+            }
             filters = new ArrayList<>();
-            if (title != null && !title.isEmpty())
-                filters.add(Filters.regex("title", ".*" + Pattern.quote(title) + ".*", "i"));
             if (year != null && !year.isEmpty())
                 filters.add(Filters.eq("year", Integer.parseInt(year)));
             if (director != null && !director.isEmpty())
@@ -213,9 +228,13 @@ public class MovieListServlet extends HttpServlet {
             if (prefix != null && !prefix.isEmpty())
                 filters.add(Filters.regex("title", "^" + Pattern.quote(prefix), "i"));
 
-            Bson countFilter = filters.isEmpty() ? new Document() : Filters.and(filters);
+            if (!filters.isEmpty()) pipeline.add(new Document("$match", Filters.and(filters)));
+            pipeline.add(new Document("$count", "totalCount"));
+            AggregateIterable<Document> countResult = moviesCollection.aggregate(pipeline);
+            long totalCount = 0;
+            Document countDoc = countResult.first();
+            if (countDoc != null) totalCount = countDoc.get("totalCount", Number.class).longValue();
 
-            long totalCount = moviesCollection.countDocuments(countFilter);
             JsonObject jsonObject = new JsonObject();
             jsonObject.addProperty("totalCount", totalCount);
             jsonObject.addProperty("currentPage", currentPage);
