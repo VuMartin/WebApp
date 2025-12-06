@@ -230,7 +230,10 @@ public class MovieListServlet extends HttpServlet {
 
             if (!filters.isEmpty()) pipeline.add(new Document("$match", Filters.and(filters)));
             pipeline.add(new Document("$count", "totalCount"));
+            long dbStart2 = System.nanoTime();
             AggregateIterable<Document> countResult = moviesCollection.aggregate(pipeline);
+            long dbEnd2 = System.nanoTime();
+            totalDbTime += (dbEnd2 - dbStart2);
             long totalCount = 0;
             Document countDoc = countResult.first();
             if (countDoc != null) totalCount = countDoc.get("totalCount", Number.class).longValue();
@@ -296,7 +299,7 @@ public class MovieListServlet extends HttpServlet {
         } finally {
             long endTime = System.nanoTime();
             long totalTime = endTime - startTime;
-            Utils.writeTimingToFile(totalTime, totalDbTime, "SingleMovieServlet-Mongo", title);
+            Utils.writeTimingToFile(totalTime, totalDbTime, "MovieServlet-Mongo", title);
             out.close();
         }
     }
