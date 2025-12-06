@@ -18,6 +18,10 @@ import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.Statement;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 
 // http://localhost:8080/2025_fall_cs_122b_marjoe_war/api/topmovies
@@ -163,26 +167,29 @@ public class MovieListServlet extends HttpServlet {
             long dbEndConn = System.nanoTime();
             totalDbTime += (dbEndConn - dbStartConn);
 
+            String createTempTable = "CREATE TEMPORARY TABLE temp_movies ( " +
+                    "sort_order INT AUTO_INCREMENT PRIMARY KEY, " +
+                    "movie_id VARCHAR(10) NOT NULL, " +
+                    "rating FLOAT " +
+                    ")";
+
+            Statement dropStmt = conn.createStatement();
+            long dbStartDrop = System.nanoTime();
+            dropStmt.execute("DROP TEMPORARY TABLE IF EXISTS temp_movies");
+            long dbEndDrop = System.nanoTime();
+            totalDbTime += (dbEndDrop - dbStartDrop);
+            dropStmt.close();
+
+            Statement createStmt = conn.createStatement();
+            long dbStartDrop2 = System.nanoTime();
+            createStmt.execute(createTempTable);
+            long dbEndDrop2 = System.nanoTime();
+            totalDbTime += (dbEndDrop2 - dbStartDrop2);
+            createStmt.close();
+
             StringBuilder topMoviesQuery = new StringBuilder(
-                    "SELECT m.id, m.title, m.year, m.director, " +
-                            "(SELECT GROUP_CONCAT(genre_sub.name SEPARATOR ', ') " +  // takes multiple rows of a column into one
-                            " FROM (SELECT g.name " +  // nested select to get limit 3 since it does not work directly with group concat
-                            "       FROM genres g " +
-                            "       JOIN genres_in_movies gm ON g.id = gm.genre_id " +  // gets genres for specific movie
-                            "       WHERE gm.movie_id = m.id " +  // only genres for current movie
-                            "       ORDER BY g.name " +
-                            "       LIMIT 3) AS genre_sub) AS genres, " +  // genres is the column name, genre_sub is name of temp table
-                            "(SELECT GROUP_CONCAT(CONCAT(stars_sub.name, ', ', stars_sub.id) SEPARATOR ', ') " +
-                            " FROM (SELECT s.name, s.id " +
-                            "       FROM stars s " +
-                            "       JOIN stars_in_movies sm ON s.id = sm.star_id " +
-                            "       JOIN (SELECT star_id, COUNT(*) as movie_count " +
-                            "             FROM stars_in_movies " +
-                            "             GROUP BY star_id) AS star_counts ON s.id = star_counts.star_id " +
-                            "       WHERE sm.movie_id = m.id " +
-                            "       ORDER BY star_counts.movie_count DESC, s.name ASC " +
-                            "       LIMIT 3) AS stars_sub) AS stars, " +  // stars is the column name
-                            "r.rating " +
+                    "INSERT INTO temp_movies (movie_id, rating) " +
+                            "SELECT m.id, r.rating " +
                             "FROM movies m " +
                             "LEFT JOIN ratings r ON m.id = r.movie_id " +
                             "WHERE 1=1 "
@@ -202,7 +209,7 @@ public class MovieListServlet extends HttpServlet {
                             "WHERE s.name LIKE ?) "
             );
             if (prefix != null && !prefix.isEmpty()) topMoviesQuery.append("AND m.title LIKE ? ");
-            // ---- build a safe ORDER BY from whitelisted values ----
+
             String primaryCol   = "title".equals(sortPrimaryField) ? "m.title" : "COALESCE(r.rating, -1)";
             String primaryDir   = "asc".equals(sortPrimaryOrder) ? "ASC" : "DESC";
             String secondaryCol = "title".equals(sortSecondaryField) ? "m.title" : "COALESCE(r.rating, -1)";
@@ -215,7 +222,6 @@ public class MovieListServlet extends HttpServlet {
                     .append(" ")
                     .append("LIMIT ? OFFSET ?");
 
-            long dbStart1 = System.nanoTime();
             PreparedStatement statement = conn.prepareStatement(topMoviesQuery.toString());
             int index = 1;
             if (title != null && !title.isEmpty()) {
@@ -230,28 +236,91 @@ public class MovieListServlet extends HttpServlet {
             statement.setInt(index++, pageSize);
             statement.setInt(index, offset);
 
-            ResultSet rs = statement.executeQuery();
+            String moviesQuery =
+                    "SELECT m.id, m.title, m.year, m.director, t.rating " +
+                    "FROM temp_movies t " +
+                    "JOIN movies m ON m.id = t.movie_id " +
+                    "ORDER BY t.sort_order";
+
+            String genresQuery =
+                    "SELECT gm.movie_id, " +
+                            "(SELECT GROUP_CONCAT(g_sub.name SEPARATOR ', ') " +
+                            "FROM (SELECT g.name AS name " +
+                            "FROM genres g " +
+                            "JOIN genres_in_movies gm2 ON g.id = gm2.genre_id " +
+                            "WHERE gm2.movie_id = gm.movie_id " +
+                            "ORDER BY g.name " +
+                            "LIMIT 3) AS g_sub) AS genres " +
+                            "FROM genres_in_movies gm " +
+                            "JOIN temp_movies t ON t.movie_id = gm.movie_id " +
+                            "GROUP BY gm.movie_id";
+
+            String starsQuery =
+                    "SELECT t.movie_id, " +
+                            "       (SELECT GROUP_CONCAT(CONCAT(stars_sub.name, ', ', stars_sub.id) SEPARATOR ', ') " +
+                            "        FROM (SELECT s.name, s.id " +
+                            "              FROM stars s " +
+                            "              JOIN stars_in_movies sm ON s.id = sm.star_id " +
+                            "              JOIN (SELECT star_id, COUNT(*) as movie_count " +
+                            "                    FROM stars_in_movies " +
+                            "                    GROUP BY star_id) AS star_counts ON s.id = star_counts.star_id " +
+                            "              WHERE sm.movie_id = t.movie_id " +
+                            "              ORDER BY star_counts.movie_count DESC, s.name ASC " +
+                            "              LIMIT 3) AS stars_sub) AS stars " +
+                            "FROM temp_movies t";
+
+            long dbStart1 = System.nanoTime();
+            statement.executeUpdate();
             long dbEnd1 = System.nanoTime();
             totalDbTime += (dbEnd1 - dbStart1);
 
-            String countQuery =
-                    "SELECT COUNT(DISTINCT m.id) AS total " +
-                            "FROM movies m " +
-                            "LEFT JOIN ratings r ON m.id = r.movie_id " +
-                            "LEFT JOIN genres_in_movies gm ON m.id = gm.movie_id " +
-                            "LEFT JOIN genres g ON gm.genre_id = g.id " +
-                            "LEFT JOIN stars_in_movies sm ON m.id = sm.movie_id " +
-                            "LEFT JOIN stars s ON sm.star_id = s.id " +
-                            "WHERE 1=1 " +
-                            (title != null && !title.isEmpty() ? "AND MATCH(m.title) AGAINST(? IN BOOLEAN MODE) " : "") +
-                            (year != null && !year.isEmpty() ? "AND m.year = ? " : "") +
-                            (director != null && !director.isEmpty() ? "AND m.director LIKE ? " : "") +
-                            (genre != null && !genre.isEmpty() ? "AND g.name = ? " : "") +
-                            (star != null && !star.isEmpty() ? "AND s.name LIKE ? " : "") +
-                            (prefix != null && !prefix.isEmpty() ? "AND m.title LIKE ? " : "");
-
+            PreparedStatement moviesStmt = conn.prepareStatement(moviesQuery);
             long dbStart2 = System.nanoTime();
-            PreparedStatement countStmt = conn.prepareStatement(countQuery);
+            ResultSet rs = moviesStmt.executeQuery();
+            long dbEnd2 = System.nanoTime();
+            totalDbTime += (dbEnd2 - dbStart2);
+
+            PreparedStatement genresStmt = conn.prepareStatement(genresQuery);
+            long dbStart3 = System.nanoTime();
+            ResultSet genresRs = genresStmt.executeQuery();
+            long dbEnd3 = System.nanoTime();
+            totalDbTime += (dbEnd3 - dbStart3);
+
+            PreparedStatement starsStmt = conn.prepareStatement(starsQuery);
+            long dbStart4 = System.nanoTime();
+            ResultSet starsRs = starsStmt.executeQuery();
+            long dbEnd4 = System.nanoTime();
+            totalDbTime += (dbEnd4 - dbStart4);
+
+            StringBuilder countQuery = new StringBuilder(
+                    "SELECT COUNT(DISTINCT m.id) as total " +
+                            "FROM movies m " +
+                            "LEFT JOIN ratings r ON m.id = r.movie_id "
+            );
+
+            if (genre != null && !genre.isEmpty()) {
+                countQuery.append(
+                        "LEFT JOIN genres_in_movies gm ON m.id = gm.movie_id " +
+                        "LEFT JOIN genres g ON gm.genre_id = g.id "
+                );
+            }
+
+            if (star != null && !star.isEmpty()) {
+                countQuery.append(
+                        "LEFT JOIN stars_in_movies sm ON m.id = sm.movie_id " +
+                        "LEFT JOIN stars s ON sm.star_id = s.id "
+                );
+            }
+            countQuery.append("WHERE 1=1 ");
+
+            if (title != null) countQuery.append("AND MATCH(m.title) AGAINST(? IN BOOLEAN MODE) ");
+            if (year != null) countQuery.append("AND m.year = ? ");
+            if (director != null) countQuery.append("AND m.director LIKE ? ");
+            if (genre != null && !genre.isEmpty()) countQuery.append("AND g.name = ? ");
+            if (star != null && !star.isEmpty()) countQuery.append("AND s.name LIKE ? ");
+            if (prefix != null && !prefix.isEmpty()) countQuery.append("AND m.title LIKE ? ");
+
+            PreparedStatement countStmt = conn.prepareStatement(countQuery.toString());
             index = 1;
             if (title != null && !title.isEmpty()) {
                 String booleanQuery = Utils.convertToBooleanMode(title);
@@ -263,9 +332,10 @@ public class MovieListServlet extends HttpServlet {
             if (star != null && !star.isEmpty()) countStmt.setString(index++, "%" + star + "%");
             if (prefix != null && !prefix.isEmpty()) countStmt.setString(index, prefix + "%");
 
+            long dbStart5 = System.nanoTime();
             ResultSet countRs = countStmt.executeQuery();
-            long dbEnd2 = System.nanoTime();
-            totalDbTime += (dbEnd2 - dbStart2);
+            long dbEnd5 = System.nanoTime();
+            totalDbTime += (dbEnd5 - dbStart5);
             int totalCount = 0;
             if (countRs.next()) {
                 totalCount = countRs.getInt("total");
@@ -281,15 +351,13 @@ public class MovieListServlet extends HttpServlet {
             jsonObject.addProperty("prefix", prefix);
             JsonArray moviesArray = new JsonArray();
             jsonObject.add("movies", moviesArray);
-            // Iterate through each row of rs
+            Map<String, JsonObject> moviesMap = new LinkedHashMap<>();
             while (rs.next()) {
                 // get a movie from result set
                 String movieID = rs.getString("id");  // db column name from query
                 String movieTitle = rs.getString("title");
                 String movieYear = rs.getString("year");
                 String movieDirector = rs.getString("director");
-                String movieGenres = rs.getString("genres");
-                String movieStars = rs.getString("stars");
                 String rating = rs.getString("rating");
                 if (rating == null) rating = "N/A";
 
@@ -299,10 +367,26 @@ public class MovieListServlet extends HttpServlet {
                 movieObject.addProperty("movieTitle", movieTitle);
                 movieObject.addProperty("movieYear", movieYear);
                 movieObject.addProperty("movieDirector", movieDirector);
-                movieObject.addProperty("movieGenres", movieGenres);
-                movieObject.addProperty("movieStars", movieStars);
                 movieObject.addProperty("movieRating", rating);
-                moviesArray.add(movieObject);
+                moviesMap.put(movieID, movieObject);
+            }
+
+            while (genresRs.next()) {
+                String genres = genresRs.getString("genres");
+                String movieID = genresRs.getString("movie_id");
+                JsonObject movie = moviesMap.get(movieID);
+                movie.addProperty("movieGenres", genres != null ? genres : "");
+            }
+
+            while (starsRs.next()) {
+                String stars = starsRs.getString("stars");
+                String movieID = starsRs.getString("movie_id");
+                JsonObject movie = moviesMap.get(movieID);
+                movie.addProperty("movieStars", stars != null ? stars : "");
+            }
+
+            for (JsonObject movie : moviesMap.values()) {
+                moviesArray.add(movie);
             }
             countRs.close();
             countStmt.close();
