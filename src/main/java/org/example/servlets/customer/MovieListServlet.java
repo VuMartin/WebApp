@@ -27,6 +27,7 @@ import java.util.Map;
 // http://localhost:8080/2025_fall_cs_122b_marjoe_war/api/topmovies
 // http://localhost:8080/2025_fall_cs_122b_marjoe_war/html/customer/movies.html
 // This annotation maps this Java Servlet Class to a URL
+// This is a code freeze for project 5
 @WebServlet(name = "MovieListServlet", urlPatterns = "/api/topmovies")
 public class MovieListServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
