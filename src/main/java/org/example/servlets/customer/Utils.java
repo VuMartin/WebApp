@@ -53,7 +53,7 @@ public class Utils {
             String logLine = String.format("%s,%s,%d,%d,%d%n",
                     servletName, safeIdentifier, System.currentTimeMillis(), totalTime, dbTime);
 
-            Files.write(Paths.get("/tmp/MongoSearch200.log"),
+            Files.write(Paths.get("/tmp/MongoSingle100Demo.log"),
                     logLine.getBytes(),
                     StandardOpenOption.CREATE,
                     StandardOpenOption.APPEND);

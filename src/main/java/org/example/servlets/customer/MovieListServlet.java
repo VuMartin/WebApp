@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 
 // http://localhost:8080/2025_fall_cs_122b_marjoe_war/api/topmovies
 // http://localhost:8080/2025_fall_cs_122b_marjoe_war/html/customer/movies.html
-// This is a code freeze branch for project 4
+// This is a code freeze branch for project 5
 // This annotation maps this Java Servlet Class to a URL
 @WebServlet(name = "MovieListServlet", urlPatterns = "/api/topmovies")
 public class MovieListServlet extends HttpServlet {
