@@ -46,7 +46,7 @@ public class Utils {
             String logLine = String.format("%s,%s,%d,%d,%d%n",
                     servletName, safeIdentifier, System.currentTimeMillis(), totalTime, dbTime);
 
-            Files.write(Paths.get("/tmp/MySQLSingle200.log"),
+            Files.write(Paths.get("/tmp/MySQLSearch200.log"),
                     logLine.getBytes(),
                     StandardOpenOption.CREATE,
                     StandardOpenOption.APPEND);

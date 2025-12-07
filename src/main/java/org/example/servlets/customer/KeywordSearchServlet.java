@@ -87,7 +87,8 @@ public class KeywordSearchServlet extends HttpServlet {
      * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
      */
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-
+        long startTime = System.nanoTime();
+        long totalDbTime = 0;
         response.setContentType("application/json"); // Response mime type
         HttpSession session = request.getSession();
         String title;
@@ -155,8 +156,11 @@ public class KeywordSearchServlet extends HttpServlet {
         // Output stream to STDOUT
         PrintWriter out = response.getWriter();
 
+        long dbStartConn = System.nanoTime();
         // Get a connection from dataSource and let resource manager close the connection after usage.
         try (Connection conn = dataSource.getConnection()) {
+            long dbEndConn = System.nanoTime();
+            totalDbTime += (dbEndConn - dbStartConn);
 
             StringBuilder topMoviesQuery = new StringBuilder(
                     "SELECT m.id, m.title, m.year, m.director, " +
@@ -221,7 +225,10 @@ public class KeywordSearchServlet extends HttpServlet {
             statement.setInt(index++, pageSize);
             statement.setInt(index, offset);
 
+            long dbStartDrop = System.nanoTime();
             ResultSet rs = statement.executeQuery();
+            long dbEndDrop = System.nanoTime();
+            totalDbTime += (dbEndDrop - dbStartDrop);
 
             String countQuery =
                     "SELECT COUNT(DISTINCT m.id) AS total " +
@@ -248,7 +255,10 @@ public class KeywordSearchServlet extends HttpServlet {
             if (star != null && !star.isEmpty()) countStmt.setString(index++, "%" + star + "%");
             if (prefix != null && !prefix.isEmpty()) countStmt.setString(index, prefix + "%");
 
+            long dbStart1 = System.nanoTime();
             ResultSet countRs = countStmt.executeQuery();
+            long dbEnd1 = System.nanoTime();
+            totalDbTime += (dbEnd1 - dbStart1);
             int totalCount = 0;
             if (countRs.next()) {
                 totalCount = countRs.getInt("total");
@@ -310,6 +320,10 @@ public class KeywordSearchServlet extends HttpServlet {
             // Set response status to 500 (Internal Server Error)
             response.setStatus(500);
         } finally {
+            long endTime = System.nanoTime();
+            long totalTime = endTime - startTime;
+            long dbTime = totalDbTime;
+            Utils.writeTimingToFile(totalTime, dbTime, "MovieListServlet", title);
             out.close();
         }
 

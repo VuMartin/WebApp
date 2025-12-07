@@ -135,7 +135,7 @@ function buildApiUrl(params, sort, back) {
     if (params.prefix) q.append("prefix", params.prefix);
 
     const queryString = q.toString();
-    return queryString ? `/2025_fall_cs_122b_marjoe_war/api/topmovies?${queryString}&${baseParams}` : `/2025_fall_cs_122b_marjoe_war/api/topmovies?${baseParams}`;
+    return queryString ? `/2025_fall_cs_122b_marjoe_war/api/keywordsearch?${queryString}&${baseParams}` : `/2025_fall_cs_122b_marjoe_war/api/topmovies?${baseParams}`;
 }
 
 function restoreSortOptions(data) {
