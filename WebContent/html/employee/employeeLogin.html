@@ -2,7 +2,12 @@
 <html lang="en">
 
     <head>
-        <base href="/2025_fall_cs_122b_marjoe_war/">
+        <script>
+            (function() {
+                const isTomcat = window.location.pathname.includes('/2025_fall_cs_122b_marjoe_war/');
+                document.write('<base href="' + (isTomcat ? '/2025_fall_cs_122b_marjoe_war/' : '../../') + '">');
+            })();
+        </script>
         <!-- Required meta tags -->
         <meta charset="utf-8">
         <meta content="width=device-width, initial-scale=1, shrink-to-fit=no"
