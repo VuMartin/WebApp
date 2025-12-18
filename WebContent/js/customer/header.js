@@ -2,7 +2,7 @@ function updateCartCount(cartData) {
     document.getElementById("cart-count").textContent = cartData.totalCount || 0;
 }
 
-fetch("/2025_fall_cs_122b_marjoe_war/html/customer/header.html")
+fetch("/html/customer/header.html")
     .then(res => res.text())
     .then(data => {
         document.getElementById("header-placeholder").innerHTML = data
@@ -29,9 +29,9 @@ fetch("/2025_fall_cs_122b_marjoe_war/html/customer/header.html")
         logoutButton.addEventListener('click', () => {
             $.ajax({
                 method: "POST",
-                url: "/2025_fall_cs_122b_marjoe_war/api/logout",
+                url: "/api/logout",
                 success: () => {
-                    window.location.href = "/2025_fall_cs_122b_marjoe_war/html/customer/login.html"; // redirect after logout
+                    window.location.href = "html/customer/login.html"; // redirect after logout
                 },
                 error: () => {
                     alert("Logout failed. Try again.");
@@ -89,7 +89,7 @@ fetch("/2025_fall_cs_122b_marjoe_war/html/customer/header.html")
 
             jQuery.ajax({
                 method: "GET",
-                url: "api/autocomplete?query=" + encodeURIComponent(query),
+                url: "/api/autocomplete?query=" + encodeURIComponent(query),
                 success: function(data) {
                     handleLookupAjaxSuccess(data, query, doneCallback);
                 },
@@ -156,7 +156,7 @@ fetch("/2025_fall_cs_122b_marjoe_war/html/customer/header.html")
             let director = jQuery("#search-director").val();
             let star = jQuery("#search-star").val();
 
-            let url = "/2025_fall_cs_122b_marjoe_war/html/customer/movies.html?";
+            let url = "/html/customer/movies.html?";
             if (title) url += "title=" + encodeURIComponent(title) + "&";
             if (year) url += "year=" + encodeURIComponent(year) + "&";
             if (director) url += "director=" + encodeURIComponent(director) + "&";
@@ -165,6 +165,6 @@ fetch("/2025_fall_cs_122b_marjoe_war/html/customer/header.html")
             window.location.href = url;
         }
         function handleSelectSuggestion(suggestion) {
-            window.location.href = "/2025_fall_cs_122b_marjoe_war/html/customer/movie.html?id=" + suggestion.data.movieId;
+            window.location.href = "/html/customer/movie.html?id=" + suggestion.data.movieId;
         }
     });

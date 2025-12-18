@@ -7,13 +7,13 @@ $("#payment-form").submit(function(event) {
     let expiration = $("#expiration").val();
 
     $.ajax({
-        url: "/2025_fall_cs_122b_marjoe_war/api/payment",
+        url: "/api/payment",
         method: "POST",
         dataType: "json",
         data: { firstName, lastName, cardNumber, expiration },
         success: (resultData) => {
             if (resultData.status === "success") {
-                window.location.href = "/2025_fall_cs_122b_marjoe_war/html/customer/confirmation.html";
+                window.location.href = "/html/customer/confirmation.html";
             } else {
                 $("#error-message").text(resultData.message).show();
             }
@@ -24,7 +24,7 @@ $("#payment-form").submit(function(event) {
     });
 });
 
-$.ajax("/2025_fall_cs_122b_marjoe_war/api/cart", {
+$.ajax("/api/cart", {
     method: "GET",
     success: (resultData) => {
         updateCartCount(resultData);

@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-    $.getJSON("/2025_fall_cs_122b_marjoe_war/api/cart", (cartData) => {
+    $.getJSON("/api/cart", (cartData) => {
         updateCartCount(cartData);
     });
 });

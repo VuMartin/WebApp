@@ -1,5 +1,5 @@
 function addToCart(movieID, title, price = 122) {
-    $.ajax("/2025_fall_cs_122b_marjoe_war/api/cart", {
+    $.ajax("/api/cart", {
         method: "POST",
         data: { movieID, title, price, action: "add" },
         success: (resultData) => {
