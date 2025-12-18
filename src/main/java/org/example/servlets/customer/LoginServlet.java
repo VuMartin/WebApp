@@ -1,11 +1,6 @@
 package main.java.org.example.servlets.customer;
 
 import com.google.gson.JsonObject;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoClients;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.Filters;
 import jakarta.servlet.ServletConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -20,7 +15,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.*;
 import main.java.org.example.utils.recaptcha.RecaptchaVerify;
-import org.bson.Document;
 import org.jasypt.util.password.StrongPasswordEncryptor;
 
 
@@ -30,16 +24,13 @@ import org.jasypt.util.password.StrongPasswordEncryptor;
 @WebServlet(name = "LoginServlet", urlPatterns = "/api/login")
 public class LoginServlet extends HttpServlet {
 
-    private MongoClient mongoClient;
-    private MongoDatabase database;
-    private MongoCollection<Document> customersCollection;
+    // Create a dataSource which registered in web.xml
+    private DataSource dataSource;
 
     public void init(ServletConfig config) {
         try {
-            mongoClient = MongoClients.create("mongodb://mytestuser:My6$Password@localhost:27017/moviedb?authSource=moviedb");
-            database = mongoClient.getDatabase("moviedb");
-            customersCollection = database.getCollection("customers");
-        } catch (Exception e) {
+            dataSource = (DataSource) new InitialContext().lookup("java:comp/env/jdbc/moviedb");
+        } catch (NamingException e) {
             e.printStackTrace();
         }
     }
@@ -71,38 +62,42 @@ public class LoginServlet extends HttpServlet {
             return;
         }
 
-        try {
-            Document customer = customersCollection.find(Filters.eq("email", email)).first();
-            StrongPasswordEncryptor enc = new StrongPasswordEncryptor();
-            if (customer == null || !enc.checkPassword(password, customer.getString("password"))) {
-                jsonObject.addProperty("status", "error");
-                jsonObject.addProperty("message", "Invalid email or password.");
+        final String query = "SELECT id, first_name, credit_card_id, password " +
+                "FROM customers " +
+                "WHERE email = ? LIMIT 1";
+
+        try (Connection dbCon = dataSource.getConnection();
+             PreparedStatement stmt = dbCon.prepareStatement(query)) {
+
+            stmt.setString(1, email);
+            try (ResultSet rs = stmt.executeQuery()) {
+                StrongPasswordEncryptor enc = new StrongPasswordEncryptor();
+                boolean valid = (rs.next() && enc.checkPassword(password, rs.getString("password")));
+                if (!valid) {
+                    // Email not found
+                    jsonObject.addProperty("status", "error");
+                    jsonObject.addProperty("message", "Invalid email or password.");
+                    writeResponse(out, response, jsonObject);
+                    return;
+                }
+                // Login successful → create session
+                HttpSession session = request.getSession();
+                session.setAttribute("email", email);
+                session.setAttribute("customerID", rs.getInt("id"));
+                session.setAttribute("creditCardID", rs.getString("credit_card_id"));
+                session.setAttribute("firstName", rs.getString("first_name"));
+                jsonObject.addProperty("status", "success");
+                jsonObject.addProperty("username", rs.getString("first_name"));
                 writeResponse(out, response, jsonObject);
-                return;
             }
-            // Login successful → create session
-            HttpSession session = request.getSession();
-            session.setAttribute("email", email);
-            session.setAttribute("customerID", customer.getInteger("_id"));
-            session.setAttribute("creditCardID", customer.getString("credit_card_id"));
-            session.setAttribute("firstName", customer.getString("first_name"));
-            jsonObject.addProperty("status", "success");
-            jsonObject.addProperty("username", customer.getString("first_name"));
-            writeResponse(out, response, jsonObject);
-        } catch (Exception e) {
-            jsonObject.addProperty("status", "error");
-            jsonObject.addProperty("message", e.getMessage());
-            writeResponse(out, response, jsonObject);
-            request.getServletContext().log("Error:", e);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            out.println("<p>Database error: " + e.getMessage() + "</p>");
             response.setStatus(500);
-        } finally {
-            out.close();
-        }
-    }
-    @Override
-    public void destroy() {
-        if (mongoClient != null) {
-            mongoClient.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+            out.println("<p>Unexpected error: " + e.getMessage() + "</p>");
+            response.setStatus(500);
         }
     }
 }

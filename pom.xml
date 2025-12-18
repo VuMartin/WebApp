@@ -34,7 +34,7 @@
         </dependency>
     </dependencies>
     <build>
-        <finalName>2025-fall-cs-122b-marjoe</finalName>
+        <finalName>ROOT</finalName>
         <sourceDirectory>src</sourceDirectory>
         <plugins>
             <plugin>
