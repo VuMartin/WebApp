@@ -15,34 +15,36 @@ function handleResult(resultData) {
     }
 }
 
-/**
- * Once this .js is loaded, following scripts will be executed by the browser\
- */
+document.addEventListener('DOMContentLoaded', () => {
+    /**
+     * Once this .js is loaded, following scripts will be executed by the browser\
+     */
 
 // Capture the login form submission
-jQuery("#login-form").submit(function(event) {
-    event.preventDefault(); // prevent normal form submit
+    jQuery("#login-form").submit(function (event) {
+        event.preventDefault(); // prevent normal form submit
 
-    let email = jQuery("#email").val();
-    let password = jQuery("#password").val();
-    let gRecaptchaResponse = grecaptcha.getResponse(); // get token
-    if (!gRecaptchaResponse) {
-        jQuery("#error-msg").text("Please complete the reCAPTCHA.");
-        return;
-    }
-
-    jQuery.ajax({
-        dataType: "json",
-        method: "POST",
-        url: "/api/login",
-        data: { email: email, password: password, "g-recaptcha-response": gRecaptchaResponse },
-        success: (resultData) => {
-            grecaptcha.reset();
-            handleResult(resultData)
-        },
-        error: () => {
-            grecaptcha.reset();
-            jQuery("#error-msg").text("Server error. Try again later.");
+        let email = jQuery("#email").val();
+        let password = jQuery("#password").val();
+        let gRecaptchaResponse = grecaptcha.getResponse(); // get token
+        if (!gRecaptchaResponse) {
+            jQuery("#error-msg").text("Please complete the reCAPTCHA.");
+            return;
         }
+
+        jQuery.ajax({
+            dataType: "json",
+            method: "POST",
+            url: "/api/login",
+            data: {email: email, password: password, "g-recaptcha-response": gRecaptchaResponse},
+            success: (resultData) => {
+                grecaptcha.reset();
+                handleResult(resultData)
+            },
+            error: () => {
+                grecaptcha.reset();
+                jQuery("#error-msg").text("Server error. Try again later.");
+            }
+        });
     });
 });

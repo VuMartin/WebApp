@@ -85,18 +85,20 @@ function handleResult(resultData) {
  * Once this .js is loaded, following scripts will be executed by the browser\
  */
 
+document.addEventListener('DOMContentLoaded', () => {
 // Get id from URL
-let movieID = getParameterByName('id');
+    let movieID = getParameterByName('id');
 
 // Makes the HTTP GET request and registers on success callback function handleResult
-jQuery.ajax({
-    dataType: "json",  // Setting return data type
-    method: "GET",// Setting request method
-    url: "/api/movie?id=" + movieID, // Setting request url, which is mapped by StarsServlet in Stars.java
-    success: (resultData) => {
-        $.getJSON("/api/cart", (cartData) => {
-            handleResult(resultData);
-            updateCartCount(cartData);
-        });
-    }
+    jQuery.ajax({
+        dataType: "json",  // Setting return data type
+        method: "GET",// Setting request method
+        url: "/api/movie?id=" + movieID, // Setting request url, which is mapped by StarsServlet in Stars.java
+        success: (resultData) => {
+            $.getJSON("/api/cart", (cartData) => {
+                handleResult(resultData);
+                updateCartCount(cartData);
+            });
+        }
+    });
 });

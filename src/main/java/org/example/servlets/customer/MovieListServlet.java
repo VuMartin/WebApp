@@ -25,7 +25,7 @@ import java.util.Map;
 
 
 // http://localhost:8080/2025_fall_cs_122b_marjoe_war/api/topmovies
-// http://localhost:8080/2025_fall_cs_122b_marjoe_war/html/customer/movies.html
+// http://localhost:8080/html/customer/movies.html
 // This annotation maps this Java Servlet Class to a URL
 @WebServlet(name = "MovieListServlet", urlPatterns = "/api/topmovies")
 public class MovieListServlet extends HttpServlet {
@@ -242,32 +242,53 @@ public class MovieListServlet extends HttpServlet {
                     "JOIN movies m ON m.id = t.movie_id " +
                     "ORDER BY t.sort_order";
 
+//            String genresQuery =
+//                    "SELECT gm.movie_id, " +
+//                            "(SELECT GROUP_CONCAT(g_sub.name SEPARATOR ', ') " +
+//                            "FROM (SELECT g.name AS name " +
+//                            "FROM genres g " +
+//                            "JOIN genres_in_movies gm2 ON g.id = gm2.genre_id " +
+//                            "WHERE gm2.movie_id = gm.movie_id " +
+//                            "ORDER BY g.name " +
+//                            "LIMIT 3) AS g_sub) AS genres " +
+//                            "FROM genres_in_movies gm " +
+//                            "JOIN temp_movies t ON t.movie_id = gm.movie_id " +
+//                            "GROUP BY gm.movie_id";
+
             String genresQuery =
-                    "SELECT gm.movie_id, " +
-                            "(SELECT GROUP_CONCAT(g_sub.name SEPARATOR ', ') " +
-                            "FROM (SELECT g.name AS name " +
-                            "FROM genres g " +
-                            "JOIN genres_in_movies gm2 ON g.id = gm2.genre_id " +
-                            "WHERE gm2.movie_id = gm.movie_id " +
-                            "ORDER BY g.name " +
-                            "LIMIT 3) AS g_sub) AS genres " +
-                            "FROM genres_in_movies gm " +
-                            "JOIN temp_movies t ON t.movie_id = gm.movie_id " +
-                            "GROUP BY gm.movie_id";
+                    "SELECT t.movie_id, " +
+                            "GROUP_CONCAT(g.name ORDER BY g.name SEPARATOR ', ' LIMIT 3) AS genres " +
+                            "FROM temp_movies t " +  // Start with temp_movies
+                            "JOIN genres_in_movies gm ON t.movie_id = gm.movie_id " +
+                            "JOIN genres g ON gm.genre_id = g.id " +
+                            "GROUP BY t.movie_id";
+
+//            String starsQuery =
+//                    "SELECT t.movie_id, " +
+//                            "       (SELECT GROUP_CONCAT(CONCAT(stars_sub.name, ', ', stars_sub.id) SEPARATOR ', ') " +
+//                            "        FROM (SELECT s.name, s.id " +
+//                            "              FROM stars s " +
+//                            "              JOIN stars_in_movies sm ON s.id = sm.star_id " +
+//                            "              JOIN (SELECT star_id, COUNT(*) as movie_count " +
+//                            "                    FROM stars_in_movies " +
+//                            "                    GROUP BY star_id) AS star_counts ON s.id = star_counts.star_id " +
+//                            "              WHERE sm.movie_id = t.movie_id " +
+//                            "              ORDER BY star_counts.movie_count DESC, s.name ASC " +
+//                            "              LIMIT 3) AS stars_sub) AS stars " +
+//                            "FROM temp_movies t";
 
             String starsQuery =
                     "SELECT t.movie_id, " +
-                            "       (SELECT GROUP_CONCAT(CONCAT(stars_sub.name, ', ', stars_sub.id) SEPARATOR ', ') " +
-                            "        FROM (SELECT s.name, s.id " +
-                            "              FROM stars s " +
-                            "              JOIN stars_in_movies sm ON s.id = sm.star_id " +
-                            "              JOIN (SELECT star_id, COUNT(*) as movie_count " +
-                            "                    FROM stars_in_movies " +
-                            "                    GROUP BY star_id) AS star_counts ON s.id = star_counts.star_id " +
-                            "              WHERE sm.movie_id = t.movie_id " +
-                            "              ORDER BY star_counts.movie_count DESC, s.name ASC " +
-                            "              LIMIT 3) AS stars_sub) AS stars " +
-                            "FROM temp_movies t";
+                            "GROUP_CONCAT(CONCAT(s.name, ', ', s.id) " +
+                            "            ORDER BY star_counts.movie_count DESC, s.name ASC " +
+                            "            SEPARATOR ', ' LIMIT 3) AS stars " +
+                            "FROM temp_movies t " +
+                            "JOIN stars_in_movies sm ON t.movie_id = sm.movie_id " +
+                            "JOIN stars s ON sm.star_id = s.id " +
+                            "JOIN (SELECT star_id, COUNT(*) as movie_count " +
+                            "      FROM stars_in_movies " +
+                            "      GROUP BY star_id) AS star_counts ON s.id = star_counts.star_id " +
+                            "GROUP BY t.movie_id";
 
             long dbStart1 = System.nanoTime();
             statement.executeUpdate();

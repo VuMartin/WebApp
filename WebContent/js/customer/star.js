@@ -64,18 +64,20 @@ function handleResult(resultData) {
  * Once this .js is loaded, following scripts will be executed by the browser\
  */
 
-// Get id from URL
-let starID = getParameterByName('id');
+document.addEventListener('DOMContentLoaded', () => {
+    // Get id from URL
+    let starID = getParameterByName('id');
 
-// Makes the HTTP GET request and registers on success callback function handleResult
-jQuery.ajax({
-    dataType: "json",
-    method: "GET",
-    url: "/api/single-star?id=" + starID,
-    success: (resultData) => {
-        handleResult(resultData);
-        $.getJSON("/api/cart", (cartData) => {
-            updateCartCount(cartData);
-        });
-    }
+    // Makes the HTTP GET request and registers on success callback function handleResult
+    jQuery.ajax({
+        dataType: "json",
+        method: "GET",
+        url: "/api/single-star?id=" + starID,
+        success: (resultData) => {
+            handleResult(resultData);
+            $.getJSON("/api/cart", (cartData) => {
+                updateCartCount(cartData);
+            });
+        }
+    });
 });

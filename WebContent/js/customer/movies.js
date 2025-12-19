@@ -248,8 +248,8 @@ function handleResult(resultData) {
 
         // Append the row created to the table body, which will refresh the page
         movieTableBodyElement.append(rowHTML);
-        renderPageNumbers();
     }
+    renderPageNumbers();
 }
 
 function fetchMovies() {
@@ -258,7 +258,7 @@ function fetchMovies() {
     setPageHeading(params);
     const sort = getSorting();
     const url = buildApiUrl(params, sort, back);
-
+    console.log(url);
     jQuery.ajax({
         url: url,
         method: "GET",
@@ -294,4 +294,6 @@ function fetchMovies() {
         }
     });
 }
-fetchMovies();
+document.addEventListener('DOMContentLoaded', () => {
+    fetchMovies();
+});
