@@ -3,41 +3,35 @@ package main.java.org.example.servlets.customer;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonArray;
 
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoClients;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.Sorts;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
 import jakarta.servlet.ServletConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.bson.Document;
-
+import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.List;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 
 // http://localhost:8080/2025_fall_cs_122b_marjoe_war/api/single-star
 // http://localhost:8080/2025_fall_cs_122b_marjoe_war/star.html
-// http://localhost:8080/2025_fall_cs_122b_marjoe_war/html/customer/star.html?id=nm0000001
+// http://localhost:8080/2025_fall_cs_122b_marjoe_war/star.html?id=nm0000001
 // Declaring a WebServlet called SingleStarServlet, which maps to url "/api/single-star"
 @WebServlet(name = "SingleStarServlet", urlPatterns = "/api/single-star")
 public class SingleStarServlet extends HttpServlet {
     private static final long serialVersionUID = 2L;
 
-    private MongoClient mongoClient;
-    private MongoDatabase database;
-    private MongoCollection<Document> moviesCollection;
+    // Create a dataSource which registered in web.xml
+    private DataSource dataSource;
 
     public void init(ServletConfig config) {
         try {
-            mongoClient = MongoClients.create("mongodb://mytestuser:My6$Password@localhost:27017/moviedb?authSource=moviedb");
-            database = mongoClient.getDatabase("moviedb");
-            moviesCollection = database.getCollection("movies");
-        } catch (Exception e) {
+            dataSource = (DataSource) new InitialContext().lookup("java:comp/env/jdbc/moviedb");
+        } catch (NamingException e) {
             e.printStackTrace();
         }
     }
@@ -59,36 +53,61 @@ public class SingleStarServlet extends HttpServlet {
         // Output stream to STDOUT
         PrintWriter out = response.getWriter();
 
-        try {
-            List<Document> starMovies = moviesCollection.find(Filters.elemMatch("stars", Filters.eq("star_id", id)))
-                    .sort(Sorts.orderBy(Sorts.descending("year"), Sorts.ascending("title")))
-                    .into(new java.util.ArrayList<>());
-            if (starMovies.isEmpty()) {
+        // Get a connection from dataSource and let resource manager close the connection after usage.
+        try (Connection conn = dataSource.getConnection()) {
+            // Get a connection from dataSource
+
+            // Construct a query with parameter represented by "?"
+            String query =
+                    "SELECT s.id AS sid, s.name, s.birth_year, m.id AS mid, m.title " +
+                            "FROM stars s " +
+                            "LEFT JOIN stars_in_movies sim ON sim.star_id = s.id " +
+                            "LEFT JOIN movies m ON m.id = sim.movie_id " +
+                            "WHERE s.id = ? " +
+                            "ORDER BY m.year DESC, m.title ASC";
+
+            // Declare our statement
+            PreparedStatement statement = conn.prepareStatement(query);
+
+            // Set the parameter represented by "?" in the query to the id we get from url,
+            // num 1 indicates the first "?" in the query
+            statement.setString(1, id);
+
+            // Perform the query
+            ResultSet rs = statement.executeQuery();
+
+            JsonObject jsonObject = new JsonObject();
+            JsonArray movies = new JsonArray();
+
+            String starName = null;
+            String birthYearOut = "N/A";
+            boolean found = false;
+
+            while (rs.next()) {
+                if (!found) {
+                    starName = rs.getString("name");
+                    int by = rs.getInt("birth_year");
+                    if (!rs.wasNull()) birthYearOut = String.valueOf(by);
+                    found = true;
+                }
+                String movieID = rs.getString("mid");
+                String title   = rs.getString("title");
+                if (movieID != null && title != null) {
+                    JsonObject m = new JsonObject();
+                    m.addProperty("id", movieID);
+                    m.addProperty("title", title);
+                    movies.add(m);
+                }
+            }
+            rs.close();
+            statement.close();
+
+            if (!found) {
                 response.setStatus(404);
                 JsonObject err = new JsonObject();
                 err.addProperty("errorMessage", "Star not found");
                 out.write(err.toString());
                 return;
-            }
-            JsonObject jsonObject = new JsonObject();
-            JsonArray movies = new JsonArray();
-            String starName = null;
-            String birthYearOut = "N/A";
-
-            for (Document movie : starMovies) {
-                List<Document> stars = (List<Document>) movie.get("stars");
-                for (Document star : stars) {
-                    if (star.getString("star_id").equals(id)) {
-                        starName = star.getString("name");
-                        Integer dob = star.getInteger("birth_year");
-                        if (dob != null) birthYearOut = String.valueOf(dob);
-                        break;
-                    }
-                }
-                JsonObject m = new JsonObject();
-                m.addProperty("id", movie.getString("_id"));
-                m.addProperty("title", movie.getString("title"));
-                movies.add(m);
             }
 
             // Keep your existing response-writing style:
@@ -113,11 +132,9 @@ public class SingleStarServlet extends HttpServlet {
         } finally {
             out.close();
         }
+
+        // Always remember to close db connection after usage. Here it's done by try-with-resources
+
     }
-    @Override
-    public void destroy() {
-        if (mongoClient != null) {
-            mongoClient.close();
-        }
-    }
+
 }
