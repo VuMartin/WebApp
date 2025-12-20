@@ -52,6 +52,15 @@ public class LoginServlet extends HttpServlet {
             writeResponse(out, response, jsonObject);
             return;
         }
+        String guest = request.getParameter("guest");
+        if ("true".equals(guest)) {
+            HttpSession session = request.getSession();
+            session.setAttribute("firstName", "Guest");
+            jsonObject.addProperty("status", "success");
+            jsonObject.addProperty("username", "Guest");
+            writeResponse(out, response, jsonObject);
+            return;
+        }
         String email = request.getParameter("email");
         String password = request.getParameter("password");
 
