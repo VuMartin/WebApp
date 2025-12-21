@@ -39,9 +39,9 @@ function getParameterByName(target) {
 function handleResult(resultData) {
     console.log("handleResult:", resultData);
 
-    $("#pageTitle").text(resultData.name + " - Fabflix");
-    $("#star-name").text(resultData.name);
-    $("#birthYear").text(resultData.birthYear || "N/A");
+    $("#pageTitle").text(resultData.star_name + " - Fabflix");
+    $("#star-name").text(resultData.star_name);
+    $("#birthYear").text(resultData.star_dob || "N/A");
 
     const moviesContainer = $("#movies").empty();
     const movies = resultData.movies || [];

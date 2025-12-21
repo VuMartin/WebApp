@@ -1,12 +1,9 @@
-package main.java.org.example.servlets.customer;
+package main.java.org.example.utils;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 
 public class Utils {
 

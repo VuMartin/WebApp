@@ -9,6 +9,8 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import main.java.org.example.utils.Utils;
+
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -16,9 +18,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
-// http://localhost:8080/2025_fall_cs_122b_marjoe_war/api/movie
-// http://localhost:8080/2025_fall_cs_122b_marjoe_war/api/movie?id=tt0112912
-// http://localhost:8080/2025_fall_cs_122b_marjoe_war/movie.html
+// http://localhost:8080/api/movie
+// http://localhost:8080/api/movie?id=tt0112912
+// http://localhost:8080/html/customer/movie.html?id=tt0112912
 // This annotation maps this Java Servlet Class to a URL
 @WebServlet(name = "SingleMovieServlet", urlPatterns = "/api/movie")
 public class SingleMovieServlet extends HttpServlet {
