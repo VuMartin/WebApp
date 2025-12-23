@@ -33,15 +33,13 @@ public class MySQLSingleStarRetriever implements SingleStarRetriever {
 
     @Override
     public JsonObject getSingleStar(String starId) throws SQLException {
-        JsonObject result;
+        SingleStarPojo singleStarPojo = SingleStarPojo.builder()
+                .setStarId(starId);  // from request
         // Get a connection from dataSource and let resource manager close the connection after usage
         try (Connection conn = dataSource.getConnection();
              PreparedStatement statement = conn.prepareStatement(SELECT_MOVIE_BY_ID);) {
             statement.setString(1, starId);
             try (ResultSet rs = statement.executeQuery()) {
-                SingleStarPojo singleStarPojo = SingleStarPojo.builder()
-                        .setStarId(starId); // from request
-
                 String birthYearOut = "N/A";
                 boolean found = false;
 
@@ -60,10 +58,8 @@ public class MySQLSingleStarRetriever implements SingleStarRetriever {
                         singleStarPojo.addMovie(movieID, title);
                     }
                 }
-
-                result = singleStarPojo.toJson();
             }
         }
-        return result;
+        return singleStarPojo.toJson();
     }
 }
