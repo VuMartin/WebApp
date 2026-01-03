@@ -59,8 +59,8 @@ function handleResult(resultData) {
     // Stars (sorted server-side)
     const starsEl = $("#movieStars").empty();
     (resultData.movieStars || []).forEach((s, i) => {
-        $("<a>").text(s.name)
-            .attr("href", "/html/customer/star.html?id=" + encodeURIComponent(s.id))
+        $("<a>").text(s.star_name)
+            .attr("href", "/html/customer/star.html?id=" + encodeURIComponent(s.star_id))
             .appendTo(starsEl);
         if (i < resultData.movieStars.length - 1) starsEl.append(", ");
     });

@@ -1,7 +1,8 @@
 package main.java.org.example.servlets.customer.SingleStar;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import main.java.org.example.Pojo.MoviePojo;
+import main.java.org.example.Pojo.StarPojo;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -33,7 +34,7 @@ public class MySQLSingleStarRetriever implements SingleStarRetriever {
 
     @Override
     public JsonObject getSingleStar(String starId) throws SQLException {
-        SingleStarPojo singleStarPojo = SingleStarPojo.builder()
+        StarPojo starPojo = StarPojo.builder()
                 .setStarId(starId);  // from request
         // Get a connection from dataSource and let resource manager close the connection after usage
         try (Connection conn = dataSource.getConnection();
@@ -45,21 +46,23 @@ public class MySQLSingleStarRetriever implements SingleStarRetriever {
 
                 while (rs.next()) {
                     if (!found) {
-                        singleStarPojo
+                        starPojo
                                 .setStarName(rs.getString("name"));
                         int by = rs.getInt("birth_year");
                         if (!rs.wasNull()) birthYearOut = String.valueOf(by);
-                        singleStarPojo.setStarBirthYear(birthYearOut);
+                        starPojo.setStarBirthYear(birthYearOut);
                         found = true;
                     }
                     String movieID = rs.getString("mid");
                     String title = rs.getString("title");
                     if (movieID != null && title != null) {
-                        singleStarPojo.addMovie(movieID, title);
+                        starPojo.addMovie(MoviePojo.builder()
+                                .setId(movieID)
+                                .setTitle(title));
                     }
                 }
             }
         }
-        return singleStarPojo.toJson();
+        return starPojo.toJson();
     }
 }

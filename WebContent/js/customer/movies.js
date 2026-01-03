@@ -217,32 +217,26 @@ function handleResult(resultData) {
         rowHTML += "<td>" + movie["movieDirector"] + "</td>";
 
         let genreLinks = "";
-        if (movie["movieGenres"]) {
-            let genresData = movie["movieGenres"].split(", ");
-            for (let j = 0; j < genresData.length; j++) {
-                let genre = genresData[j];
-                genreLinks += "<a href='/html/customer/movies.html?genre=" + encodeURIComponent(genre) + "'>" + genre + "</a>";
-                if (j + 1 < genresData.length) genreLinks += ", ";
-            }
+        if (movie.movieGenres && movie.movieGenres.length > 0) {
+            movie.movieGenres.forEach((g, i) => {
+                genreLinks += `<a href="/html/customer/movies.html?genre=${encodeURIComponent(g.id)}">${g.name}</a>`;
+                if (i + 1 < movie.movieGenres.length) genreLinks += ", ";
+            });
         } else {
             genreLinks = "N/A";
         }
-        rowHTML += "<td>" + genreLinks + "</td>";
+        rowHTML += `<td>${genreLinks}</td>`;
 
         let starLinks = "";
-        if (movie["movieStars"]) {
-            let starsData = movie["movieStars"].split(", ");  // ["Fred Astaire", "nm0000001", "Ginger Rogers", "nm0000002"]
-            console.log(starsData);
-            for (let j = 0; j < starsData.length; j += 2) {
-                let name = starsData[j];
-                let id = starsData[j + 1];
-                starLinks += "<a href='/html/customer/star.html?id=" + encodeURIComponent(id) + "'>" + name + "</a>";
-                if (j + 2 < starsData.length) starLinks += ", ";
-            }
+        if (movie.movieStars && movie.movieStars.length > 0) {
+            movie.movieStars.forEach((s, i) => {
+                starLinks += `<a href="/html/customer/star.html?id=${encodeURIComponent(s.star_id)}">${s.star_name}</a>`;
+                if (i + 1 < movie.movieStars.length) starLinks += ", ";
+            });
         } else {
             starLinks = "N/A";
         }
-        rowHTML += "<td>" + starLinks + "</td>";
+        rowHTML += `<td>${starLinks}</td>`;
         rowHTML += "<td>⭐️ " + (movie["movieRating"] !== "N/A" ? movie["movieRating"] + "/10" : "N/A") + "</td>";
         rowHTML += "</tr>";
 

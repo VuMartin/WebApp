@@ -1,4 +1,4 @@
-package main.java.org.example.servlets.customer.SingleMovie;
+package main.java.org.example.Pojo;
 
 import com.google.gson.JsonObject;
 

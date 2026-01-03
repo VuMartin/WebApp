@@ -1,6 +1,9 @@
 package main.java.org.example.servlets.customer.SingleMovie;
 
 import com.google.gson.JsonObject;
+import main.java.org.example.Pojo.GenrePojo;
+import main.java.org.example.Pojo.MoviePojo;
+import main.java.org.example.Pojo.StarPojo;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -51,7 +54,7 @@ public class MySQLSingleMovieRetriever implements SingleMovieRetriever {
 
     @Override
     public JsonObject getSingleMovie(String movieId) throws SQLException {
-        SingleMoviePojo movie = SingleMoviePojo.builder()
+        MoviePojo movie = MoviePojo.builder()
                 .setId(movieId);
         try (Connection conn = dataSource.getConnection()) {
             try (PreparedStatement ps = conn.prepareStatement(MOVIE_SQL)) {
@@ -87,8 +90,8 @@ public class MySQLSingleMovieRetriever implements SingleMovieRetriever {
                     while (rs.next()) {
                         movie.addStar(
                                 StarPojo.builder()
-                                        .setId(rs.getString("id"))
-                                        .setName(rs.getString("name"))
+                                        .setStarId(rs.getString("id"))
+                                        .setStarName(rs.getString("name"))
                                         .setMovieCount(rs.getInt("movie_count"))
                         );
                     }

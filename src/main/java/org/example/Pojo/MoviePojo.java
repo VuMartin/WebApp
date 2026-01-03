@@ -1,9 +1,9 @@
-package main.java.org.example.servlets.customer.SingleMovie;
+package main.java.org.example.Pojo;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
-public class SingleMoviePojo {
+public class MoviePojo {
 
     private String id;
     private String title;
@@ -14,33 +14,33 @@ public class SingleMoviePojo {
     private final JsonArray genres = new JsonArray();
     private final JsonArray stars = new JsonArray();
 
-    private SingleMoviePojo() {}
+    private MoviePojo() {}
 
-    public static SingleMoviePojo builder() {
-        return new SingleMoviePojo();
+    public static MoviePojo builder() {
+        return new MoviePojo();
     }
 
-    public SingleMoviePojo setId(String id) {
+    public MoviePojo setId(String id) {
         this.id = id;
         return this;
     }
 
-    public SingleMoviePojo setTitle(String title) {
+    public MoviePojo setTitle(String title) {
         this.title = title;
         return this;
     }
 
-    public SingleMoviePojo setYear(String year) {
+    public MoviePojo setYear(String year) {
         this.year = year;
         return this;
     }
 
-    public SingleMoviePojo setDirector(String director) {
+    public MoviePojo setDirector(String director) {
         this.director = director;
         return this;
     }
 
-    public SingleMoviePojo setRating(String rating) {
+    public MoviePojo setRating(String rating) {
         this.rating = rating;
         return this;
     }
