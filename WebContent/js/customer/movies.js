@@ -219,7 +219,7 @@ function handleResult(resultData) {
         let genreLinks = "";
         if (movie.movieGenres && movie.movieGenres.length > 0) {
             movie.movieGenres.forEach((g, i) => {
-                genreLinks += `<a href="/html/customer/movies.html?genre=${encodeURIComponent(g.id)}">${g.name}</a>`;
+                genreLinks += `<a href="/html/customer/movies.html?genre=${encodeURIComponent(g.name)}">${g.name}</a>`;
                 if (i + 1 < movie.movieGenres.length) genreLinks += ", ";
             });
         } else {

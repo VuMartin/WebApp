@@ -117,9 +117,6 @@ public class MySQLMovieListRetriever implements MovieListRetriever {
             int offset
     ) throws SQLException {
 
-        JsonObject result = new JsonObject();
-        JsonArray moviesArray = new JsonArray();
-
         try (Connection conn = dataSource.getConnection()) {
             Statement stmt = conn.createStatement();
             stmt.execute(DROP_TEMP);
