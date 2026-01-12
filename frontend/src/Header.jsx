@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import $ from 'jquery';
+import 'devbridge-autocomplete';
 import './App.css';
 
 function Header() {
@@ -35,8 +36,8 @@ function Header() {
         const searchInput = document.getElementById('search-input');
         const selectedSuggestion = $(searchInput).data('autocomplete')?.selectedItem;
 
-        // if (selectedSuggestion)
-        //     window.location.href = `/html/customer/movie.html?id=${selectedSuggestion.data.movieId}`;
+        if (selectedSuggestion)
+            window.location.href = `/html/customer/movie.html?id=${selectedSuggestion.data.movieId}`;
         handleNormalSearch();
     };
 
@@ -58,21 +59,21 @@ function Header() {
         window.location.href = url;
     };
 
-    // useEffect(() => {
-    //     if (searchInputRef.current) {
-    //         $(searchInputRef.current).autocomplete({
-    //             lookup: function(query, doneCallback) {
-    //                 handleLookup(query, doneCallback);
-    //             },
-    //             onSelect: function(suggestion) {
-    //                 handleSelectSuggestion(suggestion);
-    //             },
-    //             deferRequestBy: 300,
-    //             minChars: 3,
-    //             triggerSelectOnValidInput: false
-    //         });
-    //     }
-    // }, []);
+    useEffect(() => {
+        if (searchInputRef.current) {
+            $(searchInputRef.current).autocomplete({
+                lookup: function(query, doneCallback) {
+                    handleLookup(query, doneCallback);
+                },
+                onSelect: function(suggestion) {
+                    handleSelectSuggestion(suggestion);
+                },
+                deferRequestBy: 300,
+                minChars: 3,
+                triggerSelectOnValidInput: false
+            });
+        }
+    }, []);
 
     const handleLookup = (query, doneCallback) => {
         const cached = getCachedSuggestions(query);

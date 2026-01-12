@@ -1,4 +1,5 @@
 import Header from './Header'
+import Browse from './Browse'
 import React, { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
@@ -42,6 +43,7 @@ function MainPage() {
                 </div>
                 <div id="browse-placeholder"></div>
             </div>
+            <Browse />
         </>
     );
 }
