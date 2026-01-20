@@ -46,12 +46,12 @@ public class LoginServlet extends HttpServlet {
         PrintWriter out = response.getWriter();
         JsonObject jsonObject = new JsonObject();
         String gRecaptchaResponse = request.getParameter("g-recaptcha-response");
-//        if (!RecaptchaVerify.verify(gRecaptchaResponse)) {
-//            jsonObject.addProperty("status", "error");
-//            jsonObject.addProperty("message", "reCAPTCHA verification failed.");
-//            writeResponse(out, response, jsonObject);
-//            return;
-//        }
+        if (!RecaptchaVerify.verify(gRecaptchaResponse)) {
+            jsonObject.addProperty("status", "error");
+            jsonObject.addProperty("message", "reCAPTCHA verification failed.");
+            writeResponse(out, response, jsonObject);
+            return;
+        }
         String guest = request.getParameter("guest");
         if ("true".equals(guest)) {
             HttpSession session = request.getSession();

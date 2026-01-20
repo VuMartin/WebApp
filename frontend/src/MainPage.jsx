@@ -5,18 +5,9 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 
 function MainPage() {
-    const [cartCount, setCartCount] = useState(0)
-
-    useEffect(() => {
-        fetch('/api/cart')
-            .then(response => response.json())
-            .then(cartData => {
-                setCartCount(cartData.totalItems || 0);
-            });
-    }, []);
     return (
         <>
-            <Header cartCount={cartCount} />
+            <Header />
             <div id="login-header">
                 <div id="header-placeholder"></div>
                 <p id="welcome-main">
@@ -39,7 +30,7 @@ function MainPage() {
                     </div>
                 </div>
                 <div className="more-link">
-                    <a href="html/customer/movies.html">More &raquo;</a>
+                    <a href="/movies">More &raquo;</a>
                 </div>
                 <div id="browse-placeholder"></div>
             </div>
