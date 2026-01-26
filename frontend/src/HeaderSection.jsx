@@ -1,11 +1,11 @@
-// Header.jsx
+// HeaderSection.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import $ from 'jquery';
 import 'devbridge-autocomplete';
 import './App.css';
 
-function Header() {
+function HeaderSection() {
     const [cartCount, setCartCount] = useState(0);
     const [firstName, setFirstName] = useState('');
     const [dropdownVisible, setDropdownVisible] = useState(false);
@@ -112,8 +112,11 @@ function Header() {
     return (
         <header id="movie-page-header">
             {showBackArrow && <span className="arrow">←</span>}
-            {showBackArrow && <a href="/html/customer/movies.html?restore=true" className="back-link">Back</a>}
-
+            {showBackArrow && (
+                <Link to="/movies?restore=true" className="back-link">
+                    Back
+                </Link>
+            )}
             <h1 id="site-name">
                 <a href="/main">FABFLIX</a>
             </h1>
@@ -144,7 +147,7 @@ function Header() {
             </form>
 
             <div id="user-dropdown">
-                <a href="/html/customer/cart.html" id="cart-link">
+                <a href="/cart" id="cart-link">
                     <img id="cart-icon" src="/images/cart-icon.png" alt="Cart" />
                     <span id="cart-count">{cartCount}</span>
                 </a>
@@ -163,4 +166,4 @@ function Header() {
     );
 }
 
-export default Header;
+export default HeaderSection;

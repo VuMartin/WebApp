@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import Header from './Header'
-import Browse from './Browse'
+import HeaderSection from './HeaderSection'
+import BrowseSection from './BrowseSection'
 import './App.css';
+import {Link} from "react-router-dom";
 
 function MovieListPage() {
     const [currentPage, setCurrentPage] = useState(1);
@@ -30,44 +31,44 @@ function MovieListPage() {
         prefix: getQueryParam("prefix")
     };
 
-    const handleSortClick = (groupIndex, optionIndex, field, order) => {
-        // Update sort config based on which group was clicked
+    const handleSortClick = (groupIndex, field, order) => {
         if (groupIndex === 0) {
-            setSortConfig(prev => ({
-                ...prev,
+            setSortConfig({
                 primaryField: field,
-                primaryOrder: field === 'rating' ? sortConfig.primaryOrder : 'asc'
-            }));
-        } else if (groupIndex === 1 && field === 'rating') {
-            setSortConfig(prev => ({ ...prev, primaryOrder: order }));
-        } else if (groupIndex === 2 && field === 'title') {
+                primaryOrder: field === 'rating' ? 'desc' : 'asc',
+                secondaryField: field === 'rating' ? 'title' : 'rating',
+                secondaryOrder: field === 'rating' ? 'asc' : 'desc'
+            });
+        } else if (groupIndex === 1) {
             setSortConfig(prev => ({
                 ...prev,
-                secondaryOrder: order,
-                primaryOrder: prev.primaryField === 'title' ? order : prev.primaryOrder
+                primaryOrder: prev.primaryField === 'rating' ? order : prev.primaryOrder,
+                secondaryOrder: prev.secondaryField === 'rating' ? order : prev.secondaryOrder
+            }));
+        } else if (groupIndex === 2) {
+            setSortConfig(prev => ({
+                ...prev,
+                primaryOrder: prev.primaryField === 'title' ? order : prev.primaryOrder,
+                secondaryOrder: prev.secondaryField === 'title' ? order : prev.secondaryOrder
             }));
         }
-        fetchMovies();
     };
 
     const handlePrevPage = () => {
         if (currentPage > 1) {
             setCurrentPage(prev => prev - 1);
         }
-        fetchMovies();
     };
 
     const handleNextPage = () => {
         if (currentPage < totalPages) {
             setCurrentPage(prev => prev + 1);
         }
-        fetchMovies();
     };
 
     const handlePageSizeChange = (e) => {
         setPageSize(parseInt(e.target.value));
         setCurrentPage(1);
-        fetchMovies();
     };
 
     // Set page heading based on query params
@@ -112,15 +113,6 @@ function MovieListPage() {
         const queryString = q.toString();
         return queryString ? `/api/topmovies?${queryString}&${baseParams}` : `/api/topmovies?${baseParams}`;
     }, [currentPage, pageSize]);
-
-    const restoreSortOptions = (data) => {
-        setSortConfig({
-            primaryField: data.sortPrimaryField,
-            primaryOrder: data.sortPrimaryOrder,
-            secondaryField: data.sortSecondaryField,
-            secondaryOrder: data.sortSecondaryOrder
-        });
-    };
 
     const updatePagination = useCallback((data) => {
         const serverTotal = Number(data.totalCount);
@@ -173,13 +165,11 @@ function MovieListPage() {
         };
 
         const url = buildApiUrl(params, sort, params.restore);
-
         try {
             const res = await fetch(url);
             const resultData = await res.json();
 
             handleResult(resultData);
-            restoreSortOptions(resultData);
             updatePagination(resultData);
             updateCartCountFromServer();
 
@@ -199,13 +189,13 @@ function MovieListPage() {
         } catch (error) {
             console.error("Movies fetch failed:", error);
         }
-    }, [sortConfig, buildApiUrl, handleResult, restoreSortOptions, updatePagination, updateCartCountFromServer]);
+    }, [sortConfig, buildApiUrl, handleResult, updatePagination, updateCartCountFromServer]);
     useEffect(() => {
         fetchMovies();
-    }, []);
+    }, [sortConfig, currentPage, pageSize]);
     return (
         <>
-            <Header />
+            <HeaderSection />
             <div className="main-content">
                 <div className="container">
                     <div className="header-row">
@@ -216,57 +206,71 @@ function MovieListPage() {
                                 <span className="sort-label">Sorted By:</span>
                                 <span
                                     className={`sort-option ${sortConfig.primaryField === 'rating' ? 'selected' : ''}`}
-                                    onClick={() => handleSortClick(0, 0, 'rating', sortConfig.primaryOrder)}
-                                    data-field="rating"
+                                    onClick={() => handleSortClick(0, 'rating', sortConfig.primaryOrder)}
                                 >
-            Rating
-        </span>
+                                    Rating
+                                </span>
                                 <span
                                     className={`sort-option ${sortConfig.primaryField === 'title' ? 'selected' : ''}`}
-                                    onClick={() => handleSortClick(0, 1, 'title', sortConfig.secondaryOrder)}
-                                    data-field="title"
+                                    onClick={() => handleSortClick(0, 'title', sortConfig.primaryOrder)}
                                 >
-            Title
-        </span>
+                                Title
+                            </span>
                             </div>
                             <div className="sort-group">
                                 <span className="sort-label">Rating:</span>
                                 <span
-                                    className={`sort-option ${sortConfig.primaryOrder === 'asc' && sortConfig.primaryField === 'rating' ? 'selected' : ''}`}
-                                    onClick={() => handleSortClick(1, 0, 'rating', 'asc')}
-                                    data-field="rating"
-                                    data-order="asc"
+                                    className={`sort-option ${
+                                        (
+                                            (sortConfig.primaryField === 'rating' && sortConfig.primaryOrder === 'asc') ||
+                                            (sortConfig.secondaryField === 'rating' && sortConfig.secondaryOrder === 'asc')
+                                        )
+                                            ? 'selected' : ''
+                                    }`}
+                                    onClick={() => handleSortClick(1, 'rating', 'asc')}
                                 >
-            Ascending ↑
-        </span>
+                                    Ascending ↑
+                                </span>
                                 <span
-                                    className={`sort-option ${sortConfig.primaryOrder === 'desc' && sortConfig.primaryField === 'rating' ? 'selected' : ''}`}
-                                    onClick={() => handleSortClick(1, 1, 'rating', 'desc')}
-                                    data-field="rating"
-                                    data-order="desc"
+                                    className={`sort-option ${
+                                        (
+                                            (sortConfig.primaryField === 'rating' && sortConfig.primaryOrder === 'desc') ||
+                                            (sortConfig.secondaryField === 'rating' && sortConfig.secondaryOrder === 'desc')
+                                        )
+                                            ? 'selected' : ''
+                                    }`}
+                                    onClick={() => handleSortClick(1, sortConfig.primaryField, 'desc')}
                                 >
-            Descending ↓
-        </span>
+                                Descending ↓
+                            </span>
                             </div>
 
                             <div className="sort-group">
                                 <span className="sort-label">Title:</span>
                                 <span
-                                    className={`sort-option ${(sortConfig.primaryField === 'title' && sortConfig.primaryOrder === 'asc') || (sortConfig.secondaryOrder === 'asc') ? 'selected' : ''}`}
-                                    onClick={() => handleSortClick(2, 0, 'title', 'asc')}
-                                    data-field="title"
-                                    data-order="asc"
+                                    className={`sort-option ${
+                                        (
+                                            (sortConfig.primaryField === 'title' && sortConfig.primaryOrder === 'asc') ||
+                                            (sortConfig.secondaryField === 'title' && sortConfig.secondaryOrder === 'asc')
+                                        )
+                                            ? 'selected' : ''
+                                    }`}
+                                    onClick={() => handleSortClick(2, sortConfig.primaryField, 'asc')}
                                 >
-            Ascending ↑
-        </span>
+                                  Ascending ↑
+                                </span>
                                 <span
-                                    className={`sort-option ${(sortConfig.primaryField === 'title' && sortConfig.primaryOrder === 'desc') || (sortConfig.secondaryOrder === 'desc') ? 'selected' : ''}`}
-                                    onClick={() => handleSortClick(2, 1, 'title', 'desc')}
-                                    data-field="title"
-                                    data-order="desc"
+                                    className={`sort-option ${
+                                        (
+                                            (sortConfig.primaryField === 'title' && sortConfig.primaryOrder === 'desc') ||
+                                            (sortConfig.secondaryField === 'title' && sortConfig.secondaryOrder === 'desc')
+                                        )
+                                            ? 'selected' : ''
+                                    }`}
+                                    onClick={() => handleSortClick(2, sortConfig.primaryField, 'desc')}
                                 >
-            Descending ↓
-        </span>
+                                    Descending ↓
+                                </span>
                             </div>
 
                             <div className="sort-group">
@@ -307,31 +311,31 @@ function MovieListPage() {
                                     <div className="cart-message" id={`message-${movie.movieID}`}></div>
                                 </td>
                                 <td>
-                                    {((currentPage - 1) * pageSize + index + 1)}.
-                                    <a href={`/html/customer/movie.html?id=${movie.movieID}`}>
+                                    {((currentPage - 1) * pageSize + index + 1)}.{' '}
+                                    <Link to={`/movie/${movie.movieID}`}>
                                         {movie.movieTitle}
-                                    </a>
+                                    </Link>
                                 </td>
                                 <td>{movie.movieYear}</td>
                                 <td>{movie.movieDirector}</td>
                                 <td>
                                     {movie.movieGenres?.map((g, i) => (
-                                        <React.Fragment key={g.name}>
-                                            <a href={`/html/customer/movies.html?genre=${g.name}`}>
+                                        <span key={g.name}>
+                                            <a href={`/genre=${g.name}`}>
                                                 {g.name}
                                             </a>
                                             {i < movie.movieGenres.length - 1 && ', '}
-                                        </React.Fragment>
+                                        </span>
                                     )) || 'N/A'}
                                 </td>
                                 <td>
                                     {movie.movieStars?.map((s, i) => (
-                                        <React.Fragment key={s.star_id}>
-                                            <a href={`/html/customer/star.html?id=${s.star_id}`}>
+                                        <span key={s.star_id}>
+                                            <a href={`/=${s.star_id}`}>
                                                 {s.star_name}
                                             </a>
                                             {i < movie.movieStars.length - 1 && ', '}
-                                        </React.Fragment>
+                                        </span>
                                     )) || 'N/A'}
                                 </td>
                                 <td>
@@ -349,7 +353,7 @@ function MovieListPage() {
                     <button id="next-page" onClick={handleNextPage}>›</button>
                 </div>
             </div>
-            <Browse />
+            <BrowseSection />
         </>
     );
 }

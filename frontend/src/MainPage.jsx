@@ -1,5 +1,5 @@
-import Header from './Header'
-import Browse from './Browse'
+import HeaderSection from './HeaderSection'
+import BrowseSection from './BrowseSection'
 import React, { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
@@ -7,7 +7,7 @@ import './App.css';
 function MainPage() {
     return (
         <>
-            <Header />
+            <HeaderSection />
             <div id="login-header">
                 <div id="header-placeholder"></div>
                 <p id="welcome-main">
@@ -34,7 +34,7 @@ function MainPage() {
                 </div>
                 <div id="browse-placeholder"></div>
             </div>
-            <Browse />
+            <BrowseSection />
         </>
     );
 }

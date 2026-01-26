@@ -1,9 +1,9 @@
-// Browse.jsx
+// BrowseSection.jsx
 import React, { useState, useEffect } from 'react';
 import $ from 'jquery';
 import './App.css';
 
-function Browse() {
+function BrowseSection() {
     const [genres, setGenres] = useState([]);
 
     useEffect(() => {
@@ -55,4 +55,4 @@ function Browse() {
     );
 }
 
-export default Browse;
+export default BrowseSection;
