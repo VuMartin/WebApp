@@ -27,7 +27,8 @@ public class RecaptchaVerify {
         // The verify ReCaptcha request is sent as a URL and parameters
 //        String secretKey = System.getenv("RECAPTCHA_SECRET");
 //        String postParams = "secret=" + secretKey + "&response=" + gRecaptchaResponse;
-        String postParams = "secret=" + "6LdL4fkrAAAAADz4nHjDV41wow-oiivSgR4EAqn_" + "&response=" + gRecaptchaResponse;
+        String secret = System.getenv("RECAPTCHA_SECRET_KEY");
+        String postParams = "secret=" + secret + "&response=" + gRecaptchaResponse;
         // Send Request
         httpsURLConnection.setDoOutput(true);
 

@@ -34,8 +34,8 @@ function MoviePage() {
         })
             .then(res => res.json());
     };
-    if (!movie) return;
 
+    if (!movie) return;
 
     return (
         <>
@@ -50,7 +50,7 @@ function MoviePage() {
                     <p>Genres: <span id="movieGenres">
                         {movie.movieGenres?.map((genre, index) => (
                             <React.Fragment key={genre.name}>
-                                <a href={`/html/customer/movies.html?genre=${encodeURIComponent(genre.name)}`}>
+                                <a href={`/genre=${encodeURIComponent(genre.name)}`}>
                                     {genre.name}
                                 </a>
                                 {index < movie.movieGenres.length - 1 && ', '}
@@ -60,7 +60,7 @@ function MoviePage() {
                     <p>Stars: <span id="movieStars">
                         {movie.movieStars?.map((star, index) => (
                             <React.Fragment key={star.star_id}>
-                                <a href={`/html/customer/star.html?id=${encodeURIComponent(star.star_id)}`}>
+                                <a href={`/star.html?id=${encodeURIComponent(star.star_id)}`}>
                                     {star.star_name}
                                 </a>
                                 {index < movie.movieStars.length - 1 && ', '}

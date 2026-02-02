@@ -83,8 +83,8 @@ function LoginPage() {
                         />
                         <ReCAPTCHA
                             ref={recaptchaRef}
-                            sitekey="6LdL4fkrAAAAACy2g32scZf-ZxLxewh1fUatlSZd"
-                            // sitekey="6LfeKi4sAAAAAHhdSvRCccKxxz4I4UKbejUCNBxP"
+                            sitekey="6LdyE14sAAAAAMMepUoR-UWeZL8H1uHtBLfos2bX"
+                            // sitekey="6LfeKi4sAAAAAHhdSvRCccKxxz4I4UKbejUCNBxP"  // aws
                             size="normal"
                         />
 

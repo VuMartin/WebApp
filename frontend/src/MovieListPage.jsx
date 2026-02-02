@@ -320,22 +320,22 @@ function MovieListPage() {
                                 <td>{movie.movieDirector}</td>
                                 <td>
                                     {movie.movieGenres?.map((g, i) => (
-                                        <span key={g.name}>
+                                        <React.Fragment key={g.name}>
                                             <a href={`/genre=${g.name}`}>
                                                 {g.name}
                                             </a>
                                             {i < movie.movieGenres.length - 1 && ', '}
-                                        </span>
+                                        </React.Fragment>
                                     )) || 'N/A'}
                                 </td>
                                 <td>
                                     {movie.movieStars?.map((s, i) => (
-                                        <span key={s.star_id}>
+                                        <React.Fragment key={s.star_id}>
                                             <a href={`/=${s.star_id}`}>
                                                 {s.star_name}
                                             </a>
                                             {i < movie.movieStars.length - 1 && ', '}
-                                        </span>
+                                        </React.Fragment>
                                     )) || 'N/A'}
                                 </td>
                                 <td>
