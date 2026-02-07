@@ -5,7 +5,6 @@ import com.google.gson.JsonArray;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.HashSet;
 
 public class MovieListPojo {
 

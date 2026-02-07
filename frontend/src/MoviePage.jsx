@@ -60,7 +60,7 @@ function MoviePage() {
                     <p>Stars: <span id="movieStars">
                         {movie.movieStars?.map((star, index) => (
                             <React.Fragment key={star.star_id}>
-                                <a href={`/star.html?id=${encodeURIComponent(star.star_id)}`}>
+                                <a href={`/star/${star.star_id}`}>
                                     {star.star_name}
                                 </a>
                                 {index < movie.movieStars.length - 1 && ', '}
