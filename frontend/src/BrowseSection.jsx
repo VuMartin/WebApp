@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import $ from 'jquery';
 import './App.css';
+import {Link} from "react-router-dom";
 
 function BrowseSection() {
     const [genres, setGenres] = useState([]);
@@ -30,10 +31,13 @@ function BrowseSection() {
             <div className="genre-section">
                 <ul id="genresList" className="genre-list">
                     {genres.map((genre, index) => (
-                        <li key={index}>
-                            <a href={`/html/customer/movies.html?genre=${encodeURIComponent(genre.name)}`}>
+                        <li key={genre.name}>
+                            <Link
+                                to={`/movies?genre=${genre.name}`}
+                                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                            >
                                 {genre.name}
-                            </a>
+                            </Link>
                         </li>
                     ))}
                 </ul>
@@ -43,10 +47,12 @@ function BrowseSection() {
                 <div className="main-title">Titles</div>
                 <ul id="alphaList" className="alpha-list">
                     {alphaLinks.map((letter, index) => (
-                        <li key={index}>
-                            <a href={`/html/customer/movies.html?prefix=${encodeURIComponent(letter)}`}>
+                        <li key={letter}>
+                            <Link to={`/movies?prefix=${letter}`}
+                            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                            >
                                 {letter}
-                            </a>
+                            </Link>
                         </li>
                     ))}
                 </ul>

@@ -182,7 +182,9 @@ public class MySQLMovieListRetriever implements MovieListRetriever {
                     .setSortPrimaryOrder(sortPrimaryOrder)
                     .setSortSecondaryField(sortSecondaryField)
                     .setSortSecondaryOrder(sortSecondaryOrder)
-                    .setPrefix(prefix);
+                    .setPrefix(prefix)
+                    .setGenre(genre)
+                    .setOffset(offset);
 
             while (rs.next()) {
                 // get a movie from result set

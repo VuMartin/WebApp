@@ -12,7 +12,9 @@ function HeaderSection() {
     const [searchOptionsVisible, setSearchOptionsVisible] = useState(false);
     const searchInputRef = useRef();
     const location = useLocation();
+    const params = new URLSearchParams(location.search);
     const showBackArrow = !(location.pathname === '/main' || location.pathname === '/movies');
+    const onGenreOrPrefix = location.pathname === '/movies' && (params.get('genre') || params.get('prefix'));
 
     useEffect(() => {
         // Load cart count
@@ -111,12 +113,12 @@ function HeaderSection() {
 
     return (
         <header id="movie-page-header">
-            {showBackArrow && <span className="arrow">←</span>}
-            {showBackArrow && (
-                <Link to="/movies?restore=true" className="back-link">
-                    Back
-                </Link>
-            )}
+            {(showBackArrow || onGenreOrPrefix) && <span className="arrow">←</span>}
+            {onGenreOrPrefix ? (
+                <Link to="/movies" className="back-link"> Back </Link>
+            ) : showBackArrow ? (
+                <Link to="/movies?restore=true" className="back-link"> Back </Link>
+            ) : null}
             <h1 id="site-name">
                 <a href="/main">FABFLIX</a>
             </h1>

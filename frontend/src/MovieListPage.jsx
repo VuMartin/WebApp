@@ -3,6 +3,7 @@ import HeaderSection from './HeaderSection'
 import BrowseSection from './BrowseSection'
 import './App.css';
 import {Link} from "react-router-dom";
+import {useLocation} from "react-router-dom";
 
 function MovieListPage() {
     const [currentPage, setCurrentPage] = useState(1);
@@ -16,6 +17,7 @@ function MovieListPage() {
     });
     const [movies, setMovies] = useState([]);
     const [pageHeading, setPageHeading] = useState("Top Rated Movies");
+    const location = useLocation();
 
     const getQueryParam = (name) => {
         const urlParams = new URLSearchParams(window.location.search);
@@ -71,7 +73,7 @@ function MovieListPage() {
         setCurrentPage(1);
     };
 
-    // Set page heading based on query params
+    // set page heading based on query params
     useEffect(() => {
         let heading = "Top Rated Movies";
         let title = "Top Rated Movies - Fabflix";
@@ -182,9 +184,11 @@ function MovieListPage() {
                     sortSecondaryField: resultData.sortSecondaryField,
                     sortSecondaryOrder: resultData.sortSecondaryOrder,
                     currentPage: resultData.currentPage
-                }).toString();
-
-                window.history.replaceState(null, "", `?${newParams}`);
+                });
+                if (resultData.genre) newParams.append("genre", resultData.genre);
+                if (resultData.prefix) newParams.append("prefix", resultData.prefix);
+                console.log(resultData);
+                window.history.replaceState(null, "", `/movies?${newParams.toString()}`);
             }
         } catch (error) {
             console.error("Movies fetch failed:", error);
@@ -192,7 +196,7 @@ function MovieListPage() {
     }, [sortConfig, buildApiUrl, handleResult, updatePagination, updateCartCountFromServer]);
     useEffect(() => {
         fetchMovies();
-    }, [sortConfig, currentPage, pageSize]);
+    }, [sortConfig, currentPage, pageSize, location.search]);
     return (
         <>
             <HeaderSection />
@@ -321,9 +325,9 @@ function MovieListPage() {
                                 <td>
                                     {movie.movieGenres?.map((g, i) => (
                                         <React.Fragment key={g.name}>
-                                            <a href={`/genre/${g.name}`}>
+                                            <Link to={`/movies?genre=${g.name}`}>
                                                 {g.name}
-                                            </a>
+                                            </Link>
                                             {i < movie.movieGenres.length - 1 && ', '}
                                         </React.Fragment>
                                     )) || 'N/A'}
@@ -331,9 +335,9 @@ function MovieListPage() {
                                 <td>
                                     {movie.movieStars?.map((s, i) => (
                                         <React.Fragment key={s.star_id}>
-                                            <a href={`/star/${s.star_id}`}>
+                                            <Link to={`/star/${s.star_id}`}>
                                                 {s.star_name}
-                                            </a>
+                                            </Link>
                                             {i < movie.movieStars.length - 1 && ', '}
                                         </React.Fragment>
                                     )) || 'N/A'}

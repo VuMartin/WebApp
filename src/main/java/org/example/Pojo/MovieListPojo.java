@@ -15,6 +15,8 @@ public class MovieListPojo {
     private String sortSecondaryField;
     private String sortSecondaryOrder;
     private String prefix;
+    private String genre;
+    private int offset;
 
     private Set<MoviePojo> movies = new LinkedHashSet<>();
 
@@ -58,6 +60,16 @@ public class MovieListPojo {
         return this;
     }
 
+    public MovieListPojo setGenre(String genre) {
+        this.genre = genre;
+        return this;
+    }
+
+    public MovieListPojo setOffset(int offset) {
+        this.offset = offset;
+        return this;
+    }
+
     public MovieListPojo addMovie(MoviePojo movie) {
         this.movies.add(movie);
         return this;
@@ -72,6 +84,8 @@ public class MovieListPojo {
         obj.addProperty("sortSecondaryField", sortSecondaryField);
         obj.addProperty("sortSecondaryOrder", sortSecondaryOrder);
         obj.addProperty("prefix", prefix);
+        obj.addProperty("genre", genre);
+        obj.addProperty("offset", offset);
 
         JsonArray moviesArray = new JsonArray();
         for (MoviePojo movie : movies) {
