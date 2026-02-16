@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link} from 'react-router-dom';
 import HeaderSection from './HeaderSection';
 import BrowseSection from './BrowseSection';
+import { useCart } from './CartContext';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 
 function MoviePage() {
     const { id } = useParams();
     const [movie, setMovie] = useState(null);
+    const { addToCart } = useCart();
+    const [addedId, setAddedId] = useState(null);
 
     useEffect(() => {
         const loadMovie = async () => {
@@ -19,21 +22,6 @@ function MoviePage() {
         };
         loadMovie();
     }, [id]);
-
-    const handleAddToCart = () => {
-        // Add to cart logic
-        fetch('/api/cart', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams({
-                movieID: id,
-                title: movie.movieTitle,
-                price: 122,
-                action: 'add'
-            })
-        })
-            .then(res => res.json());
-    };
 
     if (!movie) return;
 
@@ -50,9 +38,9 @@ function MoviePage() {
                     <p>Genres: <span id="movieGenres">
                         {movie.movieGenres?.map((genre, index) => (
                             <React.Fragment key={genre.name}>
-                                <a href={`/genre=${encodeURIComponent(genre.name)}`}>
+                                <Link to={`/movies?genre=${encodeURIComponent(genre.name)}`}>
                                     {genre.name}
-                                </a>
+                                </Link>
                                 {index < movie.movieGenres.length - 1 && ', '}
                             </React.Fragment>
                         )) || 'N/A'}
@@ -60,9 +48,9 @@ function MoviePage() {
                     <p>Stars: <span id="movieStars">
                         {movie.movieStars?.map((star, index) => (
                             <React.Fragment key={star.star_id}>
-                                <a href={`/star/${star.star_id}`}>
+                                <Link to={`/star/${star.star_id}`}>
                                     {star.star_name}
-                                </a>
+                                </Link>
                                 {index < movie.movieStars.length - 1 && ', '}
                             </React.Fragment>
                         )) || 'N/A'}
@@ -71,11 +59,17 @@ function MoviePage() {
                     <button
                         id="add-to-cart"
                         className="btn btn-primary"
-                        onClick={handleAddToCart}
+                        onClick={async () => {
+                            await addToCart(movie.movieID, movie.movieTitle, 122);
+                            setAddedId(movie.movieID);
+                            setTimeout(() => setAddedId(null), 1000);
+                        }}
                     >
-                        Add to Cart
+                        Add to cart
                     </button>
-                    <div className="cart-message" id={`message-${movie.movieID}`}></div>
+                    <div className="cart-message">
+                        {addedId === movie.movieID && "✔ Added to cart!"}
+                    </div>
                 </div>
             </div>
             <BrowseSection />

@@ -1,12 +1,13 @@
 // HeaderSection.jsx
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useCart } from "./CartContext";
 import $ from 'jquery';
 import 'devbridge-autocomplete';
 import './App.css';
 
 function HeaderSection() {
-    const [cartCount, setCartCount] = useState(0);
+    const { cartCount } = useCart();
     const [firstName, setFirstName] = useState('');
     const [dropdownVisible, setDropdownVisible] = useState(false);
     const [searchOptionsVisible, setSearchOptionsVisible] = useState(false);
@@ -15,19 +16,16 @@ function HeaderSection() {
     const params = new URLSearchParams(location.search);
     const showBackArrow = !(location.pathname === '/main' || location.pathname === '/movies');
     const onGenreOrPrefix = location.pathname === '/movies' && (params.get('genre') || params.get('prefix'));
+    const navigate = useNavigate();
 
     useEffect(() => {
-        // Load cart count
-        fetch('/api/cart')
-            .then(res => res.json())
-            .then(data => setCartCount(data.totalCount || 0));
         setFirstName(sessionStorage.getItem('firstName') || 'User');
     }, []);
 
     const handleLogout = () => {
         fetch('/api/logout', { method: 'POST' })
             .then(() => {
-                window.location.href = '/';
+                navigate('/');
             })
             .catch(() => alert('Logout failed. Try again.'));
     };
@@ -39,7 +37,7 @@ function HeaderSection() {
         const selectedSuggestion = $(searchInput).data('autocomplete')?.selectedItem;
 
         if (selectedSuggestion)
-            window.location.href = `/html/customer/movie.html?id=${selectedSuggestion.data.movieId}`;
+            navigate(`/movie/${selectedSuggestion.data.movieId}`);
         handleNormalSearch();
     };
 
@@ -49,16 +47,14 @@ function HeaderSection() {
         const director = document.getElementById('search-director').value;
         const star = document.getElementById('search-star').value;
 
-        let url = "/html/customer/movies.html?";
-        if (title) url += `title=${encodeURIComponent(title)}&`;
-        if (year) url += `year=${encodeURIComponent(year)}&`;
-        if (director) url += `director=${encodeURIComponent(director)}&`;
-        if (star) url += `star=${encodeURIComponent(star)}`;
+        let params = new URLSearchParams();
 
-        // Remove trailing & or ?
-        url = url.replace(/[&?]$/, '');
+        if (title) params.set("title", title);
+        if (year) params.set("year", year);
+        if (director) params.set("director", director);
+        if (star) params.set("star", star);
 
-        window.location.href = url;
+        navigate(`/movies?${params.toString()}`);
     };
 
     useEffect(() => {
@@ -97,7 +93,7 @@ function HeaderSection() {
     };
 
     const handleSelectSuggestion = (suggestion) => {
-        window.location.href = `/html/customer/movie.html?id=${suggestion.data.movieId}`;
+        navigate(`/movie/${suggestion.data.movieId}`);
     };
 
     const getCachedSuggestions = (query) => {
@@ -120,7 +116,7 @@ function HeaderSection() {
                 <Link to="/movies?restore=true" className="back-link"> Back </Link>
             ) : null}
             <h1 id="site-name">
-                <a href="/main">FABFLIX</a>
+                <Link to="/main">FABFLIX</Link>
             </h1>
 
             <form id="search-form" onSubmit={handleSearchSubmit}>
@@ -149,10 +145,10 @@ function HeaderSection() {
             </form>
 
             <div id="user-dropdown">
-                <a href="/cart" id="cart-link">
+                <Link to="/cart" id="cart-link">
                     <img id="cart-icon" src="/images/cart-icon.png" alt="Cart" />
                     <span id="cart-count">{cartCount}</span>
-                </a>
+                </Link>
 
                 <span id="username" onClick={() => setDropdownVisible(!dropdownVisible)}>
                     {firstName} ▼

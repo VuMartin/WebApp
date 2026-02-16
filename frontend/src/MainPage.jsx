@@ -1,6 +1,7 @@
 import HeaderSection from './HeaderSection'
 import BrowseSection from './BrowseSection'
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 
@@ -30,7 +31,7 @@ function MainPage() {
                     </div>
                 </div>
                 <div className="more-link">
-                    <a href="/movies">More &raquo;</a>
+                    <Link to="/movies">More &raquo;</Link>
                 </div>
                 <div id="browse-placeholder"></div>
             </div>

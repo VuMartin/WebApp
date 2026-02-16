@@ -5,6 +5,7 @@ public class CartItem {
     private final String title;
     private final double price;
     private int quantity;
+    private String action;
 
     public CartItem(String movieId, String title, double price, int quantity) {
         this.movieID = movieId;
@@ -18,6 +19,7 @@ public class CartItem {
     public String getTitle() { return title; }
     public double getPrice() { return price; }
     public int getQuantity() { return quantity; }
+    public String getAction() { return action; }
 
     // setters
     public void setQuantity(int quantity) { this.quantity = quantity; }

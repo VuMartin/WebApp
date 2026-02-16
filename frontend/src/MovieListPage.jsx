@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import HeaderSection from './HeaderSection'
 import BrowseSection from './BrowseSection'
+import { useCart } from './CartContext';
 import './App.css';
 import {Link} from "react-router-dom";
 import {useLocation} from "react-router-dom";
@@ -18,6 +19,8 @@ function MovieListPage() {
     const [movies, setMovies] = useState([]);
     const [pageHeading, setPageHeading] = useState("Top Rated Movies");
     const location = useLocation();
+    const { addToCart } = useCart();
+    const [addedId, setAddedId] = useState(null);
 
     const getQueryParam = (name) => {
         const urlParams = new URLSearchParams(window.location.search);
@@ -128,14 +131,6 @@ function MovieListPage() {
         }
     }, [currentPage, pageSize]);
 
-    const updateCartCountFromServer = () => {
-        fetch('/api/cart')
-            .then(res => res.json())
-            .then(cartData => {
-                // updateCartCount function would update state
-            });
-    };
-
     const renderPageNumbers = useCallback(() => {
         return `Page ${currentPage} of ${totalPages}`;
     }, [currentPage, totalPages]);
@@ -173,7 +168,6 @@ function MovieListPage() {
 
             handleResult(resultData);
             updatePagination(resultData);
-            updateCartCountFromServer();
 
             if (params.restore === "true") {
                 const newParams = new URLSearchParams({
@@ -193,7 +187,7 @@ function MovieListPage() {
         } catch (error) {
             console.error("Movies fetch failed:", error);
         }
-    }, [sortConfig, buildApiUrl, handleResult, updatePagination, updateCartCountFromServer]);
+    }, [sortConfig, buildApiUrl, handleResult, updatePagination]);
     useEffect(() => {
         fetchMovies();
     }, [sortConfig, currentPage, pageSize, location.search]);
@@ -308,11 +302,18 @@ function MovieListPage() {
                                     $122 <br />
                                     <button
                                         className="btn btn-sm btn-success mt-1"
-                                        // onClick={() => addToCart(movie.movieID, movie.movieTitle, 122)}
+                                        onClick={async () => {
+                                            await addToCart(movie.movieID, movie.movieTitle, 122);
+                                            setAddedId(movie.movieID);
+                                            setTimeout(() => setAddedId(null), 1000);
+                                            console.log(123);
+                                        }}
                                     >
                                         Add
                                     </button>
-                                    <div className="cart-message" id={`message-${movie.movieID}`}></div>
+                                    <div className="cart-message">
+                                        {addedId === movie.movieID && "✔ Added to cart!"}
+                                    </div>
                                 </td>
                                 <td>
                                     {((currentPage - 1) * pageSize + index + 1)}.{' '}

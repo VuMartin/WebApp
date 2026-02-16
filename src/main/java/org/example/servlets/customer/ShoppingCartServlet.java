@@ -1,5 +1,6 @@
 package main.java.org.example.servlets.customer;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import jakarta.servlet.annotation.WebServlet;
@@ -19,10 +20,12 @@ public class ShoppingCartServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
         response.setContentType("application/json"); // JSON output
 
-        String movieID = request.getParameter("movieID");
-        String title = request.getParameter("title");
-        double price = request.getParameter("price") != null ? Double.parseDouble(request.getParameter("price")) : 0;
-        String action = request.getParameter("action");
+        Gson gson = new Gson();
+        CartItem incomingItem = gson.fromJson(request.getReader(), CartItem.class);
+        String movieID = incomingItem.getMovieID();
+        String title = incomingItem.getTitle();
+        double price = incomingItem.getPrice();
+        String action = incomingItem.getAction();
 
         HttpSession session = request.getSession();
         Map<String, CartItem> cart = (Map<String, CartItem>) session.getAttribute("cart");
