@@ -26,6 +26,7 @@ public class ShoppingCartServlet extends HttpServlet {
         String title = incomingItem.getTitle();
         double price = incomingItem.getPrice();
         String action = incomingItem.getAction();
+        int newQty = incomingItem.getQuantity();
 
         HttpSession session = request.getSession();
         Map<String, CartItem> cart = (Map<String, CartItem>) session.getAttribute("cart");
@@ -42,7 +43,6 @@ public class ShoppingCartServlet extends HttpServlet {
                 case "update":
                     CartItem itemToUpdate = cart.get(movieID);
                     if (itemToUpdate != null) {
-                        int newQty = Integer.parseInt(request.getParameter("quantity"));
                         itemToUpdate.setQuantity(newQty);
                     }
                     break;
